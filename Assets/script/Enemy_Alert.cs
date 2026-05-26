@@ -19,15 +19,36 @@ public class Enemy_Alert : MonoBehaviour
     public enum FlankDirection { Left, Right, Direct }
     public FlankDirection moveStyle = FlankDirection.Direct; // ตั้งค่าใน Inspector ของศัตรูแต่ละตัว
 
-    public enum AlertBehave {flank, cover };
-    public AlertBehave Behavior = AlertBehave.flank;
+    public enum AlertBehave {flank, cover, push, surround, closeCom };
+    public AlertBehave CurrentBehavior = AlertBehave.surround;
+
+    public static float MaxAlertTimer = 30;
+    public static float AlertTimer = 0;
+    private bool OnRanDom = false;
+
+    [Header("SurroundPlayer Settings")]
+    public Vector3 surroundTarget;
+    public float DistToPlayer;
+    public float AlertZone = 10f;
+    public float keepDist = 10;
+
+    public float startSurroundRadius = 15f; // ระยะเริ่มล้อมวงนอกสุด
+    public float minSurroundRadius = 5f;    // ระยะบีบเข้ามาใกล้สุด (จุดที่จะหยุดบีบวง)
+    private bool isSurrounding = false;
+    private float actionTimer = 0;
+    private bool hasReachedOuterRing = false; // เช็กว่าไปถึงขอบนอกสุดหรือยัง
+    private float strafeTimer = 0f;           // ตัวนับเวลาสลับซ้ายขวา
+    private float strafeDirection = 1f;       // 1 = ขวา, -1 = ซ้าย
+
+    [Header("AI Settings")]
+    public float updateDelay = 0.5f; // หน่วงเวลา 0.5 วินาที (ปรับแต่งได้ตามความเหมาะสม)
+    private float UpdateTime = 0f;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         enemy_script = GetComponent<enemy>();
         agent = GetComponent<NavMeshAgent>();
-
         
     }
 
@@ -38,11 +59,31 @@ public class Enemy_Alert : MonoBehaviour
         {
             if (enemy_script.currentState == enemy.EnemyState.Alert)
             {
-                //FindCover(); 
-                if (Behavior == AlertBehave.flank) 
+                DistToPlayer = Vector3.Distance(transform.position, enemy_script.playerTransform.position);
+                if (DistToPlayer > AlertZone)
                 {
-                    flank();
-                    //print("iS Flankkkkk");}
+                    UpdateTime = Time.deltaTime;
+                    if(UpdateTime >= updateDelay)
+                     surrondPlayer();
+                     UpdateTime = 0f;
+                    
+                }
+                else
+                {
+                    if (!OnRanDom)
+                    {
+                        OnRanDom = true;
+                        randomBehavior();
+                    }
+                    actionTimer += Time.deltaTime;
+                    if (actionTimer >= 0.5f) // ให้มันคิดหาจุดเดินใหม่ทุกๆ ครึ่งวินาที
+                    {
+                        if (CurrentBehavior == AlertBehave.flank) { flank(); }
+                        else if (CurrentBehavior == AlertBehave.push) { push(); }
+                        else if (CurrentBehavior == AlertBehave.cover) { FindCover(); }
+
+                        actionTimer = 0f; // รีเซ็ตเวลา
+                    }
                 }
             }
         }
@@ -106,12 +147,164 @@ public class Enemy_Alert : MonoBehaviour
             float distToPlayerSide = Vector3.Distance(new Vector3(transform.position.x, 0, transform.position.z),
                                                      new Vector3(hit.position.x, 0, hit.position.z));
 
-            if (distToPlayerSide < 2f)
+            //if (distToPlayerSide < 2f)
+            //{
+                //agent.SetDestination(playerPos);
+                //print("ถึงขอบกำแพงแล้ว! เริ่มตีโอบเข้ากลาง");
+                //CurrentBehavior = AlertBehave.cover;
+            //}
+        }
+    }
+
+    void chasePlayer_keepDist() // เดินหาผู้เล่นแต่ทิ้งระยะจากผู้เล่น
+    {
+        Vector3 playerPos = enemy_script.playerTransform.position;
+
+        // หาเวกเตอร์ทิศทางจากผู้เล่นชี้มาหา AI 
+        Vector3 dirFromPlayerToEnemy = (transform.position - playerPos).normalized;
+
+        // จุดหมาย = ตำแหน่งผู้เล่น ดันออกไปตามระยะ keepDist
+        Vector3 targetPos = playerPos + (dirFromPlayerToEnemy * keepDist);
+
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(targetPos, out hit, 4f, NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+        }
+        else
+        {
+            agent.ResetPath(); // ถ้าติดกำแพงทะลุไม่ได้ ให้หยุดเดิน
+        }
+    }
+
+    void sideStep()
+    {
+        Vector3 playerPos = enemy_script.playerTransform.position;
+
+        // 1. ลอจิกหน่วงเวลาสลับซ้าย-ขวา
+        strafeTimer += Time.deltaTime;
+        if (strafeTimer > 3f) // เปลี่ยนทิศทุกๆ 3 วินาที
+        {
+            strafeDirection = Random.Range(0, 2) == 0 ? 1f : -1f; // สุ่มซ้ายหรือขวา
+            strafeTimer = 0f;
+        }
+
+        // 2. คำนวณทิศทางด้านข้าง
+        Vector3 dirFromPlayerToEnemy = (transform.position - playerPos).normalized;
+        Vector3 strafeDir = Vector3.Cross(dirFromPlayerToEnemy, Vector3.up) * strafeDirection;
+
+        // 3. จุดหมาย = เอา "ตำแหน่งปัจจุบันของ AI" + ขยับออกข้างไปนิดเดียว (เช่น 1.5 เมตร)
+        Vector3 targetPos = transform.position + (strafeDir * 1.5f);
+
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(targetPos, out hit, 4f, NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+        }
+        else
+        {
+            agent.ResetPath();
+        }
+    }
+
+    void push()
+    {
+        agent.SetDestination(enemy_script.playerTransform.position);
+    }
+
+    void surrondPlayer()
+    {
+        Vector3 playerPos = enemy_script.playerTransform.position;
+
+        // =========================================================
+        // เฟส 1: วิ่งไปประจำที่ขอบนอกสุดก่อน 1 ครั้ง
+        // =========================================================
+        if (!hasReachedOuterRing)
+        {
+            if (!isSurrounding)
             {
-                agent.SetDestination(playerPos);
-                print("ถึงขอบกำแพงแล้ว! เริ่มตีโอบเข้ากลาง");
-                Behavior = AlertBehave.cover;
+                surroundTarget = GetRing_RandomPoint(playerPos, startSurroundRadius - 2f, startSurroundRadius);
+                agent.SetDestination(surroundTarget);
+
+                isSurrounding = true;
+                keepDist = startSurroundRadius; // เซ็ตให้เริ่มคุมเชิงจากขอบนอกสุด
+            }
+
+            if (!agent.pathPending && agent.remainingDistance <= 2f)
+            {
+                hasReachedOuterRing = true; // ถึงขอบนอกแล้ว ล็อกสวิตช์เริ่มเฟส 2!
             }
         }
+
+        // =========================================================
+        // เฟส 2: บีบวงล้อม + เรียกใช้ระบบเดินซิกแซก
+        // =========================================================
+        else
+        {
+            // 1. ค่อยๆ บีบวงล้อมให้แคบลงเรื่อยๆ
+            //if (keepDist > minSurroundRadius)
+            //{
+                //keepDist -= Time.deltaTime * 0.5f; // ขยับเข้าหาวินาทีละ 0.5 เมตร
+            //}
+
+            // 2. เรียกใช้ฟังก์ชันนี้ได้เลย! มันจะรักษาระยะ keepDist ควบคู่กับโยกซิกแซกให้เอง
+            chasePlayer_keepDist();
+
+            // 3. ระบบกันเหนียว: ถ้าผู้เล่นวิ่งหนีทะลุวงล้อมไปไกล
+            if (Vector3.Distance(transform.position, playerPos) > startSurroundRadius + 5f)
+            {
+                hasReachedOuterRing = false; // ปลดล็อกกลับไปเริ่มเฟส 1 วิ่งดักหน้าใหม่
+                isSurrounding = false;
+            }
+        }
+    }
+
+    void randomBehavior()
+    {
+        // 1. สุ่มตัวเลขระหว่าง 0 ถึง 100
+        float chance = Random.Range(0f, 100f);
+        if (Enemy_combatManager.Instance.RequestAttackToken(this.gameObject))
+        {
+            // 2. ใช้เงื่อนไขแบ่งเปอร์เซ็นต์ (เช่น ค้นบ้าน 70% / คุมพื้นที่ 30%)
+            if (chance <= 40f)
+            {
+                // โอกาส 70%: ไปค้นตามซอกตึกหรือในบ้าน
+                Debug.Log("AI flank");
+                CurrentBehavior = AlertBehave.flank;
+            }
+            else if (chance <= 60f)
+            {
+                // โอกาส 30%: ยืนคุมเชิง หรือเดินลาดตระเวนรอบๆ โซน
+                Debug.Log("AI cover");
+                CurrentBehavior = AlertBehave.cover;
+            }
+
+            else
+            {
+                CurrentBehavior = AlertBehave.push;
+                Debug.Log("AI push");
+            }
+        }
+
+        else
+        {
+            CurrentBehavior = AlertBehave.surround;
+        }
+    }
+
+    Vector3 GetRing_RandomPoint(Vector3 center, float minRad, float maxRad)
+    {
+        Vector2 randomDir = Random.insideUnitCircle.normalized;
+        float randomDist = Random.Range(minRad, maxRad);
+
+        Vector3 targetPos = center + new Vector3(randomDir.x * randomDist, 0, randomDir.y * randomDist);
+        targetPos.y = center.y;
+
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(targetPos, out hit, 10f, NavMesh.AllAreas))
+        {
+            return hit.position;
+        }
+        return center;
     }
 }

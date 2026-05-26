@@ -33,7 +33,7 @@ public class Enemy_Investigate : MonoBehaviour
 
     [Header("การสำรวจ (Search Settings)")]
     public float searchRadius = 10f;  // รัศมีที่จะเดินวนดูรอบๆ
-    public int maxSearchPoints = 3;  // จะเดินสุ่มกี่จุดก่อนจะเลิก
+    public int maxSearchPoints = 5;  // จะเดินสุ่มกี่จุดก่อนจะเลิก
     private int currentSearchCount = 0;
     private bool isSearching = false;
     private bool hearSound = false;
@@ -150,7 +150,7 @@ public class Enemy_Investigate : MonoBehaviour
             //Debug.Log($"กำลังสำรวจจุดที่ {currentSearchCount}");
         }
 
-        else if (Enemy_script.wasFaint || Enemy_script.onAlert)
+        else if (Enemy_script.wasFaint || Enemy_script.onAlert) // if(Enemy_script.baseState == enemy.EnemyState.investigate) 
         {
             currentSearchCount = 0;
             Debug.Log("ไอ่คนที่มันทุบหันฉันมันอยู่ไหนว่ะ...");

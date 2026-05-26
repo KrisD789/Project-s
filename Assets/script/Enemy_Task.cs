@@ -151,52 +151,55 @@ public class Enemy_Task : MonoBehaviour
                 Debug.Log("Alarmmm!!!!");
                 break;
         }
+    }
+    IEnumerator checkMate()
+    {
+        yield return new WaitForSeconds(2);
+        Debug.Log("are you okay.....");
 
 
-        IEnumerator checkMate()
+
+        enemyMain_script.currentState = EnemyState.report; //สั่งตัวเองให้เข้าเฟดinvestigate
+
+        Debug.Log("List length =" + todoList.Count);
+        //target_enemy_Script.currentState = enemy.EnemyState.awake; //สั่งให้ศัตรูคัวอื่น ให้ตื่น
+        //target_enemy_Script = null;
+
+
+    }
+
+    void Alarm()
+    {
+        Collider[] friendNearBy = Physics.OverlapSphere(transform.position, 50f, FriendNeraByMask);
+
+        float AlertRange = 20f;
+        //float AlertSearchingRange = 50f;
+
+        foreach (var coll in friendNearBy)
         {
-            yield return new WaitForSeconds(2);
-            Debug.Log("are you okay.....");
+            Vector3 dist = coll.transform.position - transform.position;
+            var friendScript = coll.GetComponent<enemy>();
 
-
-
-            enemyMain_script.currentState = EnemyState.report; //สั่งตัวเองให้เข้าเฟดinvestigate
-
-            Debug.Log("List length =" + todoList.Count);
-            //target_enemy_Script.currentState = enemy.EnemyState.awake; //สั่งให้ศัตรูคัวอื่น ให้ตื่น
-            //target_enemy_Script = null;
-
-
-        }
-
-        void Alarm()
-        {
-            Collider[] friendNearBy = Physics.OverlapSphere(transform.position, 50f, FriendNeraByMask);
-
-            float AlertRange = 20f;
-            //float AlertSearchingRange = 50f;
-
-            foreach (var coll in friendNearBy)
+            if (friendScript.currentState != enemy.EnemyState.dead && friendScript.currentState != enemy.EnemyState.faint)
             {
-                Vector3 dist = coll.transform.position - transform.position;
-                var friendScript = coll.GetComponent<enemy>();
+                continue;
+            }
 
-                if (friendScript.currentState != enemy.EnemyState.dead && friendScript.currentState != enemy.EnemyState.faint)
+            if (friendScript != null)
+            {
+
+                if (dist.sqrMagnitude <= (AlertRange * AlertRange))
                 {
-                    continue;
+
+                    friendScript.currentState = enemy.EnemyState.Alert;
                 }
 
-                if (friendScript != null)
-                {
-                    
-                    if (dist.sqrMagnitude <= (AlertRange * AlertRange))
-                    {
-
-                        friendScript.currentState = enemy.EnemyState.Alert;
-                    }
-                    
-                }
             }
         }
+    }
+
+    public void ClearAllTasks()
+    {
+        todoList.Clear();
     }
 }

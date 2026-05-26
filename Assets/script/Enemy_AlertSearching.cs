@@ -72,7 +72,7 @@ public class Enemy_AlertSearching : MonoBehaviour
 
     IEnumerator AlertSearchRoutine()
     {
-        yield return StartCoroutine(SurroundPlayerRoutine());
+        //yield return StartCoroutine(SurroundPlayerRoutine());
 
         random_Task();
 

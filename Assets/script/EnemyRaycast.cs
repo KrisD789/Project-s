@@ -110,7 +110,7 @@ public class EnemyRaycast : MonoBehaviour
                 else
                 {
                     timer += Time.deltaTime;
-                    if (timer < 10)
+                    if (timer <= 50)
                     {
 
 
@@ -203,40 +203,42 @@ public class EnemyRaycast : MonoBehaviour
             CheckBehindObject(hit.point + direction * 0.1f, direction, hit);
         }
 
-
-        if (hit.collider.CompareTag("enemy"))
+        if (Enemy_script.currentState != enemy.EnemyState.Alert)
         {
-            var obj = hit.collider.GetComponent<enemy>();
-
-            if (obj != null && obj.E_lightMeter >= 50)
+            if (hit.collider.CompareTag("enemy"))
             {
-                //Debug.Log("found teamMate!!!");
+                var obj = hit.collider.GetComponent<enemy>();
 
-                //Enemy_script.headRenderer.material.color = Color.yellow;
-
-                if (obj.currentState == enemy.EnemyState.faint)
+                if (obj != null && obj.E_lightMeter >= 50)
                 {
-                    // แทนที่จะสั่งเดินและเช็คระยะตรงนี้
-                    // ให้ส่งงานไปที่ TodoList เพื่อให้ระบบจัดการคิวทำงานแทน
-                    enemy_task.AddToTodoList(hit.point, obj, WorkTask.TaskType.wakeUp);
+                    //Debug.Log("found teamMate!!!");
 
-                    // เปลี่ยนสถานะตัวเองให้เริ่มไปตรวจสอบ
-                    Enemy_script.currentState = enemy.EnemyState.Investigate;
+                    //Enemy_script.headRenderer.material.color = Color.yellow;
+
+                    if (obj.currentState == enemy.EnemyState.faint)
+                    {
+                        // แทนที่จะสั่งเดินและเช็คระยะตรงนี้
+                        // ให้ส่งงานไปที่ TodoList เพื่อให้ระบบจัดการคิวทำงานแทน
+                        enemy_task.AddToTodoList(hit.point, obj, WorkTask.TaskType.wakeUp);
+
+                        // เปลี่ยนสถานะตัวเองให้เริ่มไปตรวจสอบ
+                        Enemy_script.currentState = enemy.EnemyState.Investigate;
+                    }
+
+                    if (obj.currentState == enemy.EnemyState.dead)
+                    {
+
+                        // แทนที่จะสั่งเดินและเช็คระยะตรงนี้
+                        // ให้ส่งงานไปที่ TodoList เพื่อให้ระบบจัดการคิวทำงานแทน
+                        enemy_task.AddToTodoList(hit.point, obj, WorkTask.TaskType.alarm);
+
+                        // เปลี่ยนสถานะตัวเองให้เริ่มไปตรวจสอบ
+                        Enemy_script.currentState = enemy.EnemyState.Investigate;
+                    }
+
                 }
-
-                if (obj.currentState == enemy.EnemyState.dead)
-                {
-
-                    // แทนที่จะสั่งเดินและเช็คระยะตรงนี้
-                    // ให้ส่งงานไปที่ TodoList เพื่อให้ระบบจัดการคิวทำงานแทน
-                    enemy_task.AddToTodoList(hit.point, obj, WorkTask.TaskType.alarm);
-
-                    // เปลี่ยนสถานะตัวเองให้เริ่มไปตรวจสอบ
-                    Enemy_script.currentState = enemy.EnemyState.Investigate;
-                }
-
+                //else Enemy_script.headRenderer.material.color = Color.green;
             }
-            //else Enemy_script.headRenderer.material.color = Color.green;
         }
 
     }
@@ -275,15 +277,18 @@ public class EnemyRaycast : MonoBehaviour
         }
         else if (hit.collider.CompareTag("Door"))
         {
-            if (Enemy_script.currentState == enemy.EnemyState.alertSearching)
-            {
-                return; // เจอคำสั่งนี้ มันจะกระโดดหนีออกจากฟังก์ชันทันที ไม่ลงไปเช็กประตูต่อครับ
-            }
-
             //Debug.Log("ใครเปิดประตู ???");
             var obj = hit.collider.GetComponent<Door>();
+
             if (obj != null && obj.currentState == Door.DoorState.Open)
             {
+                if (Enemy_script.currentState == enemy.EnemyState.alertSearching)
+                {
+                    Enemy_script.currentState = enemy.EnemyState.Investigate;
+                    GetComponent<Enemy_Investigate>().searcingLastHearPosition(obj.transform.position);
+                }
+
+
                 //Debug.Log("ใครเปิดประตู ???");
                 if (!obj.openByAi)
                 {

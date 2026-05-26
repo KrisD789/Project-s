@@ -22,7 +22,9 @@ public class EnemyInteraction : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if (enemy_main.currentState == enemy.EnemyState.dead || enemy_main.currentState == enemy.EnemyState.faint)
+        if (enemy_main.currentState == enemy.EnemyState.dead || 
+            enemy_main.currentState == enemy.EnemyState.faint || 
+            enemy_main.currentState == enemy.EnemyState.Alert)
         {
             return;
         }
@@ -35,26 +37,24 @@ public class EnemyInteraction : MonoBehaviour
 
         if (col.CompareTag("Noi"))
         {
-            if (enemy_main.currentState == enemy.EnemyState.Patrol)
-            {
-                enemy_main.currentState = enemy.EnemyState.Investigate;
-                investigate_script.searcingLastHearPosition(col.transform.position);
-            }
-
-            if (enemy_main.currentState == enemy.EnemyState.Investigate)
-            {
-                investigate_script.searcingLastHearPosition(col.transform.position);
-            }
+            if (enemy_main.currentState == enemy.EnemyState.report) return;
 
             if (enemy_main.currentState == enemy.EnemyState.Alert)
             {
 
             }
 
-            if (enemy_main.currentState == enemy.EnemyState.alertSearching)
+            else
             {
+                // 1. เคลียร์งานเก่าทิ้ง (หยุดเดินค้นรอบๆ หรือหยุดเข้าที่กำบัง)
+                enemy_task.ClearAllTasks();
 
+                // 2. สลับลงมา Investigate ได้เลย! (เพราะเดี๋ยวทำเสร็จมันก็เด้งกลับไปเอง)
+                enemy_main.currentState = enemy.EnemyState.Investigate;
+                investigate_script.searcingLastHearPosition(col.transform.position);
             }
+
+           
         }
 
         if (col.CompareTag("Player"))
