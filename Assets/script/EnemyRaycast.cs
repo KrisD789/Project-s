@@ -8,10 +8,11 @@ public class EnemyRaycast : MonoBehaviour
 
     enemy Enemy_script;
     Enemy_Investigate Enemy_Investigate_script;
+    Enemy_Alert enemt_alert_Script;
     LightZone lightZone;
     Door DoorTarget;
     NavMeshAgent agent;
-    Enemy_Task enemy_task;
+    Enemy_Task enemy_task_script;
 
     [Header("ตั้งค่าการมองเห็น")]
     public float viewRadius = 10f;      // ระยะมองเห็นไกลแค่ไหน
@@ -57,7 +58,8 @@ public class EnemyRaycast : MonoBehaviour
         bodyToRotate = transform;
         Enemy_script = GetComponent<enemy>();
         Enemy_Investigate_script = GetComponent<Enemy_Investigate>();
-        enemy_task = GetComponent<Enemy_Task>();
+        enemt_alert_Script = GetComponent<Enemy_Alert>();
+        enemy_task_script = GetComponent<Enemy_Task>();
     }
 
     // Update is called once per frame
@@ -187,10 +189,13 @@ public class EnemyRaycast : MonoBehaviour
                 
                 if (P_Light_detect != null && P_Light_detect.light_meter >= 50)
                 {
+                    enemt_alert_Script.counting_AlertTimer(true);
                     Enemy_script.currentState = enemy.EnemyState.Alert;
                     foundPlayer = true;
                     
                 }
+
+                else enemt_alert_Script.counting_AlertTimer(false);
             }
 
         }
@@ -219,7 +224,7 @@ public class EnemyRaycast : MonoBehaviour
                     {
                         // แทนที่จะสั่งเดินและเช็คระยะตรงนี้
                         // ให้ส่งงานไปที่ TodoList เพื่อให้ระบบจัดการคิวทำงานแทน
-                        enemy_task.AddToTodoList(hit.point, obj, WorkTask.TaskType.wakeUp);
+                        enemy_task_script.AddToTodoList(hit.point, obj, WorkTask.TaskType.wakeUp);
 
                         // เปลี่ยนสถานะตัวเองให้เริ่มไปตรวจสอบ
                         Enemy_script.currentState = enemy.EnemyState.Investigate;
@@ -230,7 +235,7 @@ public class EnemyRaycast : MonoBehaviour
 
                         // แทนที่จะสั่งเดินและเช็คระยะตรงนี้
                         // ให้ส่งงานไปที่ TodoList เพื่อให้ระบบจัดการคิวทำงานแทน
-                        enemy_task.AddToTodoList(hit.point, obj, WorkTask.TaskType.alarm);
+                        enemy_task_script.AddToTodoList(hit.point, obj, WorkTask.TaskType.alarm);
 
                         // เปลี่ยนสถานะตัวเองให้เริ่มไปตรวจสอบ
                         Enemy_script.currentState = enemy.EnemyState.Investigate;
@@ -271,7 +276,7 @@ public class EnemyRaycast : MonoBehaviour
             {
                 lightZone = obj;
                 //agent.SetDestination(hit.point);
-                enemy_task.AddToTodoList(hit.point, obj, WorkTask.TaskType.Slight);
+                enemy_task_script.AddToTodoList(hit.point, obj, WorkTask.TaskType.Slight);
                 Enemy_script.currentState = EnemyState.Investigate;
             }
         }
@@ -294,16 +299,16 @@ public class EnemyRaycast : MonoBehaviour
                 {
                     DoorTarget = obj;
                     agent.SetDestination(hit.point);
-                    enemy_task.AddToTodoList(hit.point, obj, WorkTask.TaskType.TDoor);
+                    enemy_task_script.AddToTodoList(hit.point, obj, WorkTask.TaskType.TDoor);
                     Enemy_script.currentState = EnemyState.Investigate;
                     //Debug.Log("ใครเปิดประตู ???");
                 }
             }
         }
     
-}
+    }
 
     
-
+    
     
 }

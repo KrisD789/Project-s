@@ -23,8 +23,7 @@ public class EnemyInteraction : MonoBehaviour
     private void OnTriggerStay(Collider other)
     {
         if (enemy_main.currentState == enemy.EnemyState.dead || 
-            enemy_main.currentState == enemy.EnemyState.faint || 
-            enemy_main.currentState == enemy.EnemyState.Alert)
+            enemy_main.currentState == enemy.EnemyState.faint )
         {
             return;
         }
@@ -41,7 +40,7 @@ public class EnemyInteraction : MonoBehaviour
 
             if (enemy_main.currentState == enemy.EnemyState.Alert)
             {
-
+                alert_script.HandleNoiseAlert();
             }
 
             else
