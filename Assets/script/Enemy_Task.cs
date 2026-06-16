@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using static enemy;
+using static enemy_stage;
 
 
 // สร้างคลาสเก็บข้อมูลงานเล็กๆ
@@ -17,7 +17,7 @@ public class WorkTask
 
 public class Enemy_Task : MonoBehaviour
 {
-    enemy enemyMain_script;
+    enemy_stage enemyMain_script;
     NavMeshAgent agent;
     public List<WorkTask> todoList = new List<WorkTask>();
 
@@ -33,7 +33,7 @@ public class Enemy_Task : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        enemyMain_script = GetComponent<enemy>();
+        enemyMain_script = GetComponent<enemy_stage>();
         FriendNeraByMask = LayerMask.GetMask("enemy");
     }
 
@@ -137,8 +137,8 @@ public class Enemy_Task : MonoBehaviour
                 break;
 
             case WorkTask.TaskType.wakeUp:
-                var friend = task.targetObject as enemy;
-                if (friend != null && friend.currentState == enemy.EnemyState.faint) friend.currentState = enemy.EnemyState.awake;
+                var friend = task.targetObject as enemy_stage;
+                if (friend != null && friend.currentState == enemy_stage.EnemyState.faint) friend.currentState = enemy_stage.EnemyState.awake;
                 //if (friend != null && friend.currentState == enemy.EnemyState.dead) Enemy_script.currentState = enemy.EnemyState.Alert;
 
                 StartCoroutine(checkMate());
@@ -147,7 +147,7 @@ public class Enemy_Task : MonoBehaviour
 
             case WorkTask.TaskType.alarm:
                 Alarm();
-                enemyMain_script.currentState = enemy.EnemyState.Alert;
+                enemyMain_script.currentState = enemy_stage.EnemyState.Alert;
                 Debug.Log("Alarmmm!!!!");
                 break;
         }
@@ -178,9 +178,9 @@ public class Enemy_Task : MonoBehaviour
         foreach (var coll in friendNearBy)
         {
             Vector3 dist = coll.transform.position - transform.position;
-            var friendScript = coll.GetComponent<enemy>();
+            var friendScript = coll.GetComponent<enemy_stage>();
 
-            if (friendScript.currentState != enemy.EnemyState.dead && friendScript.currentState != enemy.EnemyState.faint)
+            if (friendScript.currentState != enemy_stage.EnemyState.dead && friendScript.currentState != enemy_stage.EnemyState.faint)
             {
                 continue;
             }
@@ -191,7 +191,7 @@ public class Enemy_Task : MonoBehaviour
                 if (dist.sqrMagnitude <= (AlertRange * AlertRange))
                 {
 
-                    friendScript.currentState = enemy.EnemyState.Alert;
+                    friendScript.currentState = enemy_stage.EnemyState.Alert;
                 }
 
             }

@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2652642565387650979}
   - component: {fileID: 8883391192387492413}
-  m_Layer: 10
+  m_Layer: 7
   m_Name: noiCollider
   m_TagString: Noi
   m_Icon: {fileID: 0}
@@ -69,6 +69,8 @@ GameObject:
   - component: {fileID: 756657277571570203}
   - component: {fileID: 1000352963565390038}
   - component: {fileID: 7540878571123692758}
+  - component: {fileID: 2813129920462939659}
+  - component: {fileID: 614853632851053362}
   m_Layer: 10
   m_Name: Player
   m_TagString: Player
@@ -186,6 +188,14 @@ MonoBehaviour:
   noiseCollider: {fileID: 8883391192387492413}
   minNoiseRadius: 0.5
   maxNoiseRadius: 10
+  turnSpeed: 6.64
+  moveAction: {fileID: 2770056091649064904, guid: adfefd8a88e4836479309807f1331441, type: 3}
+  interactAction: {fileID: -7108252924736531064, guid: adfefd8a88e4836479309807f1331441, type: 3}
+  scrollAction: {fileID: 6490592259861451959, guid: adfefd8a88e4836479309807f1331441, type: 3}
+  aimAction: {fileID: 5723915937985287874, guid: adfefd8a88e4836479309807f1331441, type: 3}
+  InteracMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!54 &756657277571570203
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -211,7 +221,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!114 &1000352963565390038
 MonoBehaviour:
@@ -220,7 +230,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4311081831415081894}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d9e6c79f748abe46844ec41e14406bd, type: 3}
   m_Name: 
@@ -234,7 +244,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4311081831415081894}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f79853623778f9f4f90e9517e5d07f93, type: 3}
   m_Name: 
@@ -242,6 +252,37 @@ MonoBehaviour:
   xRayFeature: {fileID: -5038278300154802109, guid: f288ae1f4751b564a96ac7587541f7a2, type: 2}
   scannerVolume: {fileID: 0}
   ui: {fileID: 0}
+--- !u!114 &2813129920462939659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4311081831415081894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6497deba35e3b86458e3ebc9ba2e505a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  aimCamera: {fileID: 0}
+  aimAction: {fileID: 5723915937985287874, guid: adfefd8a88e4836479309807f1331441, type: 3}
+--- !u!114 &614853632851053362
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4311081831415081894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad2dde25a63ed1a4281da96057720f5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveAction: {fileID: 2770056091649064904, guid: adfefd8a88e4836479309807f1331441, type: 3}
+  interactAction: {fileID: -7108252924736531064, guid: adfefd8a88e4836479309807f1331441, type: 3}
+  scrollAction: {fileID: 6490592259861451959, guid: adfefd8a88e4836479309807f1331441, type: 3}
+  aimAction: {fileID: 5723915937985287874, guid: adfefd8a88e4836479309807f1331441, type: 3}
+  FireAction: {fileID: 2003619392216208933, guid: adfefd8a88e4836479309807f1331441, type: 3}
 --- !u!1 &7849970533979259500
 GameObject:
   m_ObjectHideFlags: 0

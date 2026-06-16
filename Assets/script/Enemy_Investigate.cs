@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using static enemy;
+using static enemy_stage;
 using Random = UnityEngine.Random;
 
 
@@ -12,8 +12,8 @@ using Random = UnityEngine.Random;
 public class Enemy_Investigate : MonoBehaviour
 {
     NavMeshAgent agent;
-    enemy Enemy_script;
-    enemy target_enemy_Script;
+    enemy_stage Enemy_script;
+    enemy_stage target_enemy_Script;
     light_switch targetSW;
     Door TargetDoor;
     Enemy_Task Enemy_Task;
@@ -47,7 +47,7 @@ public class Enemy_Investigate : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        Enemy_script = GetComponent<enemy>();
+        Enemy_script = GetComponent<enemy_stage>();
         //FriendNeraByMask = LayerMask.GetMask("enemy");
         Enemy_Task = GetComponent<Enemy_Task>();
     }

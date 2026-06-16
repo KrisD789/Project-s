@@ -6,7 +6,7 @@ using UnityEngine.AI;
 public class Enemy_AlertSearching : MonoBehaviour
 {
     NavMeshAgent agent;
-    enemy enemy_script;
+    enemy_stage enemy_script;
     public enum SearchType {serach_building, keepposition }
     public SearchType currentSearch;
     [Header("AlertSearch Settings")]
@@ -37,7 +37,7 @@ public class Enemy_AlertSearching : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        enemy_script = GetComponent<enemy>();
+        enemy_script = GetComponent<enemy_stage>();
         waypointLayer = LayerMask.GetMask("Bwaypoint");
 
         // เก็บหน้ากากพื้นที่ไว้ตั้งแต่เริ่มเกม
@@ -49,7 +49,7 @@ public class Enemy_AlertSearching : MonoBehaviour
     void Update()
     {
         //print(buildingsToSearch.Count);
-        if (enemy_script.currentState == enemy.EnemyState.alertSearching)
+        if (enemy_script.currentState == enemy_stage.EnemyState.alertSearching)
         {
             if (!isAlertRoutineRunning)
             {
@@ -74,9 +74,9 @@ public class Enemy_AlertSearching : MonoBehaviour
     {
         //yield return StartCoroutine(SurroundPlayerRoutine());
 
-        random_Task();
+        //random_Task();
 
-        while (enemy_script.currentState == enemy.EnemyState.alertSearching)
+        while (enemy_script.currentState == enemy_stage.EnemyState.alertSearching)
         {
             if (currentSearch == SearchType.serach_building)
             {
@@ -138,7 +138,7 @@ public class Enemy_AlertSearching : MonoBehaviour
 
             // **เพิ่มบรรทัดนี้ลงไปเพื่อป้องกันเกมค้าง** // ถ้าไม่เจอตึกเลย ให้รอ 1 เฟรม แล้วสุ่มงานใหม่ 
             yield return new WaitForSeconds(1.5f);
-            random_Task();
+            //random_Task();
         }
     }
 
@@ -232,7 +232,7 @@ public class Enemy_AlertSearching : MonoBehaviour
 
     IEnumerator KeepPosition_Sequence()
     {
-        while (enemy_script.currentState == enemy.EnemyState.alertSearching)
+        while (enemy_script.currentState == enemy_stage.EnemyState.alertSearching)
         {
             yield return StartCoroutine(Relocate());
 
@@ -269,7 +269,7 @@ public class Enemy_AlertSearching : MonoBehaviour
         int checkCount = 0;
         int maxChecks = 6;
 
-        while (checkCount < maxChecks && enemy_script.currentState == enemy.EnemyState.alertSearching)
+        while (checkCount < maxChecks && enemy_script.currentState == enemy_stage.EnemyState.alertSearching)
         {
             // สั่งสุ่มจุดโดยใช้พิกัดล่าสุดล็อกไว้เป็นจุดศูนย์กลาง
             Vector3 nextSearchPoint = GetRandomSearchPoint(CurrentPosition, searchRadiusAroundPoint);

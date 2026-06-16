@@ -46,7 +46,7 @@ public class LightDetect : MonoBehaviour
     void ui_Update() 
     {
         
-        //UI.text = "(..!..) " + light_meter.ToString("f1");
+        UI.text = "(..!..) " + light_meter.ToString("f1");
         //UI2.text = "(Enemy light_Meter :) " + enemy_lightMeter.E_lightMeter.ToString("f1");
 
     }

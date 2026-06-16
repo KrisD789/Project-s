@@ -4,12 +4,12 @@ using UnityEngine.AI;
 
 public class Enemypatro : MonoBehaviour
 {
-    enemy enemy_script;
+    enemy_stage enemy_script;
     NavMeshAgent agent;
     float waitTime = 1;
     float Timer;
     int index = 0;
-    bool isWaiting = true;
+    bool isWaiting = false;
     public Transform[] wayPoint;
 
     [Header("ตั้งค่าการหมุน")]
@@ -23,24 +23,24 @@ public class Enemypatro : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        enemy_script = GetComponent<enemy>();
+        enemy_script = GetComponent<enemy_stage>();
         agent.SetDestination(wayPoint[0].position);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (enemy_script.currentState == enemy.EnemyState.Patrol)
+        if (enemy_script.currentState == enemy_stage.EnemyState.Patrol)
         {
             if (index >= wayPoint.Length) index = 0;
 
             float distToTarget = Vector3.Distance(transform.position, wayPoint[index].position);
 
             // --- เพิ่มส่วนนี้: ถ้าไม่ได้รออยู่ และ Agent ไม่มีจุดหมาย (หรือจุดหมายไม่ใช่ Waypoint) ให้สั่งเดินใหม่ ---
-            if (!isWaiting && agent.destination != wayPoint[index].position)
-            {
-                agent.SetDestination(wayPoint[index].position);
-            }
+            //if (!isWaiting && agent.destination != wayPoint[index].position)
+            //{
+                //agent.SetDestination(wayPoint[index].position);
+            //}
 
             if (!agent.pathPending && distToTarget < 2f)
             {
@@ -52,6 +52,8 @@ public class Enemypatro : MonoBehaviour
                 patroLogic();
             }
         }
+
+        print(index);
     }
 
     void patroLogic()

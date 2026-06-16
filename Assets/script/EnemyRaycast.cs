@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEngine.AI;
-using static enemy;
+using static enemy_stage;
 
 public class EnemyRaycast : MonoBehaviour
 {
     //public static EnemyRaycast enemyRaycast { get; private set; }
 
-    enemy Enemy_script;
+    enemy_stage Enemy_script;
     Enemy_Investigate Enemy_Investigate_script;
     Enemy_Alert enemt_alert_Script;
     LightZone lightZone;
@@ -52,11 +52,16 @@ public class EnemyRaycast : MonoBehaviour
     private void Awake()
     {
         playerObj = GameObject.FindGameObjectWithTag("Player");
-        P_Light_detect = playerObj.GetComponent<LightDetect>();
+        if (playerObj != null) 
+        { 
+            P_Light_detect = playerObj.GetComponent<LightDetect>();
+            print("Found playerObj");
+        }
+        else print("Can Not Find playerObj");
 
         player = playerObj.transform;
         bodyToRotate = transform;
-        Enemy_script = GetComponent<enemy>();
+        Enemy_script = GetComponent<enemy_stage>();
         Enemy_Investigate_script = GetComponent<Enemy_Investigate>();
         enemt_alert_Script = GetComponent<Enemy_Alert>();
         enemy_task_script = GetComponent<Enemy_Task>();
@@ -65,13 +70,13 @@ public class EnemyRaycast : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Enemy_script.currentState != enemy.EnemyState.dead && Enemy_script.currentState != enemy.EnemyState.faint)
+        if (Enemy_script.currentState != enemy_stage.EnemyState.dead && Enemy_script.currentState != enemy_stage.EnemyState.faint)
         {
 
             Raycast();
 
             // เช็กว่าถ้าสถานะปัจจุบันไม่ใช่ Alert ให้ส่ายหัวปกติ
-            if (Enemy_script.currentState != enemy.EnemyState.Alert)
+            if (Enemy_script.currentState != enemy_stage.EnemyState.Alert)
             {
                 // ส่ายหัวไปมาจริงๆ (สมมติว่าหมุนแกน Y)
                 float angle = Mathf.Sin(Time.time * 2f) * (viewAngle / 2f);
@@ -82,7 +87,7 @@ public class EnemyRaycast : MonoBehaviour
             {
                 if (foundPlayer)
                 {
-                    //Debug.Log("Found");
+                    //Debug.Log("Found Player !!!!");
                     // โหมด Alert:
                     if (player != null && P_Light_detect != null)
                     {
@@ -127,7 +132,7 @@ public class EnemyRaycast : MonoBehaviour
                     else
                     {
                         timer = 0;
-                        Enemy_script.currentState = enemy.EnemyState.Investigate;
+                        Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
                         Enemy_script.onAlert = true;
                     }
                 }
@@ -150,7 +155,7 @@ public class EnemyRaycast : MonoBehaviour
         
 
 
-        if (Enemy_script.currentState == enemy.EnemyState.faint || Enemy_script.currentState == enemy.EnemyState.dead) return;
+        if (Enemy_script.currentState == enemy_stage.EnemyState.faint || Enemy_script.currentState == enemy_stage.EnemyState.dead) return;
         
 
         for (int i = 0; i <= raycastCount; i++)
@@ -187,12 +192,21 @@ public class EnemyRaycast : MonoBehaviour
             if (!Physics.Linecast(EnemyHeadRaycast.position, hit.point, obstacleMask) || hit.collider.CompareTag("Door"))
             {
                 
-                if (P_Light_detect != null && P_Light_detect.light_meter >= 50)
+                if (P_Light_detect != null && P_Light_detect.light_meter >= 70)
                 {
                     enemt_alert_Script.counting_AlertTimer(true);
-                    Enemy_script.currentState = enemy.EnemyState.Alert;
+                    Enemy_script.currentState = enemy_stage.EnemyState.Alert;
                     foundPlayer = true;
                     
+                }
+
+                if (P_Light_detect != null && P_Light_detect.light_meter <= 50)
+                {
+                    enemt_alert_Script.counting_AlertTimer(true);
+                    Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
+                    Enemy_Investigate_script.searcingLastHearPosition(playerObj.transform.position);
+                    foundPlayer = true;
+
                 }
 
                 else enemt_alert_Script.counting_AlertTimer(false);
@@ -208,11 +222,11 @@ public class EnemyRaycast : MonoBehaviour
             CheckBehindObject(hit.point + direction * 0.1f, direction, hit);
         }
 
-        if (Enemy_script.currentState != enemy.EnemyState.Alert)
+        if (Enemy_script.currentState != enemy_stage.EnemyState.Alert)
         {
             if (hit.collider.CompareTag("enemy"))
             {
-                var obj = hit.collider.GetComponent<enemy>();
+                var obj = hit.collider.GetComponent<enemy_stage>();
 
                 if (obj != null && obj.E_lightMeter >= 50)
                 {
@@ -220,17 +234,17 @@ public class EnemyRaycast : MonoBehaviour
 
                     //Enemy_script.headRenderer.material.color = Color.yellow;
 
-                    if (obj.currentState == enemy.EnemyState.faint)
+                    if (obj.currentState == enemy_stage.EnemyState.faint)
                     {
                         // แทนที่จะสั่งเดินและเช็คระยะตรงนี้
                         // ให้ส่งงานไปที่ TodoList เพื่อให้ระบบจัดการคิวทำงานแทน
                         enemy_task_script.AddToTodoList(hit.point, obj, WorkTask.TaskType.wakeUp);
 
                         // เปลี่ยนสถานะตัวเองให้เริ่มไปตรวจสอบ
-                        Enemy_script.currentState = enemy.EnemyState.Investigate;
+                        Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
                     }
 
-                    if (obj.currentState == enemy.EnemyState.dead)
+                    if (obj.currentState == enemy_stage.EnemyState.dead)
                     {
 
                         // แทนที่จะสั่งเดินและเช็คระยะตรงนี้
@@ -238,7 +252,7 @@ public class EnemyRaycast : MonoBehaviour
                         enemy_task_script.AddToTodoList(hit.point, obj, WorkTask.TaskType.alarm);
 
                         // เปลี่ยนสถานะตัวเองให้เริ่มไปตรวจสอบ
-                        Enemy_script.currentState = enemy.EnemyState.Investigate;
+                        Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
                     }
 
                 }
@@ -267,7 +281,7 @@ public class EnemyRaycast : MonoBehaviour
 
     void checkEnvirament(RaycastHit hit)
     {
-        if (Enemy_script.currentState == enemy.EnemyState.Alert) return;
+        if (Enemy_script.currentState == enemy_stage.EnemyState.Alert) return;
 
         if (hit.collider.CompareTag("Light"))
         {
@@ -287,9 +301,9 @@ public class EnemyRaycast : MonoBehaviour
 
             if (obj != null && obj.currentState == Door.DoorState.Open)
             {
-                if (Enemy_script.currentState == enemy.EnemyState.alertSearching)
+                if (Enemy_script.currentState == enemy_stage.EnemyState.alertSearching)
                 {
-                    Enemy_script.currentState = enemy.EnemyState.Investigate;
+                    Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
                     GetComponent<Enemy_Investigate>().searcingLastHearPosition(obj.transform.position);
                 }
 

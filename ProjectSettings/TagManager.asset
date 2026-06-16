@@ -12,6 +12,8 @@ TagManager:
   - cover
   - lightSwitch
   - Door
+  - NormalCam
+  - AimCam
   layers:
   - Default
   - TransparentFX

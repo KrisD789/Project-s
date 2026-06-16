@@ -23,6 +23,7 @@ GameObject:
   - component: {fileID: 7061011517832867459}
   - component: {fileID: 6342435728769226632}
   - component: {fileID: 7083654210929150357}
+  - component: {fileID: 4568766553453998767}
   m_Layer: 9
   m_Name: enemy version 5
   m_TagString: enemy
@@ -136,16 +137,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 528ae671b042b7c49bf0a200cfcda5cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 0}
-  alert: 0
-  lineOfSight: 0
-  onAlert: 0
-  wasFaint: 0
-  E_runSpeed: 5
-  E_waklSpeed: 2
-  currentState: 0
-  headRenderer: {fileID: 7479649690166941636}
-  E_lightMeter: 0
 --- !u!195 &7534751774643736078
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -228,7 +219,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   flankDistance: 5
   moveStyle: 1
-  Behavior: 0
+  CurrentBehavior: 3
+  surroundTarget: {x: 0, y: 0, z: 0}
+  DistToPlayer: 0
+  AlertZone: 10
+  keepDist: 10
+  startSurroundRadius: 15
+  minSurroundRadius: 5
+  updateDelay: 0.5
 --- !u!114 &749774836795764469
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -338,6 +336,18 @@ MonoBehaviour:
   FriendNeraByMask:
     serializedVersion: 2
     m_Bits: 0
+--- !u!114 &4568766553453998767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809919424905224780}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 528ae671b042b7c49bf0a200cfcda5cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2269722239247786883
 GameObject:
   m_ObjectHideFlags: 0

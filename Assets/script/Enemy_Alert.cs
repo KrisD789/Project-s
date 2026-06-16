@@ -5,7 +5,7 @@ using UnityEngine.AI;
 
 public class Enemy_Alert : MonoBehaviour
 {
-    enemy enemy_script;
+    enemy_stage enemy_script;
     NavMeshAgent agent;
 
 
@@ -48,7 +48,7 @@ public class Enemy_Alert : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        enemy_script = GetComponent<enemy>();
+        enemy_script = GetComponent<enemy_stage>();
         agent = GetComponent<NavMeshAgent>();
         
     }
@@ -58,7 +58,7 @@ public class Enemy_Alert : MonoBehaviour
     {
         if (agent != null && enemy_script != null)
         {
-            if (enemy_script.currentState == enemy.EnemyState.Alert)
+            if (enemy_script.currentState == enemy_stage.EnemyState.Alert)
             {
                 if (!OnRanDom)
                 {
@@ -229,7 +229,7 @@ public class Enemy_Alert : MonoBehaviour
         int stepsToChangeDir = Random.Range(5, 10); // เดินไปกี่ก้าวถึงจะโยกสลับทิศ
 
         // 🚨 ลูปหลัก: เดินวนไปเรื่อยๆ ตราบใดที่ยังโดนสั่งให้ Surround และยังอยู่ใน Alert
-        while (CurrentBehavior == AlertBehave.surround && enemy_script.currentState == enemy.EnemyState.Alert)
+        while (CurrentBehavior == AlertBehave.surround && enemy_script.currentState == enemy_stage.EnemyState.Alert)
         {
             // 1. เช็กสลับทิศทาง (เดินสับขาหลอกผู้เล่น)
             stepCount++;
@@ -259,7 +259,7 @@ public class Enemy_Alert : MonoBehaviour
             yield return new WaitUntil(() =>
                 (!agent.pathPending && agent.remainingDistance <= 1.5f) ||
                 CurrentBehavior != AlertBehave.surround ||
-                enemy_script.currentState != enemy.EnemyState.Alert
+                enemy_script.currentState != enemy_stage.EnemyState.Alert
             );
         }
 
@@ -275,29 +275,30 @@ public class Enemy_Alert : MonoBehaviour
         if (Enemy_combatManager.Instance.RequestAttackToken(this.gameObject))
         {
             // 2. ใช้เงื่อนไขแบ่งเปอร์เซ็นต์ (เช่น ค้นบ้าน 70% / คุมพื้นที่ 30%)
-            if (chance <= 40f)
-            {
+            //if (chance <= 40f)
+            //{
                 // โอกาส 70%: ไปค้นตามซอกตึกหรือในบ้าน
-                Debug.Log("AI flank");
-                CurrentBehavior = AlertBehave.flank;
-            }
-            else if (chance <= 60f)
-            {
+                //Debug.Log("AI flank");
+                //CurrentBehavior = AlertBehave.flank;
+            //}
+            //else if (chance <= 60f)
+            //{
                 // โอกาส 30%: ยืนคุมเชิง หรือเดินลาดตระเวนรอบๆ โซน
-                Debug.Log("AI cover");
-                CurrentBehavior = AlertBehave.cover;
-            }
+                //Debug.Log("AI cover");
+                //CurrentBehavior = AlertBehave.cover;
+            //}
 
-            else
-            {
+            //else
+            //{
                 CurrentBehavior = AlertBehave.push;
                 Debug.Log("AI push");
-            }
+            //}
         }
 
         else
         {
             CurrentBehavior = AlertBehave.surround;
+            Debug.Log("AI Surrond Player");
         }
     }
 

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class EnemyInteraction : MonoBehaviour
 {
-    enemy enemy_main;
+    enemy_stage enemy_main;
     Enemy_Investigate investigate_script;
     Enemy_Alert alert_script;
     Enemy_AlertSearching Enemy_AlertSearching_script;
@@ -12,7 +12,7 @@ public class EnemyInteraction : MonoBehaviour
     void Awake()
     {
         // ดึง Script อื่นๆ มาเก็บไว้เพื่อสั่งการ
-        enemy_main = GetComponent<enemy>();
+        enemy_main = GetComponent<enemy_stage>();
         investigate_script = GetComponent<Enemy_Investigate>();
         alert_script = GetComponent<Enemy_Alert>();
         Enemy_AlertSearching_script = GetComponent<Enemy_AlertSearching>();
@@ -22,8 +22,8 @@ public class EnemyInteraction : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if (enemy_main.currentState == enemy.EnemyState.dead || 
-            enemy_main.currentState == enemy.EnemyState.faint )
+        if (enemy_main.currentState == enemy_stage.EnemyState.dead || 
+            enemy_main.currentState == enemy_stage.EnemyState.faint )
         {
             return;
         }
@@ -36,9 +36,9 @@ public class EnemyInteraction : MonoBehaviour
 
         if (col.CompareTag("Noi"))
         {
-            if (enemy_main.currentState == enemy.EnemyState.report) return;
+            if (enemy_main.currentState == enemy_stage.EnemyState.report) return;
 
-            if (enemy_main.currentState == enemy.EnemyState.Alert)
+            if (enemy_main.currentState == enemy_stage.EnemyState.Alert)
             {
                 alert_script.HandleNoiseAlert();
             }
@@ -49,7 +49,7 @@ public class EnemyInteraction : MonoBehaviour
                 enemy_task.ClearAllTasks();
 
                 // 2. สลับลงมา Investigate ได้เลย! (เพราะเดี๋ยวทำเสร็จมันก็เด้งกลับไปเอง)
-                enemy_main.currentState = enemy.EnemyState.Investigate;
+                enemy_main.currentState = enemy_stage.EnemyState.Investigate;
                 investigate_script.searcingLastHearPosition(col.transform.position);
             }
 
@@ -59,7 +59,7 @@ public class EnemyInteraction : MonoBehaviour
         if (col.CompareTag("Player"))
         {
             // ถ้าศัตรูเห็นผู้เล่น ให้เปลี่ยนสถานะและสั่งให้ Alert Script ทำงาน
-            enemy_main.currentState = enemy.EnemyState.Alert;
+            enemy_main.currentState = enemy_stage.EnemyState.Alert;
 
             // นายสามารถสั่งตั้งค่า Behavior ใน Alert Script ได้จากตรงนี้เลย
             // เช่น ถ้าเจอระยะประชิด ให้เข้า Cover ถ้าเจอไกลให้ Flank
@@ -72,20 +72,20 @@ public class EnemyInteraction : MonoBehaviour
         // 3. การปฏิสัมพันธ์กับเพื่อน (Enemy)
         if (col.CompareTag("enemy") && col.gameObject != this.gameObject)
         {
-            var otherEnemy = col.GetComponent<enemy>();
+            var otherEnemy = col.GetComponent<enemy_stage>();
             if (otherEnemy != null)
             {
                 // ถ้าเจอเพื่อนสลบ -> ส่งงานไปให้ระบบ TodoList ของ Investigate
-                if (otherEnemy.currentState == enemy.EnemyState.faint)
+                if (otherEnemy.currentState == enemy_stage.EnemyState.faint)
                 {
                     enemy_task.AddToTodoList(col.transform.position, otherEnemy, WorkTask.TaskType.wakeUp);
-                    enemy_main.currentState = enemy.EnemyState.Investigate;
+                    enemy_main.currentState = enemy_stage.EnemyState.Investigate;
                 }
 
                 // ถ้าเจอเพื่อนตาย -> สั่ง Alert ทันที (Man Down!)
-                if (otherEnemy.currentState == enemy.EnemyState.dead)
+                if (otherEnemy.currentState == enemy_stage.EnemyState.dead)
                 {
-                    enemy_main.currentState = enemy.EnemyState.Alert;
+                    enemy_main.currentState = enemy_stage.EnemyState.Alert;
                 }
             }
         }
