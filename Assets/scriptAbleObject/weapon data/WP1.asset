@@ -16,8 +16,13 @@ MonoBehaviour:
   itemName: wp1
   description: this is a full auto gun
   weaponDamage: 0
-  weaponAmmo: 0
-  ReloadSpeed: 0
-  noiseLevel: 0
+  Max_Ammo: 30
+  Current_Ammo: 6
+  weaponRange: 100
+  ReloadTime: 3
+  FireRate: 0.1
+  type: 0
+  fireMode: 1
+  noiseLevel: 100
   lightConcealment: 0
-  itemPrefab: {fileID: 0}
+  itemPrefab: {fileID: 6364898671825374264, guid: 988fd8c3334f86646a56fe1dd36ad9d6, type: 3}

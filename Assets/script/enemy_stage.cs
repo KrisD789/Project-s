@@ -44,7 +44,9 @@ public class enemy_stage : MonoBehaviour
         awake,
         report,
         dead,
-        alertSearching
+        alertSearching,
+        Dummy,
+        OnGrab
     }
 
     public EnemyState baseState = EnemyState.Patrol;
@@ -109,8 +111,18 @@ public class enemy_stage : MonoBehaviour
                 break;
 
             case EnemyState.alertSearching:
-                headRenderer.material.color = Color.black;
+                headRenderer.material.color = Color.gray;
                 agent.speed = E_runSpeed;
+                break;
+
+            case EnemyState.Dummy:
+                headRenderer.material.color = Color.blue;
+                //agent.speed = E_runSpeed;
+                break;
+
+            case EnemyState.OnGrab:
+                headRenderer.material.color = Color.black;
+                //agent.speed = E_runSpeed;
                 break;
         }
 

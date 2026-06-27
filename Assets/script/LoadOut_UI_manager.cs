@@ -71,7 +71,7 @@ public class LoadOut_UI_manager : MonoBehaviour
         weaponNameText.text = weaponData.itemName;
         descriptionText.text = weaponData.description;
         WeaponDamage.text = "Damage: " + weaponData.weaponDamage.ToString();
-        Ammo.text = "Ammo: " + weaponData.weaponAmmo.ToString();
+        Ammo.text = "Ammo: " + weaponData.Max_Ammo.ToString();
 
         // เราสามารถนำตัวเลขมาแปลงเป็นข้อความด้วยคำสั่ง .ToString() 
         noiseText.text = "Noise: " + weaponData.noiseLevel.ToString() + " dB";
@@ -82,7 +82,15 @@ public class LoadOut_UI_manager : MonoBehaviour
 
     public void selectWeapon()
     {
-        Load_out_manager.Instance.selectedPrimaryWeapon = currentSelect;
+        if (Load_out_manager.Instance.selectedPrimaryWeapon == null)
+        {
+            Load_out_manager.Instance.selectedPrimaryWeapon = currentSelect;
+        }
+
+        else
+        {
+            Load_out_manager.Instance.selectedSecondaryWeapon = currentSelect;
+        }
     }
 
     public void ClosePanel()

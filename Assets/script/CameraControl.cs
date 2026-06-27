@@ -42,16 +42,31 @@ public class CameraControl : MonoBehaviour
     {
        
         // 1. จังหวะที่ "เริ่มกดคลิกขวาเล็ง"
-        if (aimAction.action.WasPressedThisFrame())
+        //if (aimAction.action.WasPressedThisFrame())
+        //{
+            // สั่งให้กล้องเล็งก๊อปปี้องศาจากกล้องหลักทันที
+            //SyncCameraAngles();
+            // แล้วค่อยเปิดใช้งานกล้องเล็ง
+            //aimCamera.SetActive(true);
+        //}
+
+        // 2. จังหวะที่ "ปล่อยคลิกขวา"
+        //else if (aimAction.action.WasReleasedThisFrame())
+        //{
+            //aimCamera.SetActive(false);
+        //}
+    }
+
+    public void HandleAim(bool HoldPress)
+    {
+        if (HoldPress)
         {
             // สั่งให้กล้องเล็งก๊อปปี้องศาจากกล้องหลักทันที
             SyncCameraAngles();
             // แล้วค่อยเปิดใช้งานกล้องเล็ง
             aimCamera.SetActive(true);
         }
-
-        // 2. จังหวะที่ "ปล่อยคลิกขวา"
-        else if (aimAction.action.WasReleasedThisFrame())
+        else
         {
             aimCamera.SetActive(false);
         }

@@ -26,9 +26,10 @@ public class EnemyRaycast : MonoBehaviour
     public LayerMask EnMask;
     public LayerMask AllieMask;
 
-    //[Header("อ้างอิง")]
+    [Header("อ้างอิง")]
     GameObject playerObj;
     LightDetect P_Light_detect;
+    Player_Action player_Action;
 
     public Transform EnemyHeadRaycast;
     Transform player;            // ตัวผู้เล่น (ควรกำหนดหรือหาอัตโนมัติ)
@@ -38,6 +39,7 @@ public class EnemyRaycast : MonoBehaviour
     public float turnSpeed = 5f; // ความเร็วในการหันตัว
 
     float timer = 0;
+    private bool actuallySeePlayer = false;
 
 
 
@@ -53,11 +55,17 @@ public class EnemyRaycast : MonoBehaviour
     {
         playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null) 
-        { 
-            P_Light_detect = playerObj.GetComponent<LightDetect>();
-            print("Found playerObj");
+        {
+            Debug.Log("Found playerObj");
         }
+
         else print("Can Not Find playerObj");
+
+        if (playerObj.TryGetComponent<LightDetect>(out P_Light_detect)) Debug.Log("Found  lightdetect");
+
+        if (playerObj.TryGetComponent<Player_Action>(out player_Action)) Debug.Log("Found  player_action");
+
+        
 
         player = playerObj.transform;
         bodyToRotate = transform;
@@ -65,6 +73,7 @@ public class EnemyRaycast : MonoBehaviour
         Enemy_Investigate_script = GetComponent<Enemy_Investigate>();
         enemt_alert_Script = GetComponent<Enemy_Alert>();
         enemy_task_script = GetComponent<Enemy_Task>();
+        //Player_Action = GetComponent<Player_Action>();
     }
 
     // Update is called once per frame
@@ -188,30 +197,64 @@ public class EnemyRaycast : MonoBehaviour
 
         if (hit.collider.CompareTag("Player"))
         {
+            //Debug.Log(" เข้าเงื่อนไข ");
             //var obj = hit.collider.GetComponent<LightDetect>();
-            if (!Physics.Linecast(EnemyHeadRaycast.position, hit.point, obstacleMask) || hit.collider.CompareTag("Door"))
+            if (player_Action != null && player_Action.currentState != Player_Action.PlayerState.Crouch)
             {
-                
-                if (P_Light_detect != null && P_Light_detect.light_meter >= 70)
+                if (!Physics.Linecast(EnemyHeadRaycast.position, hit.point, obstacleMask) || hit.collider.CompareTag("Door"))
                 {
-                    enemt_alert_Script.counting_AlertTimer(true);
-                    Enemy_script.currentState = enemy_stage.EnemyState.Alert;
-                    foundPlayer = true;
-                    
+                    //Debug.Log(" เข้าเงื่อนไข ");
+                    if (P_Light_detect != null && P_Light_detect.light_meter >= 70)
+                    {
+                        enemt_alert_Script.counting_AlertTimer(true);
+                        Enemy_script.currentState = enemy_stage.EnemyState.Alert;
+                        foundPlayer = true;
+                        Debug.Log(" เข้าเงื่อนไข P_Light_detect != null && P_Light_detect.light_meter >= 70");
+                    }
+
+                    else if (P_Light_detect != null && P_Light_detect.light_meter >= 50)
+                    {
+                        enemt_alert_Script.counting_AlertTimer(true);
+                        Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
+                        Enemy_Investigate_script.searcingLastHearPosition(playerObj.transform.position);
+                        foundPlayer = true;
+                        Debug.Log(" เข้าเงื่อนไข if (P_Light_detect != null && P_Light_detect.light_meter >= 50) ");
+                    }
+
+
+
+                    else enemt_alert_Script.counting_AlertTimer(false);
                 }
-
-                if (P_Light_detect != null && P_Light_detect.light_meter <= 50)
-                {
-                    enemt_alert_Script.counting_AlertTimer(true);
-                    Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
-                    Enemy_Investigate_script.searcingLastHearPosition(playerObj.transform.position);
-                    foundPlayer = true;
-
-                }
-
-                else enemt_alert_Script.counting_AlertTimer(false);
             }
 
+            if (player_Action != null && player_Action.currentState == Player_Action.PlayerState.Crouch)
+            {
+                //Debug.Log(" เข้าเงื่อนไข if (player_Action != null && player_Action.currentState == Player_Action.PlayerState.Crouch) ");
+                // ถ้าย่อตัวอยู่ -> ให้ยิงเลเซอร์ตรวจเช็คพิกัด "จุดกึ่งกลางลำตัว/เอว" แทน
+                // (บวกแกน Y ขึ้นมานิดหน่อยจากพิกัดเท้า เพื่อไม่ให้เลเซอร์ขูดพื้น)
+                Vector3 crouchTargetPos = playerObj.transform.position + new Vector3(0, -2f, 0);
+
+                // ยิง Linecast เส้นที่ 2 ไปที่เอว
+                if (!Physics.Linecast(EnemyHeadRaycast.position, crouchTargetPos, obstacleMask))
+                {
+                    if (P_Light_detect != null && P_Light_detect.light_meter >= 70)
+                    {
+                        // ถ้าไม่มีที่กำบังเตี้ยๆ บังเอี้ยวอยู่ = มองเห็นชัดเจน!
+                        Enemy_script.currentState = enemy_stage.EnemyState.Alert;
+                    }
+
+                    else if (P_Light_detect != null && P_Light_detect.light_meter >= 40)
+                    {
+                        // ถ้าไม่มีที่กำบังเตี้ยๆ บังเอี้ยวอยู่ = มองเห็นชัดเจน!
+                        Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
+                    }
+                    Debug.Log("ผู้เล่นยืนอยู่ หลังที่กำบัง! AI มองห็น!");
+                }
+                else
+                {
+                    Debug.Log("ผู้เล่นย่อหลบหลังที่กำบัง! AI มองไม่เห็น!");
+                }
+            }
         }
         //else foundPlayer = false;
 

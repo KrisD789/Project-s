@@ -6,7 +6,7 @@ public class Load_out_manager : MonoBehaviour
 
     [Header("อุปกรณ์ที่เลือกไว้สำหรับภารกิจ")]
     public item selectedPrimaryWeapon;
-    //public item selectedSecondaryWeapon;
+    public item selectedSecondaryWeapon;
     //public item selectedGadget;
     //public item selectedSuit; // เช่น ชุดพรางตัวที่ลดการสะท้อนแสง
 
@@ -26,6 +26,7 @@ public class Load_out_manager : MonoBehaviour
 
     private void Update()
     {
-        print(selectedPrimaryWeapon.itemName);
+        //print(selectedPrimaryWeapon.itemName);
+        //print(selectedSecondaryWeapon.itemName);
     }
 }

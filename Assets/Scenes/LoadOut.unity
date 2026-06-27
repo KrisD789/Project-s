@@ -714,7 +714,7 @@ GameObject:
   - component: {fileID: 955406598}
   m_Layer: 0
   m_Name: LoadOutManager
-  m_TagString: Untagged
+  m_TagString: LoadoutManager
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

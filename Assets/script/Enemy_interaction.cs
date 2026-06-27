@@ -23,7 +23,9 @@ public class EnemyInteraction : MonoBehaviour
     private void OnTriggerStay(Collider other)
     {
         if (enemy_main.currentState == enemy_stage.EnemyState.dead || 
-            enemy_main.currentState == enemy_stage.EnemyState.faint )
+            enemy_main.currentState == enemy_stage.EnemyState.faint ||
+            enemy_main.currentState == enemy_stage.EnemyState.Dummy ||
+            enemy_main.currentState == enemy_stage.EnemyState.OnGrab)
         {
             return;
         }
@@ -60,7 +62,7 @@ public class EnemyInteraction : MonoBehaviour
         {
             // ถ้าศัตรูเห็นผู้เล่น ให้เปลี่ยนสถานะและสั่งให้ Alert Script ทำงาน
             enemy_main.currentState = enemy_stage.EnemyState.Alert;
-
+            Debug.Log("Alert !!!!");
             // นายสามารถสั่งตั้งค่า Behavior ใน Alert Script ได้จากตรงนี้เลย
             // เช่น ถ้าเจอระยะประชิด ให้เข้า Cover ถ้าเจอไกลให้ Flank
             //if (Vector3.Distance(transform.position, other.transform.position) < 5f)

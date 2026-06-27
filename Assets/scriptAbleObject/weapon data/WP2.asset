@@ -14,11 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemIcon: {fileID: 21300000, guid: ed404916ab6a27542ba73b5513da711f, type: 3}
   itemName: WP2
-  description: pistol
+  description: pistol Semi_Auto
   weaponDamage: 0
-  weaponAmmo: 0
-  ReloadSpeed: 0
+  Max_Ammo: 12
+  Current_Ammo: 12
+  weaponRange: 50
+  ReloadTime: 2
+  FireRate: 1
   type: 1
-  noiseLevel: 0
+  fireMode: 0
+  noiseLevel: 80
   lightConcealment: 0
-  itemPrefab: {fileID: 0}
+  itemPrefab: {fileID: 2360988138355781369, guid: 5a3be66789d136f4bbbed3f5606d4fec, type: 3}

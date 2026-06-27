@@ -8,11 +8,19 @@ public class item : ScriptableObject
     public string itemName;
     public string description;
     public int weaponDamage;
-    public int weaponAmmo;
-    public float ReloadSpeed;
+    public int Max_Ammo;
+    public int Current_Ammo;
+    public float weaponRange;
+    public float ReloadTime;
+    public float FireRate;
+    
+    
+    
     public enum WeaponType {Primary, Secondary}
     public WeaponType type;
-    
+
+    public enum FireMode { Semi, Select_Fire_Weapon }
+    public FireMode fireMode;
 
     [Header("Stealth Mechanics")]
     public float noiseLevel; // ความดังเวลาใช้งาน
