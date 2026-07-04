@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Enemy_combatManager : MonoBehaviour
 {
-    public static Enemy_combatManager Instance;
+    public static Enemy_combatManager Instance { get; private set; }
 
     [Header("Token Settings")]
     public int maxCloseCombatTokens = 2; // จำนวนศัตรูที่ยอมให้รุมผู้เล่นพร้อมกัน

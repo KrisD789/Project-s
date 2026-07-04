@@ -34,6 +34,8 @@ public class Player_Action : MonoBehaviour
     private bool isCrouching = false;
     private float bottomOffset;
 
+    public bool OnDark = false;
+
     private CapsuleCollider capsuleCollider;
 
     private void Start()
@@ -45,6 +47,25 @@ public class Player_Action : MonoBehaviour
         // คำนวณหา "จุดต่ำสุดของเท้า" จากจุดศูนย์กลางเดิมของ Collider ตอนที่ยังยืนอยู่
         bottomOffset = capsuleCollider.center.y - (capsuleCollider.height / 2f);
     }
+    private void Update()
+    {
+        // ล็อคตำแหน่งศัตรูตอนจับให้อยู่หมัด ห้ามเคลื่อนเด็ดขาด!
+        if (currentState == PlayerState.GrabbingEnemy && grabbedEnemy != null)
+        {
+            // บังคับให้อยู่ตรงกลาง grabPosition เสมอ
+            grabbedEnemy.transform.localPosition = Vector3.zero;
+
+            // บังคับให้หันหน้าไปทิศทางเดียวกับผู้เล่นเสมอ
+            grabbedEnemy.transform.localRotation = Quaternion.identity;
+        }
+
+        if (currentState == PlayerState.CarryingBody && carriedBody != null)
+        {
+            carriedBody.transform.localPosition = Vector3.zero;
+            carriedBody.transform.localRotation = Quaternion.identity;
+        }
+    }
+
 
     private void OnTriggerEnter(Collider other)
     {

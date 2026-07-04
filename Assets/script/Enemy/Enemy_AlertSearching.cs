@@ -10,7 +10,8 @@ public class Enemy_AlertSearching : MonoBehaviour
     public enum SearchType {serach_building, keepposition }
     public SearchType currentSearch;
     [Header("AlertSearch Settings")]
-    bool isAlertRoutineRunning = false; 
+    bool isAlertRoutineRunning = false;
+    private Coroutine mainSearchCoroutine; // สร้างตัวแปรมาเก็บ Coroutine หลัก
 
     [Header("Building Search Settings")]
     public float scanRadius = 50f;          // รัศมีในการหาบ้านรอบตัว
@@ -48,24 +49,28 @@ public class Enemy_AlertSearching : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //print(buildingsToSearch.Count);
         if (enemy_script.currentState == enemy_stage.EnemyState.alertSearching)
         {
             if (!isAlertRoutineRunning)
             {
                 isAlertRoutineRunning = true;
-                StartCoroutine(AlertSearchRoutine());
+                // เก็บค่า Coroutine ลงตัวแปร
+                mainSearchCoroutine = StartCoroutine(AlertSearchRoutine());
             }
         }
-
         else
         {
-            // เช็กก่อนว่าเพิ่งทำงานเสร็จใช่ไหม? ถ้าใช่ ค่อยสั่งหยุด!
             if (isAlertRoutineRunning)
             {
-                StopAllCoroutines();
+                // สั่งหยุดเฉพาะเป้าหมายที่กำลังรันอยู่
+                if (mainSearchCoroutine != null)
+                {
+                    StopCoroutine(mainSearchCoroutine);
+                    mainSearchCoroutine = null;
+                }
+
                 isAlertRoutineRunning = false;
-                agent.ResetPath();
+                //agent.ResetPath();
             }
         }
     }
@@ -74,7 +79,7 @@ public class Enemy_AlertSearching : MonoBehaviour
     {
         //yield return StartCoroutine(SurroundPlayerRoutine());
 
-        //random_Task();
+        random_Task();
 
         while (enemy_script.currentState == enemy_stage.EnemyState.alertSearching)
         {

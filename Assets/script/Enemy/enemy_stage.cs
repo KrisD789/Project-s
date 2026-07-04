@@ -12,6 +12,7 @@ public class enemy_stage : MonoBehaviour
     Enemy_Alert enemy_alert_script;
     Enemy_Investigate enemy_investigate_script;
     enemy_stage target_enemy_Script;
+    public GameObject player_Obj;
     public Transform playerTransform;
     //gameplay gameplay;
     NavMeshAgent agent;
@@ -23,11 +24,11 @@ public class enemy_stage : MonoBehaviour
     public bool lineOfSight = false;
     //public bool noisAlert = false;
 
-    float timer = 0;
-    float waitTime = 3f;
+    //float timer = 0;
+    //float waitTime = 3f;
     
-    bool isenemyLatePos = false;
-    public bool onAlert = false;
+    //bool isenemyLatePos = false;
+    //public bool onAlert = false;
     public bool wasFaint = false; //‡ªÁπµ—«‰«È∫Õ°«Ë“»—µ√Ÿµ—«π’È‡§¬‚¥πplayer∑”„ÀÈ ≈∫
 
 
@@ -72,6 +73,8 @@ public class enemy_stage : MonoBehaviour
         enemy_investigate_script = GetComponent<Enemy_Investigate>();
         
         agent.speed = E_waklSpeed;
+        player_Obj = GameObject.FindGameObjectWithTag("Player");
+        playerTransform = player_Obj.transform;
         
         
     }
@@ -95,6 +98,7 @@ public class enemy_stage : MonoBehaviour
                 break;
             case EnemyState.Alert:
                 Alert();
+                baseState = EnemyState.alertSearching;
                 headRenderer.material.color = Color.red;
                 break;
 

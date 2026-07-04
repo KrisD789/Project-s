@@ -53,7 +53,7 @@ public class Enemypatro : MonoBehaviour
             }
         }
 
-        print(index);
+        //print(index);
     }
 
     void patroLogic()

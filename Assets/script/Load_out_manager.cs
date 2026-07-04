@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Load_out_manager : MonoBehaviour
 {
-    public static Load_out_manager Instance; // ใช้ Singleton เพื่อให้เรียกใช้ง่ายๆ
+    public static Load_out_manager Instance { get; private set; } // ใช้ Singleton เพื่อให้เรียกใช้ง่ายๆ
 
     [Header("อุปกรณ์ที่เลือกไว้สำหรับภารกิจ")]
     public item selectedPrimaryWeapon;

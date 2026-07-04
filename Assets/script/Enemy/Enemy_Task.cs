@@ -24,6 +24,15 @@ public class Enemy_Task : MonoBehaviour
     public LayerMask FriendNeraByMask;
     private bool TaskActivate = false;
 
+    private Coroutine wakeUpCoroutine;
+
+
+    // --- ตัวแปรสำหรับระบบจับเวลาปลุกเพื่อน ---
+    private bool isWakingUpFriend = false;
+    private float wakeUpTimer = 0f;
+    //private float wakeUpDuration = 2.0f; // ใช้เวลาปลุก 2 วินาที
+    private enemy_stage friendToWake;    // เก็บเป้าหมายว่ากำลังปลุกใครอยู่
+
 
     private void Awake()
     {
@@ -41,7 +50,39 @@ public class Enemy_Task : MonoBehaviour
 
     void Update()
     {
-        //print(todoList.Count);
+        if (enemyMain_script.currentState == enemy_stage.EnemyState.faint ||
+             enemyMain_script.currentState == enemy_stage.EnemyState.dead ||
+             enemyMain_script.currentState == enemy_stage.EnemyState.OnGrab)
+        {
+            if (wakeUpCoroutine != null) StopCoroutine(wakeUpCoroutine);
+
+            if (todoList.Count > 0)
+            {
+                todoList.Clear();
+            }
+
+            TaskActivate = false; // รีเซ็ตตัวล็อค
+        }
+
+        // 2. ลอจิกการนับเวลาปลุกเพื่อน
+        //if (isWakingUpFriend)
+        //{
+        // เซฟตี้: ดักไว้เผื่อเพื่อนตาย/หรือตื่นเองไปแล้วระหว่างที่เรากำลังยืนปลุก
+        //if (friendToWake == null || friendToWake.currentState != enemy_stage.EnemyState.faint)
+        //{
+        //CancelWakeUpTimer();
+        //return;
+        //}
+
+        // เริ่มนับเวลา
+        //wakeUpTimer += Time.deltaTime;
+
+        // ถ้านับครบ 2 วินาทีแล้ว
+        //if (wakeUpTimer >= wakeUpDuration)
+        //{
+        //FinishWakingUpFriend();
+        //}
+        //}
     }
 
     public void StartDoingTask()
@@ -64,14 +105,17 @@ public class Enemy_Task : MonoBehaviour
         float sqrDistToTask = offset.sqrMagnitude;
         float stopDistance = 2.0f; // ระยะที่ต้องการให้เบรก (2 เมตร)
 
-        // เอาระยะหยุดมายกกำลังสอง (2 * 2 = 4) เพื่อเอาไปเทียบกับ sqrDistToTask
+        // เพิ่มเงื่อนไข !TaskActivate เพื่อเช็คว่าตอนนี้ไม่ได้กำลังทำงานอื่นอยู่
         if (!agent.pathPending && sqrDistToTask < (stopDistance * stopDistance))
         {
-            Debug.Log("เดินมาถึงแล้ว! ลงมือทำงาน");
-            ExecuteTask(currentTask);
-            todoList.RemoveAt(0); // ทำเสร็จก็ลบทิ้ง
+            if (!TaskActivate)
+            {
+                TaskActivate = true; // ล็อคทันที! ป้องกันการรันซ้ำในเฟรมถัดไป
+                Debug.Log("เดินมาถึงแล้ว! ลงมือทำงาน");
+                ExecuteTask(currentTask);
+            }
         }
-        
+
     }
 
     public void AddToTodoList(Vector3 pos, MonoBehaviour script, WorkTask.TaskType typ)
@@ -118,6 +162,7 @@ public class Enemy_Task : MonoBehaviour
                         AddToTodoList(light.masterSwitch.transform.position, light.masterSwitch, WorkTask.TaskType.TLight);
                     }
                 }
+                Clear_Current_Task();
                 Debug.Log("AI: หาสวิตไฟที่ปิดอยู่ " + task.position);
                 break;
 
@@ -126,6 +171,7 @@ public class Enemy_Task : MonoBehaviour
                 var lightSW = task.targetObject as light_switch;
                 if (lightSW != null) lightSW.Turn();
 
+                Clear_Current_Task();
                 Debug.Log("AI: กำลังจัดการกับไฟที่ " + task.position);
                 break;
 
@@ -133,34 +179,45 @@ public class Enemy_Task : MonoBehaviour
                 // ตัวอย่าง: แปลงเป็นสคริปต์ประตูแล้วสั่งปิด
                 var door = task.targetObject as Door;
                 if (door != null) door.ToggleDoor(true, Door.DoorState.Closed);
+
+                Clear_Current_Task();
                 Debug.Log("AI: กำลังจัดการกับประตูที่ " + task.position);
                 break;
 
             case WorkTask.TaskType.wakeUp:
                 var friend = task.targetObject as enemy_stage;
-                if (friend != null && friend.currentState == enemy_stage.EnemyState.faint) friend.currentState = enemy_stage.EnemyState.awake;
-                //if (friend != null && friend.currentState == enemy.EnemyState.dead) Enemy_script.currentState = enemy.EnemyState.Alert;
+                if (friend != null && friend.currentState == enemy_stage.EnemyState.faint)
+                {
+                    // เก็บค่า Coroutine ลงตัวแปร
+                    if (wakeUpCoroutine != null)
+                    {
+                        StopCoroutine(wakeUpCoroutine);
+                    }
+                    wakeUpCoroutine = StartCoroutine(checkMate(friend));
+                }
 
-                StartCoroutine(checkMate());
                 Debug.Log("ทำการปลุกเพื่อน");
+
+                //Clear_Current_Task();
                 break;
 
             case WorkTask.TaskType.alarm:
                 Alarm();
                 enemyMain_script.currentState = enemy_stage.EnemyState.Alert;
+
+                Clear_Current_Task();
                 Debug.Log("Alarmmm!!!!");
                 break;
         }
     }
-    IEnumerator checkMate()
+    IEnumerator checkMate(enemy_stage enemy_Stage_script)
     {
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(5);
         Debug.Log("are you okay.....");
+        enemy_Stage_script.currentState = enemy_stage.EnemyState.awake;
+        enemyMain_script.currentState = EnemyState.report; //สั่งตัวเองให้เข้าเฟดReport
 
-
-
-        enemyMain_script.currentState = EnemyState.report; //สั่งตัวเองให้เข้าเฟดinvestigate
-
+        Clear_Current_Task();
         Debug.Log("List length =" + todoList.Count);
         //target_enemy_Script.currentState = enemy.EnemyState.awake; //สั่งให้ศัตรูคัวอื่น ให้ตื่น
         //target_enemy_Script = null;
@@ -180,7 +237,7 @@ public class Enemy_Task : MonoBehaviour
             Vector3 dist = coll.transform.position - transform.position;
             var friendScript = coll.GetComponent<enemy_stage>();
 
-            if (friendScript.currentState != enemy_stage.EnemyState.dead && friendScript.currentState != enemy_stage.EnemyState.faint)
+            if (friendScript.currentState == enemy_stage.EnemyState.dead && friendScript.currentState == enemy_stage.EnemyState.faint)
             {
                 continue;
             }
@@ -198,8 +255,48 @@ public class Enemy_Task : MonoBehaviour
         }
     }
 
+    void Clear_Current_Task()
+    {
+        if (todoList.Count > 0)
+        {
+            todoList.RemoveAt(0); // ทำเสร็จก็ลบทิ้ง
+        }
+
+        TaskActivate = false; // ปลดล็อคให้ AI พร้อมทำงานชิ้นต่อไป!
+    }
+
     public void ClearAllTasks()
     {
         todoList.Clear();
+    }
+
+    void CancelWakeUpTimer()
+    {
+        if (isWakingUpFriend)
+        {
+            isWakingUpFriend = false;
+            wakeUpTimer = 0f;
+            friendToWake = null;
+            Debug.Log("ยกเลิกการนับเวลาปลุกเพื่อนกลางคัน!");
+        }
+    }
+
+    void FinishWakingUpFriend()
+    {
+        isWakingUpFriend = false;
+        wakeUpTimer = 0f;
+
+        if (friendToWake != null)
+        {
+            Debug.Log("are you okay.....");
+            friendToWake.currentState = enemy_stage.EnemyState.awake;
+
+            // สั่งตัวเองให้เข้าโหมด report หลังจากปลุกเพื่อนเสร็จ
+            enemyMain_script.currentState = EnemyState.report;
+
+            Debug.Log("List length =" + todoList.Count);
+        }
+
+        friendToWake = null; // คืนค่าเป้าหมาย
     }
 }

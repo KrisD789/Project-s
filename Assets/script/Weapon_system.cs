@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class Weapon_system : MonoBehaviour
 {
+    public static Weapon_system Instance { get; private set; }
+
     public item Player_Primary_weapon;
     public item Player_Secondary_weapon;
 
@@ -33,6 +35,8 @@ public class Weapon_system : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
+
         GameObject loadOutScript = GameObject.FindGameObjectWithTag("LoadoutManager");
         weapon_Raycast = GetComponent<Weapon_raycast>();
 

@@ -37,7 +37,7 @@ public class Enemy_Investigate : MonoBehaviour
     private int currentSearchCount = 0;
     private bool isSearching = false;
     private bool hearSound = false;
-    private bool isFriendCheck = false;
+    //private bool isFriendCheck = false;
     public bool isSearchingLight = false;
 
     Vector3 soundPosition;
@@ -84,7 +84,7 @@ public class Enemy_Investigate : MonoBehaviour
             else if (Enemy_Task.todoList.Count == 0)
             {
                 StartSearching();
-                    //Debug.Log("กำลังเดินไปที่ที่ได้ยินเสียง.....");
+                    
                     if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
                     {
                         //Debug.Log("กำลังเดินสุ่มตรวจรอบๆ.....");
@@ -96,6 +96,7 @@ public class Enemy_Investigate : MonoBehaviour
                         }
 
                     }
+                //Debug.Log("เข้าเงื่อนไข else if (Enemy_Task.todoList.Count == 0)");
             }
 
             else
@@ -134,7 +135,7 @@ public class Enemy_Investigate : MonoBehaviour
             timer = 0;
             GoToNextSearchPoint();
 
-            Debug.Log("StartSearching...");
+            //Debug.Log("StartSearching...");
         }
 
         
@@ -150,8 +151,10 @@ public class Enemy_Investigate : MonoBehaviour
             //Debug.Log($"กำลังสำรวจจุดที่ {currentSearchCount}");
         }
 
-        else if (Enemy_script.wasFaint || Enemy_script.onAlert) // if(Enemy_script.baseState == enemy.EnemyState.investigate) 
+        else if (Enemy_script.wasFaint ) // if(Enemy_script.baseState == enemy.EnemyState.investigate) 
         {
+            //print("wasFaint = "+Enemy_script.wasFaint);
+            //print("OnAlert = " + Enemy_script.onAlert);
             currentSearchCount = 0;
             Debug.Log("ไอ่คนที่มันทุบหันฉันมันอยู่ไหนว่ะ...");
         }
@@ -159,7 +162,7 @@ public class Enemy_Investigate : MonoBehaviour
         {
             // สำรวจครบแล้ว กลับไป Patrol
             isSearching = false;
-            Enemy_script.currentState = EnemyState.Patrol;
+            Enemy_script.currentState = Enemy_script.baseState;
             Debug.Log("สำรวจเสร็จแล้ว ไม่เจออะไร... กลับไปเดินยามต่อ");
         }
     }

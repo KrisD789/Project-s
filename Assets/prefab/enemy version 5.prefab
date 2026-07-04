@@ -23,7 +23,8 @@ GameObject:
   - component: {fileID: 7061011517832867459}
   - component: {fileID: 6342435728769226632}
   - component: {fileID: 7083654210929150357}
-  - component: {fileID: 4568766553453998767}
+  - component: {fileID: 7571786209374755954}
+  - component: {fileID: 6132964762339273630}
   m_Layer: 9
   m_Name: enemy version 5
   m_TagString: enemy
@@ -137,6 +138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 528ae671b042b7c49bf0a200cfcda5cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Enemy_Health: 100
 --- !u!195 &7534751774643736078
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -146,7 +148,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 1809919424905224780}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 1
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -166,12 +168,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1809919424905224780}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 53a157f78dc127c43bc1ad2487736eda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   wayPoint:
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   RangAngle: 45
@@ -191,6 +195,7 @@ MonoBehaviour:
   viewRadius: 15
   viewAngle: 90
   raycastCount: 6
+  foundPlayer: 0
   targetMask:
     serializedVersion: 2
     m_Bits: 1024
@@ -219,7 +224,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   flankDistance: 5
   moveStyle: 1
-  CurrentBehavior: 3
+  Alert_CurrentBehavior: 3
+  Alert_PreviouslyBehavior: 4
   surroundTarget: {x: 0, y: 0, z: 0}
   DistToPlayer: 0
   AlertZone: 10
@@ -227,6 +233,14 @@ MonoBehaviour:
   startSurroundRadius: 15
   minSurroundRadius: 5
   updateDelay: 0.5
+  memoryDuration: 10
+  hintInterval: 10
+  delayBeforeTrail: 3
+  pushEngageDistance: 10
+  sideStepMargin: 2
+  FriendNeraByMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &749774836795764469
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -336,7 +350,7 @@ MonoBehaviour:
   FriendNeraByMask:
     serializedVersion: 2
     m_Bits: 0
---- !u!114 &4568766553453998767
+--- !u!114 &7571786209374755954
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -345,9 +359,35 @@ MonoBehaviour:
   m_GameObject: {fileID: 1809919424905224780}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 528ae671b042b7c49bf0a200cfcda5cb, type: 3}
+  m_Script: {fileID: 11500000, guid: c8488da377dcf33438324bd355d14934, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player_Obj: {fileID: 0}
+  playerTransform: {fileID: 0}
+  alert: 0
+  lineOfSight: 0
+  onAlert: 0
+  wasFaint: 0
+  E_runSpeed: 7
+  E_waklSpeed: 3
+  baseState: 0
+  currentState: 0
+  headRenderer: {fileID: 7479649690166941636}
+  E_lightMeter: 0
+--- !u!114 &6132964762339273630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1809919424905224780}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cebb2bf69df813049b6c7b5fe8275975, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fireRate: 0.5
+  weaponDamage: 10
 --- !u!1 &2269722239247786883
 GameObject:
   m_ObjectHideFlags: 0
