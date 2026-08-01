@@ -4,10 +4,10 @@ public class Weapon_system : MonoBehaviour
 {
     public static Weapon_system Instance { get; private set; }
 
-    public item Player_Primary_weapon;
-    public item Player_Secondary_weapon;
+    public Weapon_Item Player_Primary_weapon;
+    public Weapon_Item Player_Secondary_weapon;
 
-    public item currentWeapon;
+    public Weapon_Item currentWeapon;
     public Load_out_manager LoadoutManager;
 
     [Header("การเชื่อมต่อกับร่างกาย")]
@@ -50,11 +50,13 @@ public class Weapon_system : MonoBehaviour
 
     void Start()
     {
-        Player_Primary_weapon = LoadoutManager.selectedPrimaryWeapon;
-        Player_Secondary_weapon = LoadoutManager.selectedSecondaryWeapon;
+
 
         if (Player_Primary_weapon != null && Player_Secondary_weapon != null)
         {
+            Player_Primary_weapon = LoadoutManager.selectedPrimaryWeapon;
+            Player_Secondary_weapon = LoadoutManager.selectedSecondaryWeapon;
+
             currentWeapon = Player_Primary_weapon;
 
             Player_Primary_weapon.Current_Ammo = Player_Primary_weapon.Max_Ammo;
@@ -63,12 +65,22 @@ public class Weapon_system : MonoBehaviour
             Debug.Log("เริ่มเกม: สวมใส่อาวุธ " + currentWeapon.itemName);
         }
 
+        else 
+        {
+            Player_Primary_weapon = null;
+            Player_Secondary_weapon = null;
+
+
+            Debug.Log("ไม่พบอาวุธใน Loadout ของ Player");
+        }
+
+
         EquipPrimary();
     }
 
     private void Update()
     {
-        if (currentWeapon.fireMode == item.FireMode.Semi)
+        if (currentWeapon.fireMode == Weapon_Item.FireMode.Semi)
         {
             current_Weapon_FireMode = CurrentFireMode.Semi_Auto;
         }
@@ -237,7 +249,7 @@ public class Weapon_system : MonoBehaviour
     public void Switch_FireMode()
     {
         // เช็คก่อนว่าปืนกระบอกนี้อนุญาตให้สลับโหมดไหม?
-        if (currentWeapon.fireMode == item.FireMode.Select_Fire_Weapon)
+        if (currentWeapon.fireMode == Weapon_Item.FireMode.Select_Fire_Weapon)
         {
             // ถ้าเป็น Semi อยู่ ให้เปลี่ยนเป็น Full
             if (current_Weapon_FireMode == CurrentFireMode.Semi_Auto)

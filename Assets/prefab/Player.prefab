@@ -296,6 +296,8 @@ GameObject:
   - component: {fileID: 614853632851053362}
   - component: {fileID: 7023747248506436220}
   - component: {fileID: 6388333559461342088}
+  - component: {fileID: 8699299549623025668}
+  - component: {fileID: 7763679272181727026}
   m_Layer: 10
   m_Name: Player
   m_TagString: Player
@@ -396,7 +398,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.83
+  m_Radius: 0.56
   m_Height: 1.8119202
   m_Direction: 1
   m_Center: {x: -0.02918917, y: 0.40596008, z: 0}
@@ -556,12 +558,49 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05aa6189db7a69b4b99ed5d6e4ea38d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentState: 0
   carryPosition: {fileID: 9017335598441502791}
   grabPosition: {fileID: 8707579581564356262}
   standingHeight: 2
   crouchingHeight: 0
   crouchSpeed: 10
+--- !u!114 &8699299549623025668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4311081831415081894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5aaf44118ebf7ce41b87248a5a1eac02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Health: 100
+  MaxHealth: 100
+  Armor: 0
+  isDead: 0
+  currentState: 0
+  OnDark: 0
+  action: {fileID: 0}
+  movement: {fileID: 0}
+  weaponSystem: {fileID: 0}
+  cameraControl: {fileID: 0}
+  player_Light_Detect: {fileID: 0}
+  player_Inventory: {fileID: 0}
+--- !u!114 &7763679272181727026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4311081831415081894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac24a6f439369b440bc383982bff2277, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inventory: []
+  KeyItem: []
 --- !u!1 &7849970533979259500
 GameObject:
   m_ObjectHideFlags: 0

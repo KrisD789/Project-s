@@ -9,7 +9,7 @@ public class scanner : MonoBehaviour
     [SerializeField] private ScriptableRendererFeature xRayFeature;
     [SerializeField] private Volume scannerVolume; // ลาก ScannerVolume มาใส่ตรงนี้
 
-    public TextMeshProUGUI ui;
+    //public TextMeshProUGUI ui;
 
     private bool isScanning = false;
 
@@ -26,7 +26,7 @@ public class scanner : MonoBehaviour
             ToggleScanner(isScanning);
         }
 
-        ui.text = "Scanner: " + (isScanning ? "ON" : "OFF");
+        //ui.text = "Scanner: " + (isScanning ? "ON" : "OFF");
 
     }
 

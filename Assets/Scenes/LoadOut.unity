@@ -464,6 +464,18 @@ PrefabInstance:
       propertyPath: m_Size
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6991170114205434215, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
+      propertyPath: all_item.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6991170114205434215, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
+      propertyPath: 'all_item.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 4556d9d34907d6646bdf1ebd6306efd2, type: 2}
+    - target: {fileID: 6991170114205434215, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
+      propertyPath: 'all_item.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 9856607bf0d6f0843941e5bee11203ec, type: 2}
     - target: {fileID: 7773665182253207591, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -732,6 +744,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   selectedPrimaryWeapon: {fileID: 0}
+  selectedSecondaryWeapon: {fileID: 0}
 --- !u!4 &955406599
 Transform:
   m_ObjectHideFlags: 0

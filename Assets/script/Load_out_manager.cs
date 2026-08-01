@@ -5,8 +5,8 @@ public class Load_out_manager : MonoBehaviour
     public static Load_out_manager Instance { get; private set; } // ใช้ Singleton เพื่อให้เรียกใช้ง่ายๆ
 
     [Header("อุปกรณ์ที่เลือกไว้สำหรับภารกิจ")]
-    public item selectedPrimaryWeapon;
-    public item selectedSecondaryWeapon;
+    public Weapon_Item selectedPrimaryWeapon;
+    public Weapon_Item selectedSecondaryWeapon;
     //public item selectedGadget;
     //public item selectedSuit; // เช่น ชุดพรางตัวที่ลดการสะท้อนแสง
 

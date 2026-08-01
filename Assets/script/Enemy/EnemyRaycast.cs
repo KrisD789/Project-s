@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using static enemy_stage;
@@ -28,7 +29,7 @@ public class EnemyRaycast : MonoBehaviour
     [Header("อ้างอิง")]
     GameObject playerObj;
     LightDetect P_Light_detect;
-    Player_Action player_Action;
+    Player Player_state;
 
     public Transform EnemyHeadRaycast;
     Transform player;
@@ -43,29 +44,45 @@ public class EnemyRaycast : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-    }
 
-    private void Awake()
-    {
-        playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null) Debug.Log("Found playerObj");
-        else print("Can Not Find playerObj");
+        if (Player.Instance != null)
+        {
+            playerObj = Player.Instance.gameObject;
+            P_Light_detect = Player.Instance.player_Light_Detect;
+            Player_state = Player.Instance;
 
-        if (playerObj.TryGetComponent<LightDetect>(out P_Light_detect)) Debug.Log("Raycast ---- Found lightdetect");
-        if (playerObj.TryGetComponent<Player_Action>(out player_Action)) Debug.Log("Raycast ---- Found player_action");
-        //if(TryGetComponent<Enemy_Weapon>(out enemy_weapon_script)) Debug.Log("Raycast ---- Found Enemy_Weapon");
+            Debug.Log("EnemyRaycast: เชื่อมต่อกับ Player.Instance สำเร็จ!");
+        }
+
+        else
+        {
+            Debug.LogError("EnemyRaycast: !!!! หา Player.Instance ไม่เจอ! ");
+        }
 
         player = playerObj.transform;
         bodyToRotate = transform;
-        Enemy_script = GetComponent<enemy_stage>();
-        Enemy_Investigate_script = GetComponent<Enemy_Investigate>();
-        enemt_alert_Script = GetComponent<Enemy_Alert>();
-        enemy_task_script = GetComponent<Enemy_Task>();
+
+        if (!TryGetComponent<enemy_stage>(out Enemy_script))
+            Debug.LogWarning("EnemyRaycast:  หา enemy_stage ไม่เจอ!");
+
+        if (!TryGetComponent<Enemy_Investigate>(out Enemy_Investigate_script))
+            Debug.LogWarning("EnemyRaycast:  หา Enemy_Investigate ไม่เจอ!");
+
+        if (!TryGetComponent<Enemy_Alert>(out enemt_alert_Script))
+            Debug.LogWarning("EnemyRaycast:  หา Enemy_Alert ไม่เจอ!");
+
+        if (!TryGetComponent<Enemy_Task>(out enemy_task_script))
+            Debug.LogWarning("EnemyRaycast:  หา Enemy_Task ไม่เจอ!");
     }
+
+    
+
+   
 
     void Update()
     {
-        if (Enemy_script.currentState == enemy_stage.EnemyState.dead || Enemy_script.currentState == enemy_stage.EnemyState.faint)
+        if (Enemy_script.currentState == enemy_stage.EnemyState.dead || Enemy_script.currentState == enemy_stage.EnemyState.faint 
+            || Enemy_script.currentState == enemy_stage.EnemyState.Dummy)
             return;
 
         Raycast();
@@ -192,7 +209,7 @@ public class EnemyRaycast : MonoBehaviour
             if (Enemy_script.currentState != enemy_stage.EnemyState.Alert)
             {
                 // -- กรณี 1: ยืนเดินปกติ --
-                if (player_Action != null && player_Action.currentState != Player_Action.PlayerState.Crouch)
+                if (Player_state != null && Player_state.currentState != Player.PlayerState.Crouch)
                 {
                     if (P_Light_detect != null && P_Light_detect.light_meter >= 70)
                     {
@@ -207,7 +224,7 @@ public class EnemyRaycast : MonoBehaviour
                     }
                 }
                 // -- กรณี 2: ผู้เล่นนั่งหมอบ (Crouch) --
-                else if (player_Action != null && player_Action.currentState == Player_Action.PlayerState.Crouch)
+                else if (Player_state != null && Player_state.currentState == Player.PlayerState.Crouch)
                 {
                     // จุดที่ 2: ใช้ crouchTargetPos มาเช็คอีกรอบว่าระดับการหมอบมีลัง/กล่องเตี้ยๆ บังมิดไหม
                     Vector3 crouchTargetPos = playerObj.transform.position + new Vector3(0, -2f, 0);

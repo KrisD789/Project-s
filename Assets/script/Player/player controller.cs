@@ -109,38 +109,55 @@ public class Player_moveMent : MonoBehaviour
 
     void setCollider()
     {
-        float speedNormalized = Mathf.InverseLerp(3f, 10f, speed);
-        float targetRadius = Mathf.Lerp(minNoiseRadius, maxNoiseRadius, speedNormalized);
-        noiseCollider.radius = targetRadius;
+        // 1. เช็คความเร็วที่ขยับจริงๆ ในโลก (ตัดแกน Y ออก ป้องกันบั๊กตกจากที่สูงแล้วเกิดเสียงดัง)
+        Vector3 actualVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+
+        float targetRadius = 0f;
+
+        // 2. ถ้าตัวละครมีการขยับจริงๆ (มากกว่า 0.1 กันค่าคลาดเคลื่อน)
+        if (actualVelocity.magnitude > 0.1f)
+        {
+            // คำนวณรัศมีเสียงตามความเร็ว (Speed) ที่เราเลือกล็อคไว้
+            float speedNormalized = Mathf.InverseLerp(3f, 10f, speed);
+            targetRadius = Mathf.Lerp(minNoiseRadius, maxNoiseRadius, speedNormalized);
+        }
+        else
+        {
+            // ถ้ายืนนิ่งๆ ให้เป้าหมายรัศมีเสียงเป็น 0 ไปเลย (หรือจะให้เหลือ minNoiseRadius ก็ได้)
+            targetRadius = 0f;
+        }
+
+        // 3. ใช้ Lerp เพื่อให้วงกลมสมูท ไม่กางหรือหุบทันทีใน 1 เฟรม (ดูเป็นมืออาชีพขึ้นเยอะครับ!)
+        noiseCollider.radius = Mathf.Lerp(noiseCollider.radius, targetRadius, Time.deltaTime * 15f);
     }
 
     //void Interaction()
     //{
-        //Collider[] enviroment = Physics.OverlapSphere(transform.position, 5f, InteracMask);
+    //Collider[] enviroment = Physics.OverlapSphere(transform.position, 5f, InteracMask);
 
-        //foreach (var Obj in enviroment)
-        //{
-            // 6. ใช้ WasPressedThisFrame() ซึ่งมีความหมายเหมือน Input.GetKeyDown() เป๊ะ
-            //if (Obj.CompareTag("lightSwitch") && interactAction.action.WasPressedThisFrame())
-            //{
-                //Obj.GetComponent<light_switch>().Turn();
-            //}
+    //foreach (var Obj in enviroment)
+    //{
+    // 6. ใช้ WasPressedThisFrame() ซึ่งมีความหมายเหมือน Input.GetKeyDown() เป๊ะ
+    //if (Obj.CompareTag("lightSwitch") && interactAction.action.WasPressedThisFrame())
+    //{
+    //Obj.GetComponent<light_switch>().Turn();
+    //}
 
-            //if (Obj.CompareTag("Door") && interactAction.action.WasPressedThisFrame())
-            //{
-                //var DoorTarget = Obj.GetComponent<Door>();
-                //if (DoorTarget != null)
-                //{
-                    //if (DoorTarget.currentState == Door.DoorState.Closed)
-                    //{
-                        //DoorTarget.ToggleDoor(false, Door.DoorState.Open);
-                    //}
-                    //else
-                    //{
-                        //DoorTarget.ToggleDoor(false, Door.DoorState.Closed);
-                    //}
-                //}
-            //}
-        //}
+    //if (Obj.CompareTag("Door") && interactAction.action.WasPressedThisFrame())
+    //{
+    //var DoorTarget = Obj.GetComponent<Door>();
+    //if (DoorTarget != null)
+    //{
+    //if (DoorTarget.currentState == Door.DoorState.Closed)
+    //{
+    //DoorTarget.ToggleDoor(false, Door.DoorState.Open);
+    //}
+    //else
+    //{
+    //DoorTarget.ToggleDoor(false, Door.DoorState.Closed);
+    //}
+    //}
+    //}
+    //}
     //}
 }

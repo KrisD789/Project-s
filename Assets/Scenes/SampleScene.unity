@@ -1969,17 +1969,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 528ae671b042b7c49bf0a200cfcda5cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 0}
-  alert: 0
-  lineOfSight: 0
-  onAlert: 0
-  wasFaint: 0
-  E_runSpeed: 5
-  E_waklSpeed: 2
-  baseState: 0
-  currentState: 0
-  headRenderer: {fileID: 1170948605}
-  E_lightMeter: 0
+  Enemy_Health: 100
 --- !u!143 &936808353
 CharacterController:
   m_ObjectHideFlags: 0
@@ -2215,6 +2205,7 @@ MonoBehaviour:
   viewRadius: 10
   viewAngle: 90
   raycastCount: 6
+  foundPlayer: 0
   targetMask:
     serializedVersion: 2
     m_Bits: 1
@@ -3139,6 +3130,7 @@ MonoBehaviour:
   viewRadius: 10
   viewAngle: 90
   raycastCount: 6
+  foundPlayer: 0
   targetMask:
     serializedVersion: 2
     m_Bits: 1
@@ -3232,17 +3224,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 528ae671b042b7c49bf0a200cfcda5cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 0}
-  alert: 0
-  lineOfSight: 0
-  onAlert: 0
-  wasFaint: 0
-  E_runSpeed: 5
-  E_waklSpeed: 2
-  baseState: 0
-  currentState: 0
-  headRenderer: {fileID: 0}
-  E_lightMeter: 0
+  Enemy_Health: 100
 --- !u!143 &1637788299
 CharacterController:
   m_ObjectHideFlags: 0

@@ -19,8 +19,17 @@ public class Player_UI_Manager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        weaponName.text = weapon_system.currentWeapon.itemName;
-        Ammo.text = weapon_system.currentWeapon.Current_Ammo.ToString() + " / " + weapon_system.currentWeapon.Max_Ammo;
-        Player_Health.text = "Health: " + Player_Script.Health.ToString();
+        if (weapon_system.Player_Primary_weapon != null)
+        {
+            weaponName.text = weapon_system.currentWeapon.itemName;
+            Ammo.text = weapon_system.currentWeapon.Current_Ammo.ToString() + " / " + weapon_system.currentWeapon.Max_Ammo;
+            Player_Health.text = "Health: " + Player_Script.Health.ToString();
+        }
+
+        else
+        {
+            weaponName.text = "Not Found weapon inLoadout";
+            Ammo.text = "Not Found weapon inLoadout";
+        }
     }
 }

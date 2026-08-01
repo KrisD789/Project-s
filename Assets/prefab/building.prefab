@@ -386,6 +386,7 @@ GameObject:
   - component: {fileID: 4051735441129493353}
   - component: {fileID: 1562714452724574281}
   - component: {fileID: 967295716171675019}
+  - component: {fileID: 8014404700696615363}
   m_Layer: 12
   m_Name: SW
   m_TagString: lightSwitch
@@ -498,6 +499,19 @@ MonoBehaviour:
   light: {fileID: 5033190039517293218}
   lightZone_script: {fileID: 6403610494669500892}
   lightSW_Status: 1
+--- !u!114 &8014404700696615363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4532590926875261418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c2e7e2d5aee72c429266f0d644b3347, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uniqueID: 
 --- !u!1 &4804194232560948549
 GameObject:
   m_ObjectHideFlags: 0

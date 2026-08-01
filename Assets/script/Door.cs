@@ -5,7 +5,7 @@ using UnityEngine;
 public class Door : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    public enum DoorState {Open, Closed, Locked }
+    public enum DoorState {Open, Closed, Locked, Tutorial }
     public DoorState currentState = DoorState.Closed;
 
     [Header("Settings")]
@@ -62,5 +62,10 @@ public class Door : MonoBehaviour
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, checkRadius);
+    }
+
+    public void Automatic_Door_for_Tutorial_Map()
+    {
+        currentState = DoorState.Open;
     }
 }

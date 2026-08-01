@@ -66,44 +66,6 @@ public class Player_InputHanler : MonoBehaviour
 
     private void Awake()
     {
-        // ใช้ TryGetComponent เดี่ยวๆ เพื่อดึงสคริปต์ที่อยู่บน GameObject เดียวกันมาใส่ในตัวแปร
-        if (TryGetComponent<Player_moveMent>(out player_MoveMent))
-        {
-            Debug.Log("Found Player_moveMent script");
-        }
-        else
-        {
-            Debug.LogWarning("หา Player_moveMent ไม่เจอ! ลืมแปะสคริปต์ไว้ที่ตัวละครหรือเปล่า?");
-        }
-
-        if (TryGetComponent<Weapon_system>(out weapon_system))
-        {
-            Debug.Log("Found Weapon_system script");
-        }
-        else
-        {
-            Debug.LogWarning("หา Weapon_system ไม่เจอ!");
-        }
-
-        if(TryGetComponent<Player_Action>(out player_action))
-        {
-            Debug.Log("Found player_action script");
-        }
-
-        else
-        {
-            Debug.Log("หา player_action script ไม่เจอ");
-        }
-
-        if (TryGetComponent<CameraControl>(out camera_control))
-        {
-            Debug.Log("Found camera_control script");
-        }
-
-        else
-        {
-            Debug.Log("หา camera_control script ไม่เจอ");
-        }
 
         // เสียบสายไฟ Event
         interactAction.action.performed += OnInteract;
@@ -113,6 +75,24 @@ public class Player_InputHanler : MonoBehaviour
         Switch_Fire_Mode.action.performed += SwitchFireMode;
         reload_Action.action.performed += Reload;
         Crouch_Action.action.performed += ToggleCrouch;
+    }
+
+    private void Start()
+    {
+        // ดึง Component ทุกตัว (รวมถึงกล้อง) ผ่านศูนย์กลาง Player.Instance
+        if (Player.Instance != null)
+        {
+            player_MoveMent = Player.Instance.movement;
+            weapon_system = Player.Instance.weaponSystem;
+            player_action = Player.Instance.action;
+            camera_control = Player.Instance.cameraControl; // ดึงผ่าน Player ได้แล้ว!
+
+            Debug.Log("Player_InputHandler: ดึงข้อมูลทุกอย่างจาก Player.Instance สำเร็จ!");
+        }
+        else
+        {
+            Debug.LogWarning("Player_InputHandler: หา Player.Instance ไม่เจอ!");
+        }
     }
 
     private void Update()
@@ -166,9 +146,9 @@ public class Player_InputHanler : MonoBehaviour
 
     public void OnFire(bool isHolding, bool isClicking)
     {
-        if (player_action.currentState == Player_Action.PlayerState.GrabbingEnemy)
+        // เปลี่ยนจาก player_action.currentState เป็น Player.Instance.currentState
+        if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
         {
-            // ให้รับแค่จังหวะคลิก (isClicking) เท่านั้น ห้ามกดค้าง
             if (isClicking)
             {
                 player_action.ChooseToKill();
@@ -176,7 +156,6 @@ public class Player_InputHanler : MonoBehaviour
         }
         else
         {
-            //Debug.Log("ยิงปืน!");
             weapon_system.HandleShooting(isHolding, isClicking);
         }
     }
@@ -200,9 +179,9 @@ public class Player_InputHanler : MonoBehaviour
 
     public void TakeAim(bool HoldAim, bool clickAim)
     {
-        if (player_action.currentState == Player_Action.PlayerState.GrabbingEnemy)
+        // เปลี่ยนจาก player_action.currentState เป็น Player.Instance.currentState
+        if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
         {
-            // เช็คก่อนว่าเป็นการ "กดคลิกลงไป" (Press == true) ถึงจะรัดคอ
             if (clickAim)
             {
                 player_action.ChooseToKnockout();
@@ -211,7 +190,6 @@ public class Player_InputHanler : MonoBehaviour
         else
         {
             camera_control.HandleAim(HoldAim);
-            //Debug.Log("เล็ง!");
         }
     }
 
