@@ -20,6 +20,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/player_cam_test.unity
     guid: 44d9bacf070d79a40abd9e12f2e530cf
+  - enabled: 1
+    path: Assets/Scenes/Mission test.unity
+    guid: f908f2a5d95402940a3c00364a02d807
+  - enabled: 1
+    path: Assets/Scenes/Tutorial Stealth scene 1.unity
+    guid: a445e1e47a6dd09499783b2a86005671
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

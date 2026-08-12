@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52e509992683bd94bb76e04d37d9c1c9, type: 3}
+  m_Name: Medium_Armor
+  m_EditorClassIdentifier: 
+  itemIcon: {fileID: 0}
+  itemName: Medium_Armor
+  description: 
+  itemPrefab: {fileID: 0}
+  Max_Armor_Durability: 100
+  Armor_Block_Percentage: 0.5
+  Movement_Speed_Multiplier: 10
+  Noise_Multiplier: 10

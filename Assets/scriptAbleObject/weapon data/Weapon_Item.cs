@@ -7,6 +7,7 @@ public class Weapon_Item : Base_Item
     public int weaponDamage;
     public int Max_Ammo;
     public int Current_Ammo;
+    public int Max_Reserve_Ammo;
     public float weaponRange;
     public float ReloadTime;
     public float FireRate;

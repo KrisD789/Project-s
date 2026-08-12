@@ -16,6 +16,7 @@ TagManager:
   - AimCam
   - LoadoutManager
   - FirePoint
+  - ScamCommander
   layers:
   - Default
   - TransparentFX

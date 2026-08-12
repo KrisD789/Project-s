@@ -26,6 +26,15 @@ public class MissionManager : MonoBehaviour
     private void Awake()
     {
         if (Instance == null) Instance = this;
+
+        foreach (MissionData mission in activeMissions)
+        {
+            if (mission != null)
+            {
+                mission.isCompleted = false; // เอาเครื่องหมายติ๊กถูกออกให้หมด
+                mission.currentAmount = 0;   // รีเซ็ตยอดนับจำนวนศัตรู (ถ้ามี) ให้กลับเป็นศูนย์
+            }
+        }
     }
 
     public void OnMissionEventReceived(MissionData incomingMission)

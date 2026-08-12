@@ -10,14 +10,51 @@ public class Weapon_system : MonoBehaviour
     public Weapon_Item currentWeapon;
     public Load_out_manager LoadoutManager;
 
+    [Header("Ammo Tracking (ในแม็กกาซีน)")]
+    public int primary_CurrentAmmo;
+    public int secondary_CurrentAmmo;
+
+    [Header("Reserve Ammo Tracking (กระสุนสำรอง)")]
+    public int primary_ReserveAmmo;   // กระสุนสำรองอาวุธหลัก
+    public int secondary_ReserveAmmo; // กระสุนสำรองอาวุธรอง
+
+    // Property สำหรับจัดการกระสุนในแม็กกาซีน
+    public int CurrentAmmo
+    {
+        get
+        {
+            if (currentWeapon == Player_Primary_weapon) return primary_CurrentAmmo;
+            if (currentWeapon == Player_Secondary_weapon) return secondary_CurrentAmmo;
+            return 0;
+        }
+        set
+        {
+            if (currentWeapon == Player_Primary_weapon) primary_CurrentAmmo = value;
+            if (currentWeapon == Player_Secondary_weapon) secondary_CurrentAmmo = value;
+        }
+    }
+
+    // Property สำหรับจัดการกระสุนสำรอง
+    public int CurrentReserveAmmo
+    {
+        get
+        {
+            if (currentWeapon == Player_Primary_weapon) return primary_ReserveAmmo;
+            if (currentWeapon == Player_Secondary_weapon) return secondary_ReserveAmmo;
+            return 0;
+        }
+        set
+        {
+            if (currentWeapon == Player_Primary_weapon) primary_ReserveAmmo = value;
+            if (currentWeapon == Player_Secondary_weapon) secondary_ReserveAmmo = value;
+        }
+    }
+
     [Header("การเชื่อมต่อกับร่างกาย")]
-    public Transform weaponMount; // ลาก WeaponMount ที่มือขวามาใส่ช่องนี้
+    public Transform weaponMount;
 
-    // สิ่งที่ซ่อนไว้ทำงานหลังบ้าน
-    private GameObject currentWeaponModel; // โมเดล 3D ที่ถืออยู่ตอนนี้
-    public Transform currentFirePoint;     // จุดยิงกระสุนของปืนปัจจุบัน
-
-    Weapon_raycast weapon_Raycast;
+    private GameObject currentWeaponModel;
+    public Transform currentFirePoint;
 
     public LayerMask Target_mask;
     public LayerMask Obtacle_mask;
@@ -36,21 +73,12 @@ public class Weapon_system : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-
-        GameObject loadOutScript = GameObject.FindGameObjectWithTag("LoadoutManager");
-        weapon_Raycast = GetComponent<Weapon_raycast>();
-
-        if (loadOutScript != null)
-        {
-            LoadoutManager = loadOutScript.GetComponent<Load_out_manager>();
-            Debug.Log("Found LoadOutManager_script");
-        }
-        else Debug.Log("LoadOutManager_script Not Found");
+        
     }
 
     void Start()
     {
-
+        LoadoutManager = Load_out_manager.Instance;
 
         if (Player_Primary_weapon != null && Player_Secondary_weapon != null)
         {
@@ -59,21 +87,18 @@ public class Weapon_system : MonoBehaviour
 
             currentWeapon = Player_Primary_weapon;
 
-            Player_Primary_weapon.Current_Ammo = Player_Primary_weapon.Max_Ammo;
-            Player_Secondary_weapon.Current_Ammo = Player_Secondary_weapon.Max_Ammo;
+            // ดึงกระสุนจากสเปคปืนมาเก็บไว้ตอนเริ่มเกม ทั้งในแม็กและกระสุนสำรอง
+            primary_CurrentAmmo = Player_Primary_weapon.Max_Ammo;
+            primary_ReserveAmmo = Player_Primary_weapon.Max_Reserve_Ammo;
 
-            Debug.Log("เริ่มเกม: สวมใส่อาวุธ " + currentWeapon.itemName);
+            secondary_CurrentAmmo = Player_Secondary_weapon.Max_Ammo;
+            secondary_ReserveAmmo = Player_Secondary_weapon.Max_Reserve_Ammo;
         }
-
-        else 
+        else
         {
             Player_Primary_weapon = null;
             Player_Secondary_weapon = null;
-
-
-            Debug.Log("ไม่พบอาวุธใน Loadout ของ Player");
         }
-
 
         EquipPrimary();
     }
@@ -92,28 +117,23 @@ public class Weapon_system : MonoBehaviour
     {
         if (current_Weapon_Status == Weapon_Status.reload)
         {
-            // ถ้ายังมีกระสุนเหลือในแม็ก และมีการกดปุ่มยิง ให้ยกเลิกรีโหลดเลย!
-            if (currentWeapon.Current_Ammo > 0 && (isClicking || isHolding))
+            if (CurrentAmmo > 0 && (isClicking || isHolding))
             {
                 Cancel_Reload();
             }
             else
             {
-                // แต่ถ้ากระสุนเกลี้ยงแม็ก 0 นัดจริงๆ ก็ต้องปล่อยให้มันรีโหลดต่อไป (ยิงไม่ได้)
                 return;
             }
         }
 
-        // 1. ถ้ายังไม่หมดเวลาคูลดาวน์ปืน ให้ข้ามการยิงไปเลย
         if (Time.time < nextTimeToFire) return;
 
-        // 2. เช็คโหมด Full-Auto (กดค้างก็ยิงได้)
         if (current_Weapon_FireMode == CurrentFireMode.full_Auto && isHolding)
         {
             CreateGunshotNoise();
             Shoot();
         }
-        // 3. เช็คโหมด Semi-Auto (ต้องเป็นการคลิกใหม่เท่านั้น)
         else if (current_Weapon_FireMode == CurrentFireMode.Semi_Auto && isClicking)
         {
             CreateGunshotNoise();
@@ -123,54 +143,36 @@ public class Weapon_system : MonoBehaviour
 
     public void Shoot()
     {
-        // 1. เช็คกระสุน (โค้ดเดิมของคุณ)
-        if (currentWeapon.Current_Ammo <= 0)
+        if (CurrentAmmo <= 0)
         {
-            Debug.Log("กระสุนหมด! ต้องรีโหลด!");
+            Debug.Log("กระสุนหมดแม็ก! ต้องรีโหลด!");
             Start_Reload();
             return;
         }
 
-        currentWeapon.Current_Ammo--;
+        CurrentAmmo--;
         nextTimeToFire = Time.time + currentWeapon.FireRate;
 
-        // ------------------------------------------------------------------
-        // ส่วนที่ 1: ลอจิกจาก Player_raycast (ดวงตา) หาว่าเป้าเล็งชี้ไปที่ไหน
-        // ------------------------------------------------------------------
-        // ใช้ ViewportPointToRay แบบที่คุณเขียนไว้เป๊ะๆ!
         Ray cameraRay = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         Vector3 targetPoint;
         LayerMask CombineMask = Target_mask | Obtacle_mask;
 
-        // ถ้ายิงเลเซอร์จากกล้องไปชนอะไรสักอย่าง ให้จำพิกัดจุดนั้นไว้
         if (Physics.Raycast(cameraRay, out RaycastHit cameraHit, currentWeapon.weaponRange, CombineMask))
         {
             targetPoint = cameraHit.point;
         }
         else
         {
-            // ถ้าไม่ชนอะไรเลย (เช่น ชี้ขึ้นฟ้า) ให้เป้าหมายคือจุดที่ไกลที่สุดของระยะปืน
             targetPoint = cameraRay.GetPoint(currentWeapon.weaponRange);
         }
 
-        // ------------------------------------------------------------------
-        // ส่วนที่ 2: ลอจิกจาก Weapon_system (มือ) สั่งให้ปืนยิงไปหาเป้านั้น
-        // ------------------------------------------------------------------
-        // คำนวณทิศทาง: เอาพิกัดเป้าหมาย ลบด้วย พิกัดปลายกระบอกปืน
         Vector3 bulletDirection = targetPoint - currentFirePoint.position;
 
-        // ยิง Raycast ของจริงจากปลายปืน พุ่งไปหาพิกัดที่กล้องมองเห็น!
         if (Physics.Raycast(currentFirePoint.position, bulletDirection.normalized, out RaycastHit weaponHit, currentWeapon.weaponRange, CombineMask))
         {
-            Debug.Log("กระสุนพุ่งไปโดน: " + weaponHit.collider.name);
-
-            // วาดเส้นสีแดงจากปลายปืนไปหาเป้า (โชว์ 2 วินาที)
             Debug.DrawLine(currentFirePoint.position, weaponHit.point, Color.red, 2f);
-
-            // สร้างเสียงปืนเรียกศัตรู
             CreateGunshotNoise();
 
-            // ทำดาเมจ
             if (weaponHit.collider.TryGetComponent<Enemy>(out Enemy enemy))
             {
                 DoDamage(weaponHit);
@@ -178,12 +180,10 @@ public class Weapon_system : MonoBehaviour
         }
         else
         {
-            // กรณียิงวืด ไม่โดนอะไรเลย
             Debug.DrawRay(currentFirePoint.position, bulletDirection.normalized * currentWeapon.weaponRange, Color.yellow, 2f);
             CreateGunshotNoise();
         }
     }
-
 
     public void EquipPrimary()
     {
@@ -192,7 +192,7 @@ public class Weapon_system : MonoBehaviour
         if (Player_Primary_weapon != null)
         {
             currentWeapon = Player_Primary_weapon;
-            SpawnWeaponModel(currentWeapon.itemPrefab); // สั่งเสกโมเดลปืน!
+            SpawnWeaponModel(currentWeapon.itemPrefab);
         }
     }
 
@@ -203,108 +203,106 @@ public class Weapon_system : MonoBehaviour
         if (Player_Secondary_weapon != null)
         {
             currentWeapon = Player_Secondary_weapon;
-            SpawnWeaponModel(currentWeapon.itemPrefab); // สั่งเสกโมเดลปืน!
+            SpawnWeaponModel(currentWeapon.itemPrefab);
         }
     }
 
     public void DoDamage(RaycastHit targetHit)
     {
-        targetHit.collider.TryGetComponent<Enemy>(out Enemy TargetEnemy);
-
-        TargetEnemy.TakeDamage(currentWeapon.weaponDamage);
+        if (targetHit.collider.TryGetComponent<Enemy>(out Enemy TargetEnemy))
+        {
+            TargetEnemy.TakeDamage(currentWeapon.weaponDamage);
+        }
     }
 
     void SpawnWeaponModel(GameObject prefabToSpawn)
     {
-        // 1. ถ้ามีปืนเก่าถืออยู่ในมือ ให้ทำลายทิ้งก่อน
         if (currentWeaponModel != null)
         {
             Destroy(currentWeaponModel);
         }
 
-        // 2. ถ้ามีข้อมูล Prefab ปืนใหม่ ให้เสกออกมา
         if (prefabToSpawn != null)
         {
-            // เสกปืนใหม่ ให้อยู่ที่ตำแหน่งและองศาของ weaponMount และให้มันเป็นลูก (Child) ของมือขวาเลย
             currentWeaponModel = Instantiate(prefabToSpawn, weaponMount.position, weaponMount.rotation, weaponMount);
-
-            // บังคับสเกลให้กลับมาเป็น 1:1:1 
             currentWeaponModel.transform.localScale = new Vector3(5f, 5f, 5f);
 
-            // 3. ค้นหาปลายกระบอกปืน (FirePoint) จากโมเดลที่เพิ่งเสก
-            // **กฎสำคัญ:** ใน Prefab ปืนทุกกระบอกของคุณ ต้องมี GameObject ลูกที่ชื่อว่า "FirePoint" แปะอยู่ปลายปืนนะครับ!
             Transform foundFirePoint = currentWeaponModel.transform.Find("FirePoint");
 
             if (foundFirePoint != null)
             {
-                currentFirePoint = foundFirePoint; // ส่งให้ระบบ Raycast เอาไปใช้ยิงต่อ
-            }
-            else
-            {
-                Debug.LogWarning("ลืมใส่ FirePoint ไว้ในโมเดลปืนหรือเปล่า?");
+                currentFirePoint = foundFirePoint;
             }
         }
     }
 
     public void Switch_FireMode()
     {
-        // เช็คก่อนว่าปืนกระบอกนี้อนุญาตให้สลับโหมดไหม?
         if (currentWeapon.fireMode == Weapon_Item.FireMode.Select_Fire_Weapon)
         {
-            // ถ้าเป็น Semi อยู่ ให้เปลี่ยนเป็น Full
             if (current_Weapon_FireMode == CurrentFireMode.Semi_Auto)
             {
                 current_Weapon_FireMode = CurrentFireMode.full_Auto;
-                Debug.Log("เปลี่ยนโหมด: Full-Auto");
             }
-            // ถ้าเป็น Full อยู่ ให้เปลี่ยนกลับเป็น Semi
             else
             {
                 current_Weapon_FireMode = CurrentFireMode.Semi_Auto;
-                Debug.Log("เปลี่ยนโหมด: Semi-Auto");
             }
         }
         else
         {
-            Debug.Log("ปืนกระบอกนี้ล็อกโหมดไว้ เปลี่ยนไม่ได้!");
             current_Weapon_FireMode = CurrentFireMode.Semi_Auto;
         }
     }
 
     public void Start_Reload()
     {
-        // ถ้ายิงได้ปกติ และ กระสุนในแม็กน้อยกว่ากระสุนสูงสุด ถึงจะยอมให้รีโหลด
         if (currentWeapon != null && current_Weapon_Status == Weapon_Status.ready)
         {
-            if (currentWeapon.Current_Ammo < currentWeapon.Max_Ammo)
+            // เช็คว่า: กระสุนในแม็กยังไม่เต็ม และ มีกระสุนสำรองเหลืออยู่!
+            if (CurrentAmmo < currentWeapon.Max_Ammo && CurrentReserveAmmo > 0)
             {
                 current_Weapon_Status = Weapon_Status.reload;
-
-                //ตั้งเวลาเป้าหมายว่าจะรีโหลดเสร็จตอนไหน (เซ็ตแค่ครั้งเดียวตอนเริ่มกด)
                 nextTimeToReload = Time.time + currentWeapon.ReloadTime;
-                Debug.Log("กำลังรีโหลด...");
+                Debug.Log($"กำลังรีโหลด... (กระสุนสำรองเหลือ: {CurrentReserveAmmo})");
+            }
+            else if (CurrentReserveAmmo <= 0 && CurrentAmmo < currentWeapon.Max_Ammo)
+            {
+                Debug.Log("กระสุนสำรองหมดเกลี้ยง! รีโหลดไม่ได้แล้ว!");
             }
         }
     }
 
     public void HandleReload()
     {
-        // ถ้าระบบกำลังอยู่ในสถานะรีโหลด
         if (currentWeapon != null && current_Weapon_Status == Weapon_Status.reload)
         {
-            //เช็คว่าเวลาปัจจุบัน เดินมาถึงเวลาเป้าหมายที่ตั้งไว้หรือยัง
             if (Time.time >= nextTimeToReload)
             {
-                currentWeapon.Current_Ammo = currentWeapon.Max_Ammo; // เติมกระสุน
-                current_Weapon_Status = Weapon_Status.ready; //  ปลดล็อกสถานะให้กลับมายิงได้
-                Debug.Log("รีโหลดเสร็จสิ้น!");
+                // คำนวณว่าแม็กกาซีนพร่องไปกี่นัด
+                int ammoNeeded = currentWeapon.Max_Ammo - CurrentAmmo;
+
+                if (CurrentReserveAmmo >= ammoNeeded)
+                {
+                    // กรณีที่ 1: มีกระสุนสำรองเหลือเฟือ ให้เติมเต็มแม็กไปเลย
+                    CurrentAmmo += ammoNeeded;
+                    CurrentReserveAmmo -= ammoNeeded;
+                }
+                else
+                {
+                    // กรณีที่ 2: กระสุนสำรองเหลือน้อยกว่าที่ขาดไป ให้เทกระสุนที่มีทั้งหมดลงแม็ก
+                    CurrentAmmo += CurrentReserveAmmo;
+                    CurrentReserveAmmo = 0;
+                }
+
+                current_Weapon_Status = Weapon_Status.ready;
+                Debug.Log($"รีโหลดเสร็จ! ตอนนี้มีกระสุน: {CurrentAmmo}/{currentWeapon.Max_Ammo} (สำรอง: {CurrentReserveAmmo})");
             }
         }
     }
 
     public void Cancel_Reload()
     {
-        // ถ้าระบบกำลังรีโหลดอยู่ ให้สั่งยกเลิกและกลับสู่สถานะพร้อมยิงทันที
         if (current_Weapon_Status == Weapon_Status.reload)
         {
             current_Weapon_Status = Weapon_Status.ready;
@@ -314,27 +312,16 @@ public class Weapon_system : MonoBehaviour
 
     public void CreateGunshotNoise()
     {
-        // 1. กำหนดจุดกำเนิดเสียง (ปลายปืน) และ รัศมีความดัง (ดึงจากอาวุธปัจจุบัน)
         Vector3 soundOrigin = currentFirePoint.position;
         float noiseRadius = currentWeapon.noiseLevel;
 
-        // 2. ใช้ Physics.OverlapSphere กางทรงกลมล่องหนออกไป
-        // มันจะจับเฉพาะวัตถุที่อยู่ใน Target_mask (เลเยอร์ของศัตรู) เท่านั้น
         Collider[] enemiesInHearingRange = Physics.OverlapSphere(soundOrigin, noiseRadius, Target_mask);
 
-        // 3. วนลูปแจ้งเตือนศัตรูทุกคนที่หูดีพอและอยู่ในระยะ
         foreach (Collider hitCollider in enemiesInHearingRange)
         {
-            // เช็คว่าศัตรูตัวนั้นมีสคริปต์ Enemy แปะอยู่ไหม
             if (hitCollider.TryGetComponent<Enemy>(out Enemy enemyAI))
             {
-                // คำนวณหาระยะห่างที่แท้จริงระหว่างปืนกับศัตรู (เอาไว้ให้ AI ประเมินความอันตรายได้)
                 float distanceToEnemy = Vector3.Distance(soundOrigin, hitCollider.transform.position);
-
-                //Debug.Log($" ศัตรูชื่อ {hitCollider.name} ได้ยินเสียงปืน! (ห่างออกไป {distanceToEnemy:F1} เมตร)");
-
-                // ถ้าระบบ AI ของนายพร้อมแล้ว สามารถส่งพิกัดเสียงไปให้มันเดินมาตรวจดูได้เลย เช่น:
-                // enemyAI.InvestigateSound(soundOrigin); 
             }
         }
     }

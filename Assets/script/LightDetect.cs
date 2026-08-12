@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class LightDetect : MonoBehaviour
 {
-    //public static LightDetect lightDetect { get; private set; }
+    public static LightDetect Instance { get; private set; }
 
     public float light_meter = 0;
     float brightness = 0;
@@ -19,7 +19,7 @@ public class LightDetect : MonoBehaviour
 
     private void Awake()
     {
-        //lightDetect = this;
+        Instance = this;
     }
     void Start()
     {
@@ -29,7 +29,7 @@ public class LightDetect : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ui_Update();
+        //ui_Update();
 
         //if (lightDetect == false) stealthBar -= 1;
 
@@ -46,7 +46,7 @@ public class LightDetect : MonoBehaviour
     void ui_Update() 
     {
         
-        UI.text = "(..!..) " + light_meter.ToString("f1");
+        //UI.text = "(..!..) " + light_meter.ToString("f1");
         //UI2.text = "(Enemy light_Meter :) " + enemy_lightMeter.E_lightMeter.ToString("f1");
 
     }

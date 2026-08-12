@@ -97,9 +97,17 @@ public class EnemyInteraction : MonoBehaviour
     {
         if (other.CompareTag("Door"))
         {
-            Door_Obj = other.GetComponent<Door>();
-            Door_Obj.ToggleDoor(true, Door.DoorState.Open);
-            Debug.Log("open the Door");
+            // ใช้ TryGetComponent เพื่อป้องกัน NullReferenceException
+            if (other.TryGetComponent<Door>(out Door_Obj))
+            {
+                Door_Obj.ToggleDoor(true, Door.DoorState.Open);
+                Debug.Log("open the Door");
+            }
+            else
+            {
+                // แจ้งเตือนไว้ เผื่อลืมแปะสคริปต์ Door ไว้ที่ Collider
+                Debug.LogWarning($"AI ชนวัตถุชื่อ {other.gameObject.name} ที่มี Tag 'Door' แต่หาคอมโพเนนต์ Door ไม่เจอ!");
+            }
         }
     }
 

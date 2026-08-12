@@ -6,7 +6,8 @@ using UnityEngine;
 public class SaveData
 {
     [Header("ข้อมูลสำหรับโชว์หน้า UI")]
-    public string saveTime; // <--- ตัวแปรนี้แหละครับที่ระบบกำลังหาอยู่
+    public string saveTime;
+    public string currentSceneName;
 
     [Header("ข้อมูลผู้เล่น (ถ้ามี)")]
     public Vector3 playerPosition;

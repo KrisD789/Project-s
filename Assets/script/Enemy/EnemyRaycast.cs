@@ -176,6 +176,9 @@ public class EnemyRaycast : MonoBehaviour
                 break;
 
             case enemy_stage.EnemyState.Investigate:
+                CheckEnvironment(hit, direction);
+                break ;
+
             case enemy_stage.EnemyState.alertSearching:
                 // โหมดค้นหา สนใจผู้เล่น และเช็คสภาพแวดล้อม (ประตู, ไฟ) 
                 CheckPlayerPresence(hit, direction);

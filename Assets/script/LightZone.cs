@@ -7,7 +7,7 @@ public class LightZone : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        TryGetComponent<light_switch>(out masterSwitch);
+        //if(TryGetComponent<light_switch>(out masterSwitch)) Debug.LogWarning("lightZone:  หา Light_Switch ไม่เจอ!"); ;
     }
 
     // Update is called once per frame

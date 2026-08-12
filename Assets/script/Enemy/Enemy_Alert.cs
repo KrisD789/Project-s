@@ -122,8 +122,8 @@ public class Enemy_Alert : MonoBehaviour
                     if (!OnRanDom)
                     {
                         OnRanDom = true;
-                        //randomBehavior();
-                        Alert_CurrentBehavior = AlertBehave.flank;
+                        randomBehavior();
+                        //Alert_CurrentBehavior = AlertBehave.flank;
                     }
 
                     actionTimer += Time.deltaTime;
@@ -145,6 +145,17 @@ public class Enemy_Alert : MonoBehaviour
                     EndAlertState();
             
                 }
+            }
+
+            if (enemy_script.currentState == enemy_stage.EnemyState.dead || enemy_script.currentState == enemy_stage.EnemyState.faint)
+            {
+                // คืนตั๋วให้ Combat Manager ทันทีเมื่อตายหรือสลบ
+                Enemy_combatManager.Instance.ReleaseToken(this.gameObject);
+
+                // รีเซ็ตตัวแปรที่ใช้ใน AlertState
+                OnRanDom = false;
+                isSurrounding = false;
+                On_TriggerGroupAlert = false;
             }
         }
     }

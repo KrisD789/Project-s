@@ -81,9 +81,9 @@ public class LoadOut_UI_manager : MonoBehaviour
         else if (itemData is Armor_Item armor)
         {
             // ดึงค่าของเกราะมาโชว์แทน (เช่น แปลงค่าลดดาเมจเป็นเปอร์เซ็นต์)
-            WeaponDamage.text = "Damage Resist: " + (armor.damageReduction * 100).ToString() + "%";
-            Ammo.text = "Speed: " + armor.speedMultiplier.ToString() + "x";
-            noiseText.text = "Noise Multiplier: " + armor.noiseMultiplier.ToString() + "x";
+            WeaponDamage.text = "Damage Resist: " + (armor.Max_Armor_Durability * 100).ToString() + "%";
+            Ammo.text = "Speed: " + armor.Movement_Speed_Multiplier.ToString() + "x";
+            noiseText.text = "Noise Multiplier: " + armor.Noise_Multiplier.ToString() + "x";
         }
         else
         {

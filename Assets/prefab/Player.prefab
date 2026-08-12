@@ -298,6 +298,8 @@ GameObject:
   - component: {fileID: 6388333559461342088}
   - component: {fileID: 8699299549623025668}
   - component: {fileID: 7763679272181727026}
+  - component: {fileID: 6647936535277328665}
+  - component: {fileID: -4681024020103227722}
   m_Layer: 10
   m_Name: Player
   m_TagString: Player
@@ -457,7 +459,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4311081831415081894}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d9e6c79f748abe46844ec41e14406bd, type: 3}
   m_Name: 
@@ -471,14 +473,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4311081831415081894}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f79853623778f9f4f90e9517e5d07f93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   xRayFeature: {fileID: -5038278300154802109, guid: f288ae1f4751b564a96ac7587541f7a2, type: 2}
   scannerVolume: {fileID: 0}
-  ui: {fileID: 0}
 --- !u!114 &2813129920462939659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -531,10 +532,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f458595b24ac5724b8bc81eff8f75d5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Player_Primary_weapon: {fileID: 0}
-  Player_Secondary_weapon: {fileID: 0}
+  Player_Primary_weapon: {fileID: 11400000, guid: 4556d9d34907d6646bdf1ebd6306efd2, type: 2}
+  Player_Secondary_weapon: {fileID: 11400000, guid: 9856607bf0d6f0843941e5bee11203ec, type: 2}
   currentWeapon: {fileID: 0}
   LoadoutManager: {fileID: 0}
+  primary_CurrentAmmo: 0
+  secondary_CurrentAmmo: 0
+  primary_ReserveAmmo: 0
+  secondary_ReserveAmmo: 0
   weaponMount: {fileID: 2463124950360380145}
   currentFirePoint: {fileID: 0}
   Target_mask:
@@ -575,10 +580,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5aaf44118ebf7ce41b87248a5a1eac02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Health: 100
-  MaxHealth: 100
-  Armor: 0
+  currentHP: 100
+  MaxHP: 100
+  PermanentDamage: 3
   isDead: 0
+  currentArmorProfile: {fileID: 11400000, guid: 7a60e54b38bea154a8579c6f22adbdb5, type: 2}
+  currentArmorDurability: 0
   currentState: 0
   OnDark: 0
   action: {fileID: 0}
@@ -601,6 +608,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inventory: []
   KeyItem: []
+--- !u!114 &6647936535277328665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4311081831415081894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c2e7e2d5aee72c429266f0d644b3347, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uniqueID: 
+--- !u!114 &-4681024020103227722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4311081831415081894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cdc2cc98d5099e4fbc55bd8adcb6b8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allWeaponsDatabase:
+  - {fileID: 11400000, guid: 4556d9d34907d6646bdf1ebd6306efd2, type: 2}
+  - {fileID: 11400000, guid: 9856607bf0d6f0843941e5bee11203ec, type: 2}
+  allArmorsDatabase:
+  - {fileID: 11400000, guid: 2046923ca1cec304fbc4cec51456b1a4, type: 2}
+  - {fileID: 11400000, guid: 7a60e54b38bea154a8579c6f22adbdb5, type: 2}
+  - {fileID: 11400000, guid: c7427780a40249147a568aae68b4bfba, type: 2}
 --- !u!1 &7849970533979259500
 GameObject:
   m_ObjectHideFlags: 0

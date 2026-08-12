@@ -96,15 +96,17 @@ public class Player_moveMent : MonoBehaviour
             if (ScrollValue > 0f) playerState++;
             else if (ScrollValue < 0f) playerState--;
 
+        print(playerState);
             playerState = Mathf.Clamp(playerState, -1, 2); 
     }
 
     void setSpeedPlayer()
     {
-        if (playerState == 0) speed = 5f;
-        else if (playerState == 1) speed = 8f;
-        else if (playerState == 2) speed = 10f;
+        if (playerState == 0) speed = 4f;
+        else if (playerState == 1) speed = 6f;
+        else if (playerState == 2) speed = 8f;
         else if (playerState == -1) speed = 3f;
+        else if (playerState == -2) speed = 1f;
     }
 
     void setCollider()

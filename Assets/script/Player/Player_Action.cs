@@ -52,6 +52,17 @@ public class Player_Action : MonoBehaviour
             carriedBody.transform.localPosition = Vector3.zero;
             carriedBody.transform.localRotation = Quaternion.identity;
         }
+
+        if (activeQuestTrigger != null && activeQuestTrigger.OnInteract)
+        {
+            // เช็คว่าผู้เล่นมีการกดปุ่มขยับตัว (WASD / ลูกศร) หรือไม่
+            if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
+            {
+                activeQuestTrigger.cancel_HackQuest(); // สั่งยกเลิกเควสต์
+                activeQuestTrigger = null;             // คืนค่าให้มือว่าง
+                Debug.Log("ขยับตัว! ยกเลิกการแฮ็กอัตโนมัติ");
+            }
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -127,6 +138,7 @@ public class Player_Action : MonoBehaviour
             // --- ส่วนที่เพิ่มใหม่ (2): ตรวจจับ Mission Trigger ---
             if (currentInteractableTarget.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
             {
+                print("if (currentInteractableTarget.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))");
                 // ถ้าเป็นเควสแบบกดค้าง (InteractObject) และยังไม่ผ่าน
                 if (missionTrigger.Mission_Data.type == MissionType.Hack && !missionTrigger.Mission_Data.isCompleted)
                 {

@@ -25,13 +25,15 @@ public class MissionTrigger : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    
+
+    private void OnTriggerStay(Collider other)
     {
         switch (Mission_Data.type)
         {
             case MissionType.ReachLocation:
 
-                if (other.CompareTag("Player") )
+                if (other.CompareTag("Player"))
                 {
                     MissionManager.Instance.OnMissionEventReceived(Mission_Data);
                     gameObject.SetActive(false);
@@ -54,7 +56,6 @@ public class MissionTrigger : MonoBehaviour
                 }
                 break;
         }
-
     }
 
     public void OnInteractionQuest()
@@ -65,11 +66,13 @@ public class MissionTrigger : MonoBehaviour
     public void startHackQuest()
     {
         OnInteract = true;
+        print("startHackQuest()");
     }
 
     public void OnHackQuest()
     {
         timer += Time.deltaTime;
+        print("Hacking" + timer);
         if (timer >= Max_timer)
         {
             MissionManager.Instance.OnMissionEventReceived(Mission_Data);

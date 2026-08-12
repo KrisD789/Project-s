@@ -1,22 +1,21 @@
 using UnityEngine;
 
-public class light_switch : MonoBehaviour, Isaveable
+public class light_switch : MonoBehaviour
 {
     public Light light;
     public LightZone lightZone_script;
     public bool lightSW_Status = true;
 
-    private SaveableEntity saveEntity;
-    void Awake()
+
+    private void Start()
     {
-        // 1. สั่งให้ดึงสคริปต์ SaveableEntity ที่แปะอยู่บนตัวมันเองมาเก็บไว้
-        saveEntity = GetComponent<SaveableEntity>();
+        ApplyLightState();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+       
     }
 
     public void Turn() 
@@ -34,26 +33,17 @@ public class light_switch : MonoBehaviour, Isaveable
         }
         print(lightSW_Status ? "Turn-ON" : "Turn-OFF");
     }
-
-    public string GetSaveID()
+    public void ApplyLightState()
     {
-        return saveEntity.uniqueID;
-    }
-
-    public string SaveState()
-    {
-        return lightSW_Status.ToString();
-    }
-
-    public void LoadState(string stateData)
-    {
-        lightSW_Status = bool.Parse(stateData);
-
-        // 3. สั่งให้หลอดไฟและโซนแสงในเกม ปรับสถานะตามข้อมูลที่โหลดมา!
-        light.enabled = lightSW_Status;
         if (lightZone_script != null)
         {
             lightZone_script.lightZoneState = lightSW_Status;
         }
+
+        if (light != null)
+        {
+            light.enabled = lightSW_Status;
+        }
     }
+
 }

@@ -6,9 +6,9 @@ public class Enemypatro : MonoBehaviour
 {
     enemy_stage enemy_script;
     NavMeshAgent agent;
-    float waitTime = 1;
-    float Timer;
-    int index = 0;
+    float waitTime = 3;
+    float Timer = 0;
+    public int index = 0;
     bool isWaiting = false;
     public Transform[] wayPoint;
 
@@ -44,11 +44,14 @@ public class Enemypatro : MonoBehaviour
 
             if (!agent.pathPending && distToTarget < 2f)
             {
+                //print("Update เข้าเงื่อนไข (!agent.pathPending && distToTarget < 2f)");
                 isWaiting = true;
+                patroLogic();
             }
 
-            if (isWaiting)
+            else 
             {
+                //print("Update เข้าเงื่อนไข Else");
                 patroLogic();
             }
         }
@@ -58,18 +61,29 @@ public class Enemypatro : MonoBehaviour
 
     void patroLogic()
     {
-        Timer += Time.deltaTime; // นับเวลาไปเรื่อยๆ แม้จะโดนเบียด
-
-        if (Timer >= waitTime) // เมื่อรอจนครบ 1 วินาที (เปลี่ยนจาก <= เป็น >=)
+        if (isWaiting)
         {
-            index++; // เปลี่ยนไปจุดถัดไป
-            if (index >= wayPoint.Length) index = 0;
+            Timer += Time.deltaTime; // นับเวลาไปเรื่อยๆ แม้จะโดนเบียด
 
+            if (Timer >= waitTime) // เมื่อรอจนครบ 1 วินาที (เปลี่ยนจาก <= เป็น >=)
+            {
+                index++; // เปลี่ยนไปจุดถัดไป
+                //if (index >= wayPoint.Length) index = 0;
+
+                agent.SetDestination(wayPoint[index].position);
+
+                // --- จุดสำคัญ: รีเซ็ตทุกอย่างเพื่อเริ่มงานใหม่ ---
+                Timer = 0;
+                isWaiting = false; // เลิกกะพริบ/เลิกรอ แล้วออกเดินได้!
+
+                //print("เข้าเงื่อนไข isWaiting");
+            }
+        }
+
+        else
+        {
+            //print("เข้าเงื่อนไข else");
             agent.SetDestination(wayPoint[index].position);
-
-            // --- จุดสำคัญ: รีเซ็ตทุกอย่างเพื่อเริ่มงานใหม่ ---
-            Timer = 0;
-            isWaiting = false; // เลิกกะพริบ/เลิกรอ แล้วออกเดินได้!
         }
     }
 

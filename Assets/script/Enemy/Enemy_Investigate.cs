@@ -34,11 +34,11 @@ public class Enemy_Investigate : MonoBehaviour
     [Header("การสำรวจ (Search Settings)")]
     public float searchRadius = 10f;  // รัศมีที่จะเดินวนดูรอบๆ
     public int maxSearchPoints = 5;  // จะเดินสุ่มกี่จุดก่อนจะเลิก
-    private int currentSearchCount = 0;
+    public int currentSearchCount = 0;
     private bool isSearching = false;
     private bool hearSound = false;
     //private bool isFriendCheck = false;
-    public bool isSearchingLight = false;
+    //public bool isSearchingLight = false;
 
     Vector3 soundPosition;
 

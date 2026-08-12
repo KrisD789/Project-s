@@ -9,7 +9,8 @@ public class Enemy_combatManager : MonoBehaviour
     public int maxCloseCombatTokens = 2; // จำนวนศัตรูที่ยอมให้รุมผู้เล่นพร้อมกัน
 
     // ลิสต์จดชื่อศัตรูที่กำลังถือตั๋วเข้าตีอยู่
-    private List<GameObject> currentAttackers = new List<GameObject>();
+    public List<GameObject> currentAttackers = new List<GameObject>();
+    
 
     void Awake()
     {
@@ -42,5 +43,27 @@ public class Enemy_combatManager : MonoBehaviour
             currentAttackers.Remove(enemy);
             Debug.Log($"{enemy.name} คืนตั๋วแล้ว (ตั๋วว่างเหลือ {maxCloseCombatTokens - currentAttackers.Count} ใบ)");
         }
+    }
+
+    //  1. ฟังก์ชันเช็คว่าศัตรูตัวนี้มีตั๋วอยู่ไหม (ไว้ใช้ตอน Save)
+    public bool HasToken(GameObject enemy)
+    {
+        return currentAttackers.Contains(enemy);
+    }
+
+    //  2. ฟังก์ชันยัดตั๋วคืนเข้าลิสต์ (ไว้ใช้ตอน Load)
+    public void RestoreToken(GameObject enemy)
+    {
+        if (!currentAttackers.Contains(enemy))
+        {
+            currentAttackers.Add(enemy);
+            Debug.Log($"[โหลดเซฟ] คืนตั๋วเข้าปะทะให้ {enemy.name}");
+        }
+    }
+
+    //  3. ล้างตั๋วทั้งหมด (ควรเรียกใช้ใน SaveManager ก่อนเริ่มโหลดด่านใหม่ ป้องกันตั๋วค้าง)
+    public void ClearAllTokens()
+    {
+        currentAttackers.Clear();
     }
 }
