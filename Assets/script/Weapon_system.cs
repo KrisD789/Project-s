@@ -78,12 +78,14 @@ public class Weapon_system : MonoBehaviour
 
     void Start()
     {
-        LoadoutManager = Load_out_manager.Instance;
+        //LoadoutManager = Load_out_manager.Instance;
+
+        Player_Primary_weapon = Load_out_manager.Instance.selectedPrimaryWeapon;
+        Player_Secondary_weapon = Load_out_manager.Instance.selectedSecondaryWeapon;
 
         if (Player_Primary_weapon != null && Player_Secondary_weapon != null)
         {
-            Player_Primary_weapon = LoadoutManager.selectedPrimaryWeapon;
-            Player_Secondary_weapon = LoadoutManager.selectedSecondaryWeapon;
+            
 
             currentWeapon = Player_Primary_weapon;
 
@@ -319,9 +321,16 @@ public class Weapon_system : MonoBehaviour
 
         foreach (Collider hitCollider in enemiesInHearingRange)
         {
-            if (hitCollider.TryGetComponent<Enemy>(out Enemy enemyAI))
+            if (hitCollider.TryGetComponent<enemy_stage>(out enemy_stage enemyAI))
             {
                 float distanceToEnemy = Vector3.Distance(soundOrigin, hitCollider.transform.position);
+
+                enemyAI.currentState = enemy_stage.EnemyState.Alert;
+
+                if (hitCollider.TryGetComponent<Enemy_Alert>(out Enemy_Alert enemyAIAlert))
+                {
+                    enemyAIAlert.HandleNoiseAlert(transform.position);
+                }
             }
         }
     }

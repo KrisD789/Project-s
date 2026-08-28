@@ -244,7 +244,7 @@ SphereCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Radius: 1.54
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0, z: 0.7}
 --- !u!1 &3914801127215653067
 GameObject:
   m_ObjectHideFlags: 0
@@ -532,8 +532,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f458595b24ac5724b8bc81eff8f75d5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Player_Primary_weapon: {fileID: 11400000, guid: 4556d9d34907d6646bdf1ebd6306efd2, type: 2}
-  Player_Secondary_weapon: {fileID: 11400000, guid: 9856607bf0d6f0843941e5bee11203ec, type: 2}
+  Player_Primary_weapon: {fileID: 0}
+  Player_Secondary_weapon: {fileID: 0}
   currentWeapon: {fileID: 0}
   LoadoutManager: {fileID: 0}
   primary_CurrentAmmo: 0
@@ -584,7 +584,7 @@ MonoBehaviour:
   MaxHP: 100
   PermanentDamage: 3
   isDead: 0
-  currentArmorProfile: {fileID: 11400000, guid: 7a60e54b38bea154a8579c6f22adbdb5, type: 2}
+  currentArmorProfile: {fileID: 0}
   currentArmorDurability: 0
   currentState: 0
   OnDark: 0
@@ -620,7 +620,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c2e7e2d5aee72c429266f0d644b3347, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uniqueID: 
+  uniqueID: 2c86fb5c-4ca0-46b7-9856-fd793fe4b81f
 --- !u!114 &-4681024020103227722
 MonoBehaviour:
   m_ObjectHideFlags: 0

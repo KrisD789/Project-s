@@ -62,6 +62,8 @@ public class Player : MonoBehaviour
     }
     private void Start()
     {
+        currentArmorProfile = Load_out_manager.Instance.selectedArmor;
+
         EquipArmor(currentArmorProfile);
     }
 

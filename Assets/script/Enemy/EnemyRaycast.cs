@@ -82,7 +82,7 @@ public class EnemyRaycast : MonoBehaviour
     void Update()
     {
         if (Enemy_script.currentState == enemy_stage.EnemyState.dead || Enemy_script.currentState == enemy_stage.EnemyState.faint 
-            || Enemy_script.currentState == enemy_stage.EnemyState.Dummy)
+            || Enemy_script.currentState == enemy_stage.EnemyState.Dummy || Enemy_script.currentState == enemy_stage.EnemyState.OnGrab)
             return;
 
         Raycast();
@@ -223,7 +223,7 @@ public class EnemyRaycast : MonoBehaviour
                     {
                         Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
                         Enemy_Investigate_script.searcingLastHearPosition(playerObj.transform.position);
-                        foundPlayer = true;
+                        //foundPlayer = true;
                     }
                 }
                 // -- กรณี 2: ผู้เล่นนั่งหมอบ (Crouch) --
@@ -243,7 +243,7 @@ public class EnemyRaycast : MonoBehaviour
                         else if (P_Light_detect != null && P_Light_detect.light_meter >= 50)
                         {
                             Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
-                            foundPlayer = true;
+                            //foundPlayer = true;
                         }
                     }
                 }

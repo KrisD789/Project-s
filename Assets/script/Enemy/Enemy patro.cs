@@ -6,7 +6,7 @@ public class Enemypatro : MonoBehaviour
 {
     enemy_stage enemy_script;
     NavMeshAgent agent;
-    float waitTime = 3;
+    public float waitTime = 3;
     float Timer = 0;
     public int index = 0;
     bool isWaiting = false;

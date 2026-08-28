@@ -14,10 +14,24 @@ public class Scene_Manager : MonoBehaviour
     {
         
     }
+    public void Goto_LoadOut()
+    {
+        SceneManager.LoadScene("LoadOut");
+    }
 
-    public void LoadLevelByName()
+    public void Start_Game()
     {
         // สั่งโหลดโดยพิมพ์ชื่อไฟล์ซีนลงไปตรงๆ (ต้องสะกดพิมพ์เล็กพิมพ์ใหญ่ให้ตรงเป๊ะ)
-        SceneManager.LoadScene("player_cam_test");
+        SceneManager.LoadScene("Demo chapter 1");
+    }
+
+    public void Menu()
+    {
+        SceneManager.LoadScene("Main Menu");
+    }
+
+    public void Exit_Game()
+    {
+        Application.Quit();
     }
 }

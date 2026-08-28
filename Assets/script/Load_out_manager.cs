@@ -7,6 +7,7 @@ public class Load_out_manager : MonoBehaviour
     [Header("อุปกรณ์ที่เลือกไว้สำหรับภารกิจ")]
     public Weapon_Item selectedPrimaryWeapon;
     public Weapon_Item selectedSecondaryWeapon;
+    public Armor_Item selectedArmor;
     //public item selectedGadget;
     //public item selectedSuit; // เช่น ชุดพรางตัวที่ลดการสะท้อนแสง
 

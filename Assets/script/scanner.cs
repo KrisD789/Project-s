@@ -6,8 +6,8 @@ using UnityEngine.Rendering.Universal;
 public class scanner : MonoBehaviour
 {
     [Header("Settings")]
-    [SerializeField] private ScriptableRendererFeature xRayFeature;
-    [SerializeField] private Volume scannerVolume; // ลาก ScannerVolume มาใส่ตรงนี้
+    public ScriptableRendererFeature xRayFeature;
+    public Volume scannerVolume; // ลาก ScannerVolume มาใส่ตรงนี้
 
     //public TextMeshProUGUI ui;
 
@@ -16,6 +16,10 @@ public class scanner : MonoBehaviour
     private void Start()
     {
         //ui = GetComponent<TextMeshProUGUI>();
+
+        xRayFeature.SetActive(false);
+        scannerVolume.enabled = false;
+        isScanning = false;
     }
 
     void Update()

@@ -1,167 +1,159 @@
 ﻿using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
+public enum IncidentType
+{
+    PlayerBump,         // ชนผู้เล่นตัวเป็นๆ
+    FoundUnconscious,   // เจอเพื่อนสลบ
+    FoundDead           // เจอศพเพื่อน
+}
+
 public class Enemy_Report : MonoBehaviour
 {
-    NavMeshAgent agent;
-    enemy_stage enemy_script;
+    [SerializeField] private NavMeshAgent agent;
+    [SerializeField] private float radioCallDuration = 2.0f; // เวลาที่ยืนคุยวิทยุ
+    [SerializeField] private float stepBackDistance = 2f;
+    [SerializeField] private float recoilDuration = 0.4f;
+    [SerializeField] private float shoutRadius = 50f; // รัศมีเสียงตะโกน (ปรับให้ได้ยินข้ามห้องได้)
+    public LayerMask FriendNeraByMask;
 
-    public LayerMask friendMask;
-    public float scanRadius = 30f;
-    private bool On_Report = false;
-
-    private enemy_stage closestFriend;
-    private Coroutine reportCoroutine; // เอาไว้เช็คและหยุด Coroutine เก่าเผื่อมีการเรียกซ้ำ
-
-    private void Awake()
-    {
-        friendMask = LayerMask.GetMask("enemy");
-    }
+    enemy_stage enemy_Stage_script;
+    Coroutine ReportSequence_coroutine;
 
     private void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
-        enemy_script = GetComponent<enemy_stage>();
+        
+        FriendNeraByMask = LayerMask.GetMask("enemy");
+        if(!TryGetComponent<enemy_stage>(out enemy_Stage_script))
+        {
+            Debug.LogWarning("EnemyReport.cs NotFound enemy_Stage_script ");
+        }
+
+        if (!TryGetComponent<NavMeshAgent>(out agent))
+        {
+            Debug.LogWarning("EnemyReport.cs NotFound agent ");
+        }
     }
 
     private void Update()
     {
-        if (enemy_script.currentState == enemy_stage.EnemyState.report)
+        if (enemy_Stage_script.currentState != enemy_stage.EnemyState.report)
         {
-            if (!On_Report)
+            if (ReportSequence_coroutine != null) // เพิ่มบรรทัดนี้ดักไว้
             {
-                On_Report = true;
-                StartReporting();   
+                StopCoroutine(ReportSequence_coroutine);
+                ReportSequence_coroutine = null; // คืนค่าความว่างเปล่าหลังจากหยุดแล้ว
             }
-        }
-        else
-        {
-            CancelReporting();
-            On_Report = false;
         }
     }
 
-    //1. ฟังก์ชันนี้มีไว้รับคำสั่ง! (ให้ State Machine เรียกใช้ฟังก์ชันนี้ "แค่ครั้งเดียว" ตอนเข้า State Report)
-    public void StartReporting()
+    // ฟังก์ชันนี้เรียกเมื่อ: ชนผู้เล่น หรือ เจอศพ
+    // ฟังก์ชันนี้จะเป็นตัวรับค่าจากภายนอก (เมื่อชนผู้เล่น หรือ Sensor ตาเห็นศพ)
+    public void StartReportState(IncidentType incident, Vector3 targetPos, GameObject bodyFound = null)
     {
-        
-            // ป้องกันการเรียกซ้อนทับกัน
-            if (reportCoroutine != null) StopCoroutine(reportCoroutine);
+        if (enemy_Stage_script.currentState == enemy_stage.EnemyState.report && ReportSequence_coroutine == null)
+        { 
+            ReportSequence_coroutine = StartCoroutine(ReportSequence(incident, targetPos, bodyFound));
 
-            reportCoroutine = StartCoroutine(ReportSequence());
-        
+        }
     }
 
-    //2. Coroutine ทำงานเป็นขั้นเป็นตอน (Sequence)
-    IEnumerator ReportSequence()
+    private IEnumerator ReportSequence(IncidentType incident, Vector3 targetPos, GameObject bodyFound)
     {
-        // --- ขั้นที่ 1: หาเพื่อน ---
-        FindClosestFriend();
+        agent.isStopped = true;
+        agent.ResetPath();
 
-        if (closestFriend == null)
+        yield return StartCoroutine(RecoilRoutine(targetPos));
+        // เฟส 2: วิทยุสื่อสาร
+        Debug.Log($"Enemy: ศูนย์กลาง! ขอรายงานเหตุการณ์ประเภท: {incident}");
+        yield return new WaitForSeconds(radioCallDuration);
+
+        // เฟส 3: กระจายข่าวตามความรุนแรง
+        BroadcastAlert(incident, targetPos);
+        //enemy_Stage_script.currentState = enemy_stage.EnemyState.Alert;
+
+        agent.isStopped = false;
+    }
+    private IEnumerator RecoilRoutine(Vector3 playerPos)
+    {
+        Vector3 pushDir = (transform.position - playerPos).normalized;
+        pushDir.y = 0;
+        Vector3 startPos = transform.position;
+        Vector3 targetRecoil = startPos + (pushDir * stepBackDistance);
+
+        float elapsed = 0f;
+        while (elapsed < recoilDuration)
         {
-            Debug.Log("ไม่มีเพื่อนให้ไปหา! ยกเลิกการ Report แล้วเข้า Alert ตัวเองเลย");
-            enemy_script.currentState = enemy_stage.EnemyState.Alert;
-            yield break; // จบการทำงานของ Coroutine ทันที
-        }
-
-        // --- ขั้นที่ 2: สั่งให้เดินไปหาเพื่อน ---
-        Debug.Log("กำลังวิ่งไปหาเพื่อน: " + closestFriend.gameObject.name);
-
-        // --- ขั้นที่ 3: รอจนกว่าจะเดินถึงตัวเพื่อน (อัปเกรดใหม่!) ---
-        float safeStopDistance = 2.5f; // ระยะเบรกคุยกัน (2.5 เมตร - กันพุงชนกัน)
-
-        while (closestFriend != null)
-        {
-            // อัปเดตเป้าหมายเรื่อยๆ เผื่อเพื่อนกำลังเดินลาดตระเวนอยู่ จะได้เดินตามไปคุย
-            agent.SetDestination(closestFriend.transform.position);
-
-            // วัดระยะห่างเองเพื่อป้องกันบั๊ก NavMesh ชนกัน
-            Vector3 offset = transform.position - closestFriend.transform.position;
-            offset.y = 0; // ตัดความสูงทิ้ง
-
-            // ถ้าระยะห่างน้อยกว่า 2.5 เมตร ถือว่าถึงแล้ว! ให้พังลูปออกไปทำขั้นต่อไป
-            if (!agent.pathPending && offset.sqrMagnitude <= (safeStopDistance * safeStopDistance))
-            {
-                agent.ResetPath(); // สั่งเบรกหยุดเดินทันที
-                break;
-            }
-
+            transform.position = Vector3.Lerp(startPos, targetRecoil, elapsed / recoilDuration);
+            elapsed += Time.deltaTime;
             yield return null;
         }
-
-        // --- ดักบั๊ก: ระหว่างวิ่งไปหาเพื่อน เพื่อนอาจตาย/สลบ ---
-        if (closestFriend == null || closestFriend.currentState == enemy_stage.EnemyState.dead || closestFriend.currentState == enemy_stage.EnemyState.faint)
-        {
-            Debug.Log("เพื่อนตุยระหว่างทาง! ยกเลิกการ Report");
-            enemy_script.currentState = enemy_stage.EnemyState.Alert;
-            yield break;
-        }
-
-        // --- ขั้นที่ 4: ถึงตัวเพื่อนแล้ว เริ่มการคุย (Report) ---
-        Debug.Log("ถึงตัวเพื่อนแล้ว! เริ่มทำการ Report");
-        yield return new WaitForSeconds(2f);
-
-        // --- ขั้นที่ 5: สั่งให้เพื่อน Alert ---
-        Debug.Log("เพื่อน Alert แล้ว!");
-        closestFriend.currentState = enemy_stage.EnemyState.Alert;
-        //closestFriend.onAlert = true;
-
-        // --- ขั้นที่ 6: เปลี่ยนสถานะตัวเองเป็น Alert ด้วย ---
-        enemy_script.currentState = enemy_stage.EnemyState.Alert;
-        //enemy_script.onAlert = true;
+        transform.position = targetRecoil;
     }
 
-    void FindClosestFriend()
+    private void BroadcastAlert(IncidentType incident, Vector3 knownPosition)
     {
-        Debug.Log("ค้นหาคนที่อยู่ใกล้ที่สุด");
-        Collider[] friendsInArea = Physics.OverlapSphere(transform.position, scanRadius, friendMask);
+        // โค้ดส่งสัญญาณแจ้งศัตรูตัวอื่นในสเตจ (เช่น อัปเดตตัวแปร Global Alert)
+        Debug.Log("BroadcastAlert ส่งพิกัดผู้เล่นให้ศัตรูทุกตัวในพื้นที่ทราบแล้ว!");
+        
+        // กางอาณาเขตวงกลมหาเพื่อนที่อยู่ในระยะ
+        Collider[] friendsNearby = Physics.OverlapSphere(transform.position, shoutRadius, FriendNeraByMask);
 
-        float minDistanceSqr = Mathf.Infinity;
-        closestFriend = null;
-
-        foreach (var col in friendsInArea)
+        foreach (Collider friend in friendsNearby)
         {
-            if (col.gameObject == this.gameObject) continue;
-
-            enemy_stage friendScript = col.GetComponent<enemy_stage>();
-
-            // จุดที่แก้บักโลจิกจากโค้ดเดิมของคุณ: ต้องใช้ && ไม่ใช่ || 
-            if (friendScript != null && !friendScript.wasFaint)
+            // เช็คว่าไม่ใช่ตัวเอง
+            if (friend.gameObject != this.gameObject)
             {
-                if (friendScript.currentState != enemy_stage.EnemyState.faint && friendScript.currentState != enemy_stage.EnemyState.dead)
+                // ใช้ TryGetComponent เช็คว่าเป็นศัตรูไหม พร้อมกับดึงสคริปต์มาในบรรทัดเดียว!
+                if (friend.TryGetComponent<enemy_stage>(out enemy_stage friendStage))
                 {
-                    float distSqr = (col.transform.position - transform.position).sqrMagnitude;
-
-                    if (distSqr < minDistanceSqr)
+                    if (friendStage.currentState == enemy_stage.EnemyState.faint
+                        || friendStage.currentState == enemy_stage.EnemyState.dead
+                        || friendStage.currentState == enemy_stage.EnemyState.Dummy)
                     {
-                        minDistanceSqr = distSqr;
-                        closestFriend = friendScript;
+                        continue;
                     }
+
+                    if (incident == IncidentType.FoundDead || incident == IncidentType.PlayerBump)
+                    {
+                            // ถ้าเพื่อนยังไม่ได้อยู่ในโหมด Alert
+                            if (friendStage.currentState != enemy_stage.EnemyState.Alert)
+                            {
+                                // 1. ปลุกเพื่อนให้ตื่นตัว
+                                friendStage.currentState = enemy_stage.EnemyState.Alert;
+
+                                // 2. โยนพิกัดไปให้เพื่อน
+                                if (friend.TryGetComponent<Enemy_Alert>(out Enemy_Alert friendAlert) && Player.Instance != null)
+                                {
+                                    friendAlert.HandleNoiseAlert(knownPosition);
+                                }
+
+                                enemy_Stage_script.currentState = enemy_stage.EnemyState.Alert;
+                            }
+                    }
+
+                    if (incident == IncidentType.FoundUnconscious)
+                    {
+                        friendStage.currentState = enemy_stage.EnemyState.alertSearching;
+                        enemy_Stage_script.currentState = enemy_stage.EnemyState.alertSearching;
+                    }
+                    
                 }
             }
         }
     }
-
-    public void CancelReporting()
+    private void OnDrawGizmosSelected()
     {
-        // 1. หยุดวงจร Coroutine
-        if (reportCoroutine != null)
-        {
-            StopCoroutine(reportCoroutine);
-            reportCoroutine = null; // คืนค่าความว่างเปล่า
-        }
+        // 1. ตั้งสีของเส้นวงกลม (ใส่สีอะไรก็ได้ตามใจชอบ)
+        Gizmos.color = Color.yellow;
 
-        // 2. ลืมเป้าหมาย
-        closestFriend = null;
+        // 2. กำหนดรัศมีให้ตรงกับที่คุณใช้ใน Physics.OverlapSphere
+        float shoutRadius = 40f;
 
-        // 3. สั่งหยุดขยับขา (ถ้า Agent ยังเปิดใช้งานอยู่)
-        //if (agent != null && agent.isActiveAndEnabled && agent.isOnNavMesh)
-        //{
-            //agent.ResetPath();
-        //}
-
-        //Debug.Log("ยกเลิกการ Report และรีเซ็ตค่าเรียบร้อยแล้ว!");
+        // 3. สั่งวาดเส้นขอบวงกลม โดยอิงจากตำแหน่งเดียวกับศูนย์กลางของ OverlapSphere
+        Gizmos.DrawWireSphere(transform.position, shoutRadius);
     }
+
 }

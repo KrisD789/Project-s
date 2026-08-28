@@ -35,7 +35,7 @@ public class Enemy_Attack : MonoBehaviour
                     // 4. เช็ค Cooldown การโจมตี (Rate of Fire)
                     if (Time.time >= nextAttackTime)
                     {
-                        PerformAttack();
+                        //PerformAttack();
 
                         // ตั้งเวลาสำหรับการโจมตีครั้งถัดไป
                         nextAttackTime = Time.time + fireRate;

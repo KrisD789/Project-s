@@ -274,6 +274,8 @@ MonoBehaviour:
   weaponName: {fileID: 1537576933}
   Ammo: {fileID: 1698839302}
   Player_Health: {fileID: 1724319592}
+  Player_Light_Meter: {fileID: 0}
+  Player_armor: {fileID: 0}
   weapon_system: {fileID: 0}
   Player_Script: {fileID: 0}
 --- !u!1 &77952862
@@ -1703,7 +1705,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &491850601
 Transform:
   m_ObjectHideFlags: 0
@@ -2321,6 +2323,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxCloseCombatTokens: 10
+  currentAttackers: []
 --- !u!4 &734748368
 Transform:
   m_ObjectHideFlags: 0
@@ -4714,10 +4717,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5aaf44118ebf7ce41b87248a5a1eac02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Health: 100
-  MaxHealth: 100
-  Armor: 0
+  currentHP: 100
+  MaxHP: 100
+  PermanentDamage: 3
   isDead: 0
+  currentArmorProfile: {fileID: 0}
+  currentArmorDurability: 0
   currentState: 0
   OnDark: 0
   action: {fileID: 0}
@@ -6212,7 +6217,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1886162558
 Transform:
   m_ObjectHideFlags: 0
@@ -7010,6 +7015,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectedPrimaryWeapon: {fileID: 11400000, guid: 4556d9d34907d6646bdf1ebd6306efd2, type: 2}
   selectedSecondaryWeapon: {fileID: 11400000, guid: 9856607bf0d6f0843941e5bee11203ec, type: 2}
+  selectedArmor: {fileID: 0}
 --- !u!4 &2142842688
 Transform:
   m_ObjectHideFlags: 0

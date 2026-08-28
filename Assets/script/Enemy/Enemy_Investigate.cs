@@ -41,7 +41,11 @@ public class Enemy_Investigate : MonoBehaviour
     //public bool isSearchingLight = false;
 
     Vector3 soundPosition;
-
+    
+    //Start stepback
+    [SerializeField] private float stepBackDistance = 1.5f;
+    [SerializeField] private float recoilDuration = 0.4f;
+    private bool isStartled = false;
 
 
     void Start()
@@ -182,7 +186,6 @@ public class Enemy_Investigate : MonoBehaviour
         
     }
 
-  
+    ////////////////////////////////////////////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//////////////////////////////////////////////////////////////////////////////////
    
-
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 [System.Serializable]
 public struct TaskSaveData
@@ -17,6 +18,7 @@ public struct EnemyDataBox
     public float EnemyHp;
 
     public int EnemyCurrentState;
+    public int EnemyBaseState;
     public bool enemy_WasFaint;
 
     // เพิ่มช่องเก็บ Index การเดินและจำนวนรอบค้นหา
@@ -34,6 +36,7 @@ public class Enemy_SaveData : MonoBehaviour, Isaveable
     Enemy_Task Enemy_Task_System;
     Enemypatro Enemy_patro_System;
     Enemy_Investigate Enemy_Investigate_System;
+    NavMeshAgent Agent;
 
     private SaveableEntity saveEntity;
 
@@ -47,6 +50,8 @@ public class Enemy_SaveData : MonoBehaviour, Isaveable
         if (!TryGetComponent<Enemy_Investigate>(out Enemy_Investigate_System)) Debug.LogWarning("Enemy_SaveData:  หา Enemy_Investigate ไม่เจอ!");
 
         if (!TryGetComponent<SaveableEntity>(out saveEntity)) Debug.LogWarning("Enemy_SaveData:  หา saveEntity ไม่เจอ!");
+
+        if (!TryGetComponent<NavMeshAgent>(out Agent)) Debug.LogWarning("Enemy_SaveData:  หา NavMeshAgent ไม่เจอ!");
     }
 
     public string GetSaveID()
@@ -69,6 +74,7 @@ public class Enemy_SaveData : MonoBehaviour, Isaveable
         if(enemy_stage_System != null)
         {
             dataBox.EnemyCurrentState = (int)enemy_stage_System.currentState;
+            dataBox.EnemyBaseState = (int)enemy_stage_System.baseState;
             dataBox.enemy_WasFaint = enemy_stage_System.wasFaint;
         }
 
@@ -106,7 +112,26 @@ public class Enemy_SaveData : MonoBehaviour, Isaveable
     {
         EnemyDataBox dataBox = JsonUtility.FromJson<EnemyDataBox>(stateData);
 
-        // 2. คืนค่าพิกัด หมุนตัว และพลังชีวิต
+        // 1. คืนค่าข้อมูลพื้นฐานและสถานะ
+        RestoreEnemyState(dataBox);
+
+        // 2. จัดการเปิด/ปิด AI และระบบฟิสิกส์ ตามสถานะ
+        RestoreAgentAndPhysicsStatus(dataBox);
+
+        // 3. คืนค่างาน (TodoList) ให้กับศัตรู
+        RestoreEnemyTasks(dataBox);
+    }
+
+    // ==========================================
+    // ฟังก์ชันย่อย 1: คืนค่าพิกัด เลือด และ State
+    // ==========================================
+    private void RestoreEnemyState(EnemyDataBox dataBox)
+    {
+        // ดึง Agent มาปิดชั่วคราวก่อนย้ายพิกัด เพื่อป้องกันบั๊กกระตุกหรือดีดตัว
+        UnityEngine.AI.NavMeshAgent agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (agent != null) agent.enabled = false;
+
+        // คืนค่าพิกัด และ หมุนตัว
         transform.position = dataBox.position;
         transform.eulerAngles = dataBox.rotation;
 
@@ -120,55 +145,97 @@ public class Enemy_SaveData : MonoBehaviour, Isaveable
             enemy_script.Enemy_Health = dataBox.EnemyHp;
         }
 
+        // คืนค่าสถานะ State และประวัติการสลบ
         if (enemy_stage_System != null)
         {
             enemy_stage_System.currentState = (enemy_stage.EnemyState)dataBox.EnemyCurrentState;
             enemy_stage_System.wasFaint = dataBox.enemy_WasFaint;
         }
 
+        // คืนค่า Index การเดินลาดตระเวน
         if (Enemy_patro_System != null && Enemy_Investigate_System != null)
         {
             Enemy_patro_System.index = dataBox.currentPatrolIndex;
             Enemy_Investigate_System.currentSearchCount = dataBox.currentSearchCount;
         }
+    }
 
-        // 3. คืนค่างานใน TodoList
+    // ==========================================
+    // ฟังก์ชันย่อย 2: จัดการระบบ Agent และฟิสิกส์
+    // ==========================================
+    private void RestoreAgentAndPhysicsStatus(EnemyDataBox dataBox)
+    {
+        UnityEngine.AI.NavMeshAgent agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        Rigidbody rb = GetComponent<Rigidbody>();
+
+        if (dataBox.EnemyCurrentState == (int)enemy_stage.EnemyState.dead ||
+            dataBox.EnemyCurrentState == (int)enemy_stage.EnemyState.faint)
+        {
+            // --- กรณีที่เป็น "ศพ" หรือ "สลบ" ---
+            if (agent != null)
+            {
+                agent.enabled = true;
+                agent.isStopped = true;
+                agent.velocity = Vector3.zero;
+                agent.obstacleAvoidanceType = UnityEngine.AI.ObstacleAvoidanceType.NoObstacleAvoidance;
+                agent.enabled = false; // ปิดทิ้งเพื่อความชัวร์ไม่ให้ขยับ
+            }
+
+            if (rb != null)
+            {
+                rb.isKinematic = true; // สต๊าฟร่าง
+            }
+        }
+        else
+        {
+            // --- กรณีที่ยังมีชีวิตอยู่ ---
+            if (agent != null)
+            {
+                agent.enabled = true;
+                agent.isStopped = false;
+                agent.obstacleAvoidanceType = UnityEngine.AI.ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+                agent.ResetPath(); // ล้างเป้าหมายการวิ่งเก่า
+            }
+
+            if (rb != null)
+            {
+                rb.isKinematic = false; // คืนค่าฟิสิกส์
+            }
+        }
+    }
+
+    // ==========================================
+    // ฟังก์ชันย่อย 3: คืนค่างาน (TodoList)
+    // ==========================================
+    private void RestoreEnemyTasks(EnemyDataBox dataBox)
+    {
         if (Enemy_Task_System != null && dataBox.SaveToDoList != null)
         {
-            // ล้างงานเก่าในหัว AI ทิ้งก่อน เพื่อรับงานจากเซฟ
             Enemy_Task_System.todoList.Clear();
 
-            // กวาดหา SaveableEntity ทั้งฉากมารอไว้ (ค้นหาบัตรประชาชน)
+            // กวาดหา SaveableEntity ทั้งฉากเพื่อจับคู่บัตรประชาชน
             SaveableEntity[] allEntitiesInScene = FindObjectsByType<SaveableEntity>(FindObjectsSortMode.None);
 
             foreach (TaskSaveData savedTask in dataBox.SaveToDoList)
             {
-                // สร้างงานชิ้นใหม่เตรียมส่งให้ AI
                 WorkTask newTask = new WorkTask();
                 newTask.position = savedTask.taskPosition;
-                newTask.currentType = (WorkTask.TaskType)savedTask.taskType; // แปลง int กลับเป็น Enum
+                newTask.currentType = (WorkTask.TaskType)savedTask.taskType;
 
-                // เอารหัสบัตรประชาชน ไปตามหาตัวตนจริงๆ ในฉาก
                 if (!string.IsNullOrEmpty(savedTask.targetID))
                 {
                     foreach (SaveableEntity entity in allEntitiesInScene)
                     {
                         if (entity.uniqueID == savedTask.targetID)
                         {
-                            // เจอตัวแล้ว ดึง MonoBehaviour กลับมาใส่ให้ AI
                             newTask.targetObject = entity.GetComponent<MonoBehaviour>();
-                            break; // เจอแล้วก็หยุดค้นหาชิ้นนี้
+                            break;
                         }
                     }
                 }
-
-                // เอางานที่ประกอบร่างเสร็จแล้ว ยัดกลับเข้าหัว AI
                 Enemy_Task_System.todoList.Add(newTask);
             }
         }
     }
 
-   
-
-    
 }

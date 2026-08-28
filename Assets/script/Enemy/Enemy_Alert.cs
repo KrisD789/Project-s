@@ -27,9 +27,11 @@ public class Enemy_Alert : MonoBehaviour
     public AlertBehave Alert_CurrentBehavior = AlertBehave.surround;
     public AlertBehave Alert_PreviouslyBehavior;
 
+    [Header("Alert Settings")]
     public static float MaxAlertTimer = 30;
     public static float AlertTimer = 0;
     private bool OnRanDom = false;
+    private static int lastUpdateFrame = -1;
 
     [Header("SurroundPlayer Settings")]
     public Vector3 surroundTarget;
@@ -68,13 +70,20 @@ public class Enemy_Alert : MonoBehaviour
     [Header("Combat & Side Step Settings")]
     public float pushEngageDistance = 10f; // ระยะที่ AI โหมด Push จะเริ่มรู้สึกว่า "ใกล้พอที่จะสไลด์หามุมยิงแล้ว"
     public float sideStepMargin = 2f;      // ระยะเผื่อ (Margin) เวลารักษาระยะห่าง เช่น keepDist + sideStepMargin
+    public float pushStopDistance = 2f;    // ระยะเว้นห่างจากตัวผู้เล่นขณะ Push (ปรับเพิ่ม-ลดได้ใน Inspector)
+
 
     [Header("Combat & Noise Settings")]
-    private bool isDistractedByNoise = false; // สวิตช์บอกว่ากำลังสนใจเสียงอยู่
+    private bool isDistracted = false; // สวิตช์บอกว่ากำลังสนใจเสียงอยู่
 
     [Header("Warn Other Settings")]
     public LayerMask FriendNeraByMask;
     private bool On_TriggerGroupAlert = false;
+
+    private Coroutine surroundCoroutine;
+    private Coroutine shootCoroutine;
+
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -111,6 +120,7 @@ public class Enemy_Alert : MonoBehaviour
             if (enemy_script.currentState == enemy_stage.EnemyState.Alert)
             {
                 counting_AlertTimer();
+                //print(AlertTimer);
 
                 if (AlertTimer <= MaxAlertTimer)
                 {
@@ -127,7 +137,8 @@ public class Enemy_Alert : MonoBehaviour
                     }
 
                     actionTimer += Time.deltaTime;
-                    if (actionTimer >= 0.5f)
+
+                    if (actionTimer >= 0.5f && !isDistracted)
                     {
                         // ทุกฟังก์ชันด้านล่างนี้ จะไปดึง currentTargetPos ไปใช้
                         if (Alert_CurrentBehavior == AlertBehave.flank) { flank(); }
@@ -149,6 +160,8 @@ public class Enemy_Alert : MonoBehaviour
 
             if (enemy_script.currentState == enemy_stage.EnemyState.dead || enemy_script.currentState == enemy_stage.EnemyState.faint)
             {
+                StopAllAlertCoroutinesSafely();
+
                 // คืนตั๋วให้ Combat Manager ทันทีเมื่อตายหรือสลบ
                 Enemy_combatManager.Instance.ReleaseToken(this.gameObject);
 
@@ -315,7 +328,25 @@ public class Enemy_Alert : MonoBehaviour
         //return;
         //}
 
-        agent.SetDestination(currentTargetPos);
+        Vector3 playerPos = currentTargetPos;
+
+        // หาเวกเตอร์ทิศทางจากผู้เล่นชี้มายังตัวศัตรู
+        Vector3 dirFromPlayerToEnemy = (transform.position - playerPos).normalized;
+
+        // กำหนดจุดหมายให้อยู่ห่างจากผู้เล่นตามระยะ pushStopDistance
+        Vector3 targetPos = playerPos + (dirFromPlayerToEnemy * pushStopDistance);
+
+        // ตรวจสอบพิกัดบน NavMesh ก่อนสั่งเดิน
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(targetPos, out hit, 3f, NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+        }
+        else
+        {
+            // กรณีจุดที่เว้นระยะตกขอบ NavMesh ให้เดินเข้าหาผู้เล่นตรงๆ เป็น Backup
+            agent.SetDestination(playerPos);
+        }
     }
 
     void surrondPlayer()
@@ -324,7 +355,9 @@ public class Enemy_Alert : MonoBehaviour
         if (!isSurrounding)
         {
             isSurrounding = true;
-            StartCoroutine(SurroundSteppingRoutine());
+
+            // เก็บลงตัวแปร surroundCoroutine
+            surroundCoroutine = StartCoroutine(SurroundSteppingRoutine());
         }
     }
 
@@ -418,19 +451,28 @@ public class Enemy_Alert : MonoBehaviour
 
     public void counting_AlertTimer()
     {
-
-        if (enemy_Raycast.foundPlayer)
+        // เช็กว่าเฟรมปัจจุบัน ถูกบวกเวลาไปหรือยัง?
+        if (lastUpdateFrame != Time.frameCount)
         {
-            AlertTimer = 0;
-        }
-        else
-        {
-            AlertTimer += Time.deltaTime;
+            AlertTimer += Time.deltaTime; // บวกเวลาตามปกติ
+            lastUpdateFrame = Time.frameCount; // อัปเดตว่าเฟรมนี้ทำไปแล้วนะ!
         }
     }
 
-    public void HandleNoiseAlert(Vector3 P_Position)
+    public void Reset_AlerTimer()
     {
+        AlertTimer = 0;
+    }
+
+    public void HandleNoiseAlert(Vector3 P_Position) ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    {
+        if (shootCoroutine != null) return;
+
+        Debug.Log("HandleNoiseAlert");
+        print(isDistracted);
+
+        if (isDistracted) return;
+
         if (enemy_Raycast.foundPlayer)
         {
             return; // ตัดจบฟังก์ชัน ไม่ต้องไปอัปเดตเป้าหมายหรือหันหน้าตามเสียง
@@ -445,7 +487,7 @@ public class Enemy_Alert : MonoBehaviour
         timeLostSight = Time.time;
         hintTimer = 0f;
 
-        isDistractedByNoise = true; // เปิดสวิตช์
+        isDistracted = true; // เปิดสวิตช์
 
         agent.SetDestination(currentTargetPos);
     }
@@ -500,28 +542,32 @@ public class Enemy_Alert : MonoBehaviour
         {
             timeLostSight = Time.time;
             currentTargetPos = enemy_script.playerTransform.position;
-            isDistractedByNoise = false;
+            isDistracted = false;
         }
         else
         {
-            if (Time.time - timeLostSight > memoryDuration && Alert_CurrentBehavior != AlertBehave.trail)
+            if (!isDistracted)
             {
-                Alert_CurrentBehavior = AlertBehave.trail;
-                isDistractedByNoise = false;
-            }
-
-            // ปลดล็อคถ้าเดินไปถึงจุดเกิดเสียงแล้วไม่เจอใคร! 
-            if (isDistractedByNoise)
-            {
-                // ถ้า NavMesh คำนวณเส้นทางเสร็จแล้ว และเดินไปถึงระยะ 1.5 เมตรจากเป้าหมาย
-                if (!agent.pathPending && agent.remainingDistance <= 1.5f)
+                if (Time.time - timeLostSight > memoryDuration && Alert_CurrentBehavior != AlertBehave.trail)
                 {
-                    Debug.Log("ถึงจุดเกิดเสียงแล้ว ไม่เจอใคร เลิกสนใจเสียง กลับไปรับคำใบ้ต่อ!");
-                    isDistractedByNoise = false; // ปิดสวิตช์ทันที ระบบใบ้พิกัดจะได้ทำงานต่อ
+                    Alert_CurrentBehavior = AlertBehave.trail;
+                    isDistracted = false;
                 }
             }
 
-            if (!isDistractedByNoise)
+            // ปลดล็อคถ้าเดินไปถึงจุดเกิดเสียงแล้วไม่เจอใคร! 
+            if (isDistracted)
+            {
+                // ถ้า NavMesh คำนวณเส้นทางเสร็จแล้ว และเดินไปถึงระยะ 1.5 เมตรจากเป้าหมาย
+                // แปลว่า: ต้องกำลังเดินอยู่ และเดินไปถึงเป้าหมายแล้ว ถึงจะปลดสวิตช์ได้
+                if (!agent.isStopped && !agent.pathPending && agent.remainingDistance <= 1.5f)
+                {
+                    Debug.Log("ถึงจุดเกิดเสียงแล้ว ไม่เจอใคร เลิกสนใจเสียง กลับไปรับคำใบ้ต่อ!");
+                    isDistracted = false; // ปิดสวิตช์ทันที ระบบใบ้พิกัดจะได้ทำงานต่อ
+                }
+            }
+
+            if (!isDistracted)
             {
                 if (Alert_CurrentBehavior == AlertBehave.trail)
                 {
@@ -550,6 +596,9 @@ public class Enemy_Alert : MonoBehaviour
     void EndAlertState()
     {
         Debug.Log("หมดเวลา Alert! ยอมแพ้และคืนตั๋ว");
+
+        StopAllAlertCoroutinesSafely();
+
         Enemy_combatManager.Instance.ReleaseToken(this.gameObject);
         enemy_script.currentState = enemy_stage.EnemyState.alertSearching;
         //enemy_script.baseState = enemy_stage.EnemyState.alertSearching;
@@ -569,7 +618,7 @@ public class Enemy_Alert : MonoBehaviour
 
     public void TriggerGroupAlert()
     {
-        float shoutRadius = 20f; // รัศมีเสียงตะโกน (ปรับให้ได้ยินข้ามห้องได้)
+        float shoutRadius = 40f; // รัศมีเสียงตะโกน (ปรับให้ได้ยินข้ามห้องได้)
 
         // กางอาณาเขตวงกลมหาเพื่อนที่อยู่ในระยะ
         Collider[] friendsNearby = Physics.OverlapSphere(transform.position, shoutRadius, FriendNeraByMask);
@@ -596,6 +645,62 @@ public class Enemy_Alert : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+
+    public void PointBlankShoot(Vector3 playerPos)
+    {
+        // เช็กแค่ว่าไม่ได้กำลังอยู่ในท่ายิงสวนอยู่แล้วก็พอ (Priority สูงสุด!)
+        if (shootCoroutine == null)
+        {
+            // บังคับหยุดพักพฤติกรรมรอบข้าง (เช่น ถ้าโอบล้อมอยู่ก็ให้หยุด)
+            if (surroundCoroutine != null)
+            {
+                StopCoroutine(surroundCoroutine);
+                surroundCoroutine = null;
+            }
+
+            shootCoroutine = StartCoroutine(ShootReflexRoutine(playerPos));
+        }
+    }
+
+    private IEnumerator ShootReflexRoutine(Vector3 playerPos)
+    {
+        Debug.Log("ShootReflexRoutine");
+
+        isDistracted = true; // ยึดสวิตช์! AI จะเลิกเดิน push/flank
+
+        agent.ResetPath();
+
+        agent.isStopped = true;
+        agent.updateRotation = false;
+
+        Vector3 lookPos = new Vector3(playerPos.x, transform.position.y, playerPos.z);
+        transform.LookAt(lookPos);
+
+        enemy_Raycast.foundPlayer = true;
+        Debug.Log("ปัง! ยิงสวนระยะเผาขน!");
+
+        yield return new WaitForSeconds(0.5f);
+
+        agent.updateRotation = true;
+        agent.isStopped = false;    
+
+        isDistracted = false; // คืนสวิตช์! ให้ AI กลับมาทำพฤติกรรมหลัก
+        shootCoroutine = null;
+    }
+    void StopAllAlertCoroutinesSafely()
+    {
+        if (surroundCoroutine != null)
+        {
+            StopCoroutine(surroundCoroutine);
+            surroundCoroutine = null;
+        }
+
+        if (shootCoroutine != null)
+        {
+            StopCoroutine(shootCoroutine);
+            shootCoroutine = null;
         }
     }
 }

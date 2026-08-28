@@ -32,6 +32,7 @@ public class Enemy_Task : MonoBehaviour
     private float wakeUpTimer = 0f;
     //private float wakeUpDuration = 2.0f; // ใช้เวลาปลุก 2 วินาที
     private enemy_stage friendToWake;    // เก็บเป้าหมายว่ากำลังปลุกใครอยู่
+    Enemy_Report enemy_report_script;
 
 
     private void Awake()
@@ -43,6 +44,7 @@ public class Enemy_Task : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         enemyMain_script = GetComponent<enemy_stage>();
+        enemy_report_script = GetComponent<Enemy_Report>();
         FriendNeraByMask = LayerMask.GetMask("enemy");
     }
 
@@ -193,7 +195,7 @@ public class Enemy_Task : MonoBehaviour
                     {
                         StopCoroutine(wakeUpCoroutine);
                     }
-                    wakeUpCoroutine = StartCoroutine(checkMate(friend));
+                    wakeUpCoroutine = StartCoroutine(WakeUp(friend));
                 }
 
                 Debug.Log("ทำการปลุกเพื่อน");
@@ -210,14 +212,17 @@ public class Enemy_Task : MonoBehaviour
                 break;
         }
     }
-    IEnumerator checkMate(enemy_stage enemy_Stage_script)
+    IEnumerator WakeUp(enemy_stage enemyFriend_Stage_script)
     {
+        var currentTask = todoList[0];
+
         yield return new WaitForSeconds(5);
         Debug.Log("are you okay.....");
-        enemy_Stage_script.currentState = enemy_stage.EnemyState.awake;
+        enemyFriend_Stage_script.currentState = enemy_stage.EnemyState.awake;
         enemyMain_script.currentState = EnemyState.report; //สั่งตัวเองให้เข้าเฟดReport
+        enemy_report_script.StartReportState(IncidentType.FoundUnconscious, currentTask.position);
 
-        Clear_Current_Task();
+        ClearAllTasks();
         Debug.Log("List length =" + todoList.Count);
         //target_enemy_Script.currentState = enemy.EnemyState.awake; //สั่งให้ศัตรูคัวอื่น ให้ตื่น
         //target_enemy_Script = null;
@@ -227,32 +232,9 @@ public class Enemy_Task : MonoBehaviour
 
     void Alarm()
     {
-        Collider[] friendNearBy = Physics.OverlapSphere(transform.position, 50f, FriendNeraByMask);
+        enemyMain_script.currentState = enemy_stage.EnemyState.report;
 
-        float AlertRange = 20f;
-        //float AlertSearchingRange = 50f;
-
-        foreach (var coll in friendNearBy)
-        {
-            Vector3 dist = coll.transform.position - transform.position;
-            var friendScript = coll.GetComponent<enemy_stage>();
-
-            if (friendScript.currentState == enemy_stage.EnemyState.dead && friendScript.currentState == enemy_stage.EnemyState.faint)
-            {
-                continue;
-            }
-
-            if (friendScript != null)
-            {
-
-                if (dist.sqrMagnitude <= (AlertRange * AlertRange))
-                {
-
-                    friendScript.currentState = enemy_stage.EnemyState.Alert;
-                }
-
-            }
-        }
+        ClearAllTasks();
     }
 
     void Clear_Current_Task()

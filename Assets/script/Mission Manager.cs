@@ -87,4 +87,13 @@ public class MissionManager : MonoBehaviour
         }
         return true;
     }
+
+    public bool All_Mission_Complete()
+    {
+        foreach (MissionData mission in activeMissions)
+        {
+            if (!mission.isCompleted) return false;
+        }
+        return true;
+    }
 }

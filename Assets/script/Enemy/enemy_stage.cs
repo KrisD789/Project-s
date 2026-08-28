@@ -47,7 +47,8 @@ public class enemy_stage : MonoBehaviour
         dead,
         alertSearching,
         Dummy,
-        OnGrab
+        OnGrab,
+        idle
     }
 
     public EnemyState baseState = EnemyState.Patrol;
@@ -111,6 +112,7 @@ public class enemy_stage : MonoBehaviour
                 break;
 
             case EnemyState.dead:
+                headRenderer.material.color = Color.black;
                 OnDown();
                 break;
 
@@ -127,6 +129,10 @@ public class enemy_stage : MonoBehaviour
             case EnemyState.OnGrab:
                 headRenderer.material.color = Color.black;
                 //agent.speed = E_runSpeed;
+                break;
+
+            case EnemyState.idle:
+                
                 break;
         }
 
@@ -254,10 +260,14 @@ public class enemy_stage : MonoBehaviour
 
         if(target_enemy_Script != null)
         {
-            currentState = EnemyState.report; //สั่งตัวเองให้เข้าเฟดinvestigate
+            currentState = EnemyState.report; 
 
             target_enemy_Script.currentState = enemy_stage.EnemyState.awake; //สั่งให้ศัตรูคัวอื่น ให้ตื่น
             target_enemy_Script = null;
         }
     }
+
+   
+
+    
 } 

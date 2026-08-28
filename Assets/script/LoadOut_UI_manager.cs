@@ -81,7 +81,9 @@ public class LoadOut_UI_manager : MonoBehaviour
         else if (itemData is Armor_Item armor)
         {
             // ดึงค่าของเกราะมาโชว์แทน (เช่น แปลงค่าลดดาเมจเป็นเปอร์เซ็นต์)
-            WeaponDamage.text = "Damage Resist: " + (armor.Max_Armor_Durability * 100).ToString() + "%";
+            weaponNameText.text = armor.name;
+            WeaponDamage.text = "Damage Resist: " + (armor.Armor_Block_Percentage * 100).ToString() + "%";
+            descriptionText.text = "Armor Durability: " + armor.Max_Armor_Durability.ToString();
             Ammo.text = "Speed: " + armor.Movement_Speed_Multiplier.ToString() + "x";
             noiseText.text = "Noise Multiplier: " + armor.Noise_Multiplier.ToString() + "x";
         }
@@ -113,7 +115,7 @@ public class LoadOut_UI_manager : MonoBehaviour
         else if (currentSelect is Armor_Item armor)
         {
             // สมมติว่าคุณเพิ่ม public ArmorItem selectedArmor; ใน Load_out_manager แล้ว
-            // Load_out_manager.Instance.selectedArmor = armor; 
+            Load_out_manager.Instance.selectedArmor = armor; 
             Debug.Log("สวมใส่: ชุดเกราะ");
         }
     }
