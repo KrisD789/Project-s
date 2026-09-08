@@ -34,5 +34,7 @@ public class Enemy : MonoBehaviour
     {
         // แจ้ง Manager ว่ามีศัตรูร่วงไป 1 ตัวแล้วนะ!
         MissionManager.Instance.OnEnemyEliminated();
+
+        enemy_Stage.currentState = enemy_stage.EnemyState.dead;
     }
 }

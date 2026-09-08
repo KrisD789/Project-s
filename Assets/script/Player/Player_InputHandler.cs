@@ -16,7 +16,9 @@ public class Player_InputHanler : MonoBehaviour
     public InputActionReference Switch_Fire_Mode;
     public InputActionReference reload_Action;
     public InputActionReference Crouch_Action;
-
+    public InputActionReference CameraSwitch;
+    public InputActionReference UseConsume_1;
+    public InputActionReference UseConsume_2;
 
     [Header("Script References")]
     public Player_moveMent player_MoveMent;
@@ -37,6 +39,9 @@ public class Player_InputHanler : MonoBehaviour
         Switch_Fire_Mode.action.Enable();
         reload_Action.action.Enable();
         Crouch_Action.action.Enable();
+        CameraSwitch.action.Enable();
+        UseConsume_1.action.Enable();
+        UseConsume_2.action.Enable();
     }
 
     private void OnDisable()
@@ -49,6 +54,10 @@ public class Player_InputHanler : MonoBehaviour
         Switch_Fire_Mode.action.performed -= SwitchFireMode;
         reload_Action.action.performed -= Reload;
         Crouch_Action.action.performed -= ToggleCrouch;
+        CameraSwitch.action.performed -= ToggleCameraSwitch;
+        UseConsume_1.action.performed -= ToggleUseConsume_Item_1;
+        UseConsume_2.action.performed -= ToggleUseConsume_Item_2;
+
 
         // 2. ปิดการรับค่า
         moveAction.action.Disable();
@@ -61,6 +70,9 @@ public class Player_InputHanler : MonoBehaviour
         Switch_Fire_Mode.action.Disable();
         reload_Action.action?.Disable();
         Crouch_Action?.action?.Disable();
+        CameraSwitch?.action?.Disable();
+        UseConsume_1.action.Disable();
+        UseConsume_2.action.Disable();
     }
 
 
@@ -75,6 +87,10 @@ public class Player_InputHanler : MonoBehaviour
         Switch_Fire_Mode.action.performed += SwitchFireMode;
         reload_Action.action.performed += Reload;
         Crouch_Action.action.performed += ToggleCrouch;
+        CameraSwitch.action.performed += ToggleCameraSwitch;
+        UseConsume_1.action.performed += ToggleUseConsume_Item_1;
+        UseConsume_2.action.performed += ToggleUseConsume_Item_2;
+
     }
 
     private void Start()
@@ -218,5 +234,20 @@ public class Player_InputHanler : MonoBehaviour
     public void ToggleCrouch(InputAction.CallbackContext context)
     {
         player_action.HandleCrouch();
+    }
+
+    public void ToggleCameraSwitch(InputAction.CallbackContext context)
+    {
+        camera_control.SwapShoulder();
+    }
+
+    public void ToggleUseConsume_Item_1(InputAction.CallbackContext context)
+    {
+        Player_Inventory.Instance.EquipConsumeItem1();
+    }
+
+    public void ToggleUseConsume_Item_2(InputAction.CallbackContext context)
+    {
+        Player_Inventory.Instance.EquipConsumeItem2();
     }
 }

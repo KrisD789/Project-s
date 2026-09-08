@@ -22,7 +22,9 @@ MonoBehaviour:
   Max_Reserve_Ammo: 200
   weaponRange: 50
   ReloadTime: 2
-  FireRate: 1
+  FireRate: 0.3
+  RecoilUp: 2
+  RecoilSide: 1
   type: 0
   fireMode: 1
   noiseLevel: 50

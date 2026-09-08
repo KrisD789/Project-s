@@ -11,6 +11,8 @@ public class Weapon_Item : Base_Item
     public float weaponRange;
     public float ReloadTime;
     public float FireRate;
+    public float RecoilUp;
+    public float RecoilSide;
 
     public enum WeaponType { Primary, Secondary }
     public WeaponType type;

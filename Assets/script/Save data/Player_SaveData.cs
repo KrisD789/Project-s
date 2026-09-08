@@ -17,6 +17,16 @@ public struct weapon_Data
 }
 
 [System.Serializable]
+public struct consumable_Data
+{
+    public string Item1_ID;
+    public int Item1_Amount;
+
+    public string Item2_ID;
+    public int Item2_Amount;
+}
+
+[System.Serializable]
 public struct Player_DataBox
 {
     public Vector3 position;
@@ -33,6 +43,8 @@ public struct Player_DataBox
 
     // กล่องอาวุธ
     public weapon_Data weaponStats;
+    //ยา
+    public consumable_Data consumableStats;
 }
 
 public class Player_SaveData : MonoBehaviour, Isaveable
@@ -41,10 +53,12 @@ public class Player_SaveData : MonoBehaviour, Isaveable
     Player Player_script;
     LightDetect LightDetect;
     Weapon_system weapon;
+    Player_Inventory inventory;
 
     [Header("Database คลังแสง (ลากไฟล์ทั้งหมดที่มีในเกมมาใส่ช่องนี้)")]
     public List<Weapon_Item> allWeaponsDatabase;
     public List<Armor_Item> allArmorsDatabase;
+    public List<Consumable_Item> allConsumablesDatabase;
 
     private void Awake()
     {
@@ -59,6 +73,9 @@ public class Player_SaveData : MonoBehaviour, Isaveable
 
         if (!TryGetComponent<Weapon_system>(out weapon))
             Debug.Log("!!!!! WARNING !!!!! --- Player_SaveData หา << weapon >> ไม่เจอ ---");
+
+        if (!TryGetComponent<Player_Inventory>(out inventory))
+            Debug.Log("!!!!! WARNING !!!!! --- Player_SaveData หา << Player_Inventory >> ไม่เจอ ---");
     }
 
     public string GetSaveID()
@@ -108,6 +125,21 @@ public class Player_SaveData : MonoBehaviour, Isaveable
             dataBox.weaponStats.Primary_ReserveAmmo = weapon.primary_ReserveAmmo;
             dataBox.weaponStats.Secondary_CurrentAmmo = weapon.secondary_CurrentAmmo;
             dataBox.weaponStats.Secondary_ReserveAmmo = weapon.secondary_ReserveAmmo;
+        }
+
+        if (inventory != null)
+        {
+            if (inventory.Item1 != null)
+            {
+                dataBox.consumableStats.Item1_ID = inventory.Item1.name;
+                dataBox.consumableStats.Item1_Amount = inventory.Item1.CurrentAmount;
+            }
+
+            if (inventory.Item2 != null)
+            {
+                dataBox.consumableStats.Item2_ID = inventory.Item2.name;
+                dataBox.consumableStats.Item2_Amount = inventory.Item2.CurrentAmount;
+            }
         }
 
         return JsonUtility.ToJson(dataBox);
@@ -178,6 +210,38 @@ public class Player_SaveData : MonoBehaviour, Isaveable
                 weapon.EquipPrimary();
             else if (dataBox.weaponStats.Current_Weapon_ID == dataBox.weaponStats.Secondary_Weapon_ID)
                 weapon.EquipSecondary();
+        }
+
+        // 6. โหลดข้อมูลยากลับคืนมา
+        if (inventory != null)
+        {
+            // ค้นหาและคืนค่ายาช่องที่ 1
+            if (!string.IsNullOrEmpty(dataBox.consumableStats.Item1_ID))
+            {
+                foreach (Consumable_Item c in allConsumablesDatabase)
+                {
+                    if (c.name == dataBox.consumableStats.Item1_ID)
+                    {
+                        inventory.Item1 = c;
+                        inventory.Item1.CurrentAmount = dataBox.consumableStats.Item1_Amount;
+                        break;
+                    }
+                }
+            }
+
+            // ค้นหาและคืนค่ายาช่องที่ 2
+            if (!string.IsNullOrEmpty(dataBox.consumableStats.Item2_ID))
+            {
+                foreach (Consumable_Item c in allConsumablesDatabase)
+                {
+                    if (c.name == dataBox.consumableStats.Item2_ID)
+                    {
+                        inventory.Item2 = c;
+                        inventory.Item2.CurrentAmount = dataBox.consumableStats.Item2_Amount;
+                        break;
+                    }
+                }
+            }
         }
     }
 }

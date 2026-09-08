@@ -7,7 +7,7 @@ public class WeaponInfo_prefab : MonoBehaviour
 {
     public Image iconImage;
     private Base_Item myData;
-    private Armor_Item armor;
+    //private Armor_Item armor;
     private LoadOut_UI_manager uiManager; // จำตัวผู้จัดการไว้ เพื่อตะโกนเรียกเวลากดปุ่ม
 
     // ฟังก์ชันนี้ทำงานตอน Manager สั่งเสกปุ่ม
@@ -23,6 +23,13 @@ public class WeaponInfo_prefab : MonoBehaviour
         if(data is Armor_Item armor)
         {
             myData = armor;
+            uiManager = manager;
+            iconImage.sprite = data.itemIcon;
+        }
+
+        if (data is Consumable_Item conSume)
+        {
+            myData = conSume;
             uiManager = manager;
             iconImage.sprite = data.itemIcon;
         }

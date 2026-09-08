@@ -70,6 +70,8 @@ public class Enemy_Report : MonoBehaviour
         Debug.Log($"Enemy: ศูนย์กลาง! ขอรายงานเหตุการณ์ประเภท: {incident}");
         yield return new WaitForSeconds(radioCallDuration);
 
+        
+
         // เฟส 3: กระจายข่าวตามความรุนแรง
         BroadcastAlert(incident, targetPos);
         //enemy_Stage_script.currentState = enemy_stage.EnemyState.Alert;
@@ -95,6 +97,8 @@ public class Enemy_Report : MonoBehaviour
 
     private void BroadcastAlert(IncidentType incident, Vector3 knownPosition)
     {
+        if (enemy_Stage_script.currentState != enemy_stage.EnemyState.report) return;
+
         // โค้ดส่งสัญญาณแจ้งศัตรูตัวอื่นในสเตจ (เช่น อัปเดตตัวแปร Global Alert)
         Debug.Log("BroadcastAlert ส่งพิกัดผู้เล่นให้ศัตรูทุกตัวในพื้นที่ทราบแล้ว!");
         

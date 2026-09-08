@@ -23,6 +23,8 @@ MonoBehaviour:
   weaponRange: 30
   ReloadTime: 0.5
   FireRate: 0.2
+  RecoilUp: 1
+  RecoilSide: 0.5
   type: 1
   fireMode: 0
   noiseLevel: 50

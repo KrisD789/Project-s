@@ -87,6 +87,17 @@ public class LoadOut_UI_manager : MonoBehaviour
             Ammo.text = "Speed: " + armor.Movement_Speed_Multiplier.ToString() + "x";
             noiseText.text = "Noise Multiplier: " + armor.Noise_Multiplier.ToString() + "x";
         }
+
+        else if (itemData is Consumable_Item ConSumeItem)
+        {
+            // ดึงค่าของเกราะมาโชว์แทน (เช่น แปลงค่าลดดาเมจเป็นเปอร์เซ็นต์)
+            weaponNameText.text = ConSumeItem.name;
+            WeaponDamage.text = "";
+            descriptionText.text = $"Hp ++ : {ConSumeItem.healAmount} // MaxHp ++ : {ConSumeItem.MaxHP_Recover}" ;
+            Ammo.text = "";
+            noiseText.text = "";
+        }
+
         else
         {
             // ถ้าเป็นของทั่วไปอื่นๆ ก็ล้างตัวหนังสือทิ้งไปไม่ให้มันรก
@@ -96,7 +107,7 @@ public class LoadOut_UI_manager : MonoBehaviour
         }
     }
 
-    public void selectWeapon()
+    public void selectItem()
     {
         // 4. ก่อนจะบันทึก ต้องเช็คก่อนว่ามันคืออะไร จะได้ยัดใส่ช่องใน Load_out_manager ถูก
         if (currentSelect is Weapon_Item weapon)
@@ -117,6 +128,20 @@ public class LoadOut_UI_manager : MonoBehaviour
             // สมมติว่าคุณเพิ่ม public ArmorItem selectedArmor; ใน Load_out_manager แล้ว
             Load_out_manager.Instance.selectedArmor = armor; 
             Debug.Log("สวมใส่: ชุดเกราะ");
+        }
+
+        else if (currentSelect is Consumable_Item SelectConsumeItem)
+        {
+            if(Load_out_manager.Instance.selectedConsumable_1 == null)
+            {
+                Load_out_manager.Instance.selectedConsumable_1 = SelectConsumeItem;
+            }
+
+            else 
+            {
+                Load_out_manager.Instance.selectedConsumable_2 = SelectConsumeItem;
+            }
+
         }
     }
 

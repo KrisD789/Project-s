@@ -8,6 +8,8 @@ public class Load_out_manager : MonoBehaviour
     public Weapon_Item selectedPrimaryWeapon;
     public Weapon_Item selectedSecondaryWeapon;
     public Armor_Item selectedArmor;
+    public Consumable_Item selectedConsumable_1;
+    public Consumable_Item selectedConsumable_2;
     //public item selectedGadget;
     //public item selectedSuit; // เช่น ชุดพรางตัวที่ลดการสะท้อนแสง
 

@@ -6,6 +6,9 @@ public class Consumable_Item : Base_Item
     [Header("Consumable Effect")]
     public float healAmount; // ฟื้นฟูเลือด
     public float MaxHP_Recover; // ฟื้นฟูความเหนื่อย
+    public int MaxAmount;
+    public int CurrentAmount;
+    public float TimeToUse;
 
     // ไอเทมชิ้นนี้ใช้แล้วหมดไปหรือไม่?
     public bool isConsumedOnUse = true;

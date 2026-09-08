@@ -4,8 +4,10 @@ public class Player : MonoBehaviour
 {
     public static Player Instance { get; private set; }
     [Header("สถานะพลังชีวิต")]
-    public float currentHP = 100f;
+    //public float HP = 100f;
     public float MaxHP = 100f;
+    public float currentHP ;
+    public float currentMaxHP ;
     public float PermanentDamage = 3;
     public bool isDead = false;
 
@@ -20,7 +22,9 @@ public class Player : MonoBehaviour
         Idle,           // ว่างเปล่า (เดิน/วิ่ง/ยิงปืน ปกติ)
         CarryingBody,   // กำลังแบกศพ
         GrabbingEnemy,  // กำลังล็อคคอศัตรู
-        Crouch          // กำลังนั่งย่อ
+        Crouch,         // กำลังนั่งย่อ
+        Aim,             // กำลังเล็ง
+        Healing
     }
 
     [Header("สถานะปัจจุบันของผู้เล่น")]
@@ -65,6 +69,9 @@ public class Player : MonoBehaviour
         currentArmorProfile = Load_out_manager.Instance.selectedArmor;
 
         EquipArmor(currentArmorProfile);
+
+        currentHP = MaxHP;
+        currentMaxHP = MaxHP;
     }
 
     public void Player_TakeDamage(float incomingDamage)
@@ -103,12 +110,12 @@ public class Player : MonoBehaviour
         {
             // 2. ถ้าไม่มีเกราะ หรือเกราะแตกไปแล้ว รับดาเมจ 100% พร้อมกับลด MaxHP (แผลฉกรรจ์)
             currentHP -= incomingDamage;
-            MaxHP -= PermanentDamage;
+            currentMaxHP -= PermanentDamage;
         }
-
-        // บังคับไม่ให้ MaxHP ต่ำกว่า 1 และไม่ให้ currentHP ล้นเกิน MaxHP
-        MaxHP = Mathf.Clamp(MaxHP, 1f, 100f);
-        currentHP = Mathf.Clamp(currentHP, 0f, MaxHP);
+        
+        // บังคับไม่ให้เพดานเลือด (currentMaxHP) ต่ำกว่า 1 และจำกัดเลือด (currentHP) ไม่ให้ทะลุเพดาน(currentMaxHp)
+        currentMaxHP = Mathf.Clamp(currentMaxHP, 1f, MaxHP);
+        currentHP = Mathf.Clamp(currentHP, 0f, currentMaxHP);
 
         Debug.Log($"โดนโจมตี! HP เหลือ: {currentHP} | เกราะเหลือ: {currentArmorDurability}");
 
@@ -133,5 +140,20 @@ public class Player : MonoBehaviour
             currentArmorDurability = 0f;
             Debug.Log("ไม่ได้สวมใส่เกราะ");
         }
+    }
+
+    public void Healing(float HpRecovery, float MaxHpRecovery)
+    {
+        // 1. ต้องเลือดเต็มหลอด และเพดานเต็ม 100 ทั้งคู่ ถึงจะห้ามฮีล (เปลี่ยนเป็น &&)
+        if (currentHP >= currentMaxHP && currentMaxHP >= MaxHP) return;
+
+        currentHP += HpRecovery;
+        currentMaxHP += MaxHpRecovery;
+
+        // 2. เลือดปัจจุบัน (currentHP) ต้องห้ามทะลุเพดานที่โดนเนิร์ฟ (currentMaxHP)
+        currentHP = Mathf.Clamp(currentHP, 0f, currentMaxHP);
+
+        // 3. ส่วนเพดานที่โดนเนิร์ฟ (currentMaxHP) ก็ฟื้นได้สูงสุดแค่ 100 (MaxHP)
+        currentMaxHP = Mathf.Clamp(currentMaxHP, 1f, MaxHP);
     }
 }

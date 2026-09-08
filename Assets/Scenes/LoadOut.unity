@@ -361,8 +361,12 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3742978234202347874, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 2216.6206
+      objectReference: {fileID: 0}
+    - target: {fileID: 3742978234202347874, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.0009246381
+      value: -0.000978918
       objectReference: {fileID: 0}
     - target: {fileID: 4260156429993055622, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
       propertyPath: m_AnchorMax.y
@@ -454,6 +458,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LoadOut UI
       objectReference: {fileID: 0}
+    - target: {fileID: 6464641098010906022, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: selectItem
+      objectReference: {fileID: 0}
     - target: {fileID: 6602971196632281017, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -488,7 +496,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6991170114205434215, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
       propertyPath: all_item.Array.size
-      value: 5
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 6991170114205434215, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
       propertyPath: 'all_item.Array.data[2]'
@@ -502,6 +510,14 @@ PrefabInstance:
       propertyPath: 'all_item.Array.data[4]'
       value: 
       objectReference: {fileID: 11400000, guid: 2046923ca1cec304fbc4cec51456b1a4, type: 2}
+    - target: {fileID: 6991170114205434215, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
+      propertyPath: 'all_item.Array.data[5]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 451b54ea71d3e844698b39aac78e8d32, type: 2}
+    - target: {fileID: 6991170114205434215, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
+      propertyPath: 'all_item.Array.data[6]'
+      value: 
+      objectReference: {fileID: 11400000, guid: bc1c2b11e1475dd4ba283ef74e97087b, type: 2}
     - target: {fileID: 7773665182253207591, guid: b167c5f40591aef438bf82cb2dd20f0e, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -667,6 +683,8 @@ MonoBehaviour:
   selectedPrimaryWeapon: {fileID: 0}
   selectedSecondaryWeapon: {fileID: 0}
   selectedArmor: {fileID: 0}
+  selectedConsumable_1: {fileID: 0}
+  selectedConsumable_2: {fileID: 0}
 --- !u!4 &955406599
 Transform:
   m_ObjectHideFlags: 0

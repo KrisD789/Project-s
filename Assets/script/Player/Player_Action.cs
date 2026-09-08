@@ -106,6 +106,11 @@ public class Player_Action : MonoBehaviour
 
     public void Interaction()
     {
+        if (Player.Instance.currentState == Player.PlayerState.Aim)
+        {
+            return;
+        }
+
         // --- ส่วนที่เพิ่มใหม่ (1): ดักเช็คการยกเลิกเควส ---
         // ถ้าระบบจำได้ว่ามีเควสที่กำลังกดทำอยู่ และเควสนั้นมีสถานะ OnInteract เป็น true
         if (activeQuestTrigger != null && activeQuestTrigger.OnInteract)
@@ -193,28 +198,37 @@ public class Player_Action : MonoBehaviour
 
     void GrabEnemy()
     {
-        float angleCheck = Vector3.Dot(transform.forward, targetAliveEnemy.transform.forward);
-
-        if (angleCheck > 0.5f)
+        if (Player.Instance.currentState == Player.PlayerState.Idle ||
+            Player.Instance.currentState == Player.PlayerState.Crouch)
         {
-            Player.Instance.currentState = Player.PlayerState.GrabbingEnemy;
-            grabbedEnemy = targetAliveEnemy;
-            targetAliveEnemy = null;
 
-            if (grabbedEnemy.TryGetComponent<enemy_stage>(out enemy_stage Target_grabbedEnemy))
+            float angleCheck = Vector3.Dot(transform.forward, targetAliveEnemy.transform.forward);
+
+            if (angleCheck > 0.5f)
             {
-                Target_grabbedEnemy.currentState = enemy_stage.EnemyState.OnGrab;
-            }
+                Player.Instance.currentState = Player.PlayerState.GrabbingEnemy;
+                grabbedEnemy = targetAliveEnemy;
+                targetAliveEnemy = null;
 
-            grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
-            grabbedEnemy.GetComponent<Collider>().enabled = false;
-            grabbedEnemy.transform.SetParent(grabPosition);
-            grabbedEnemy.transform.localPosition = Vector3.zero;
-            grabbedEnemy.transform.localRotation = Quaternion.identity;
+                if (grabbedEnemy.TryGetComponent<enemy_stage>(out enemy_stage Target_grabbedEnemy))
+                {
+                    Target_grabbedEnemy.currentState = enemy_stage.EnemyState.OnGrab;
+                }
+
+                grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
+                grabbedEnemy.GetComponent<Collider>().enabled = false;
+                grabbedEnemy.transform.SetParent(grabPosition);
+                grabbedEnemy.transform.localPosition = Vector3.zero;
+                grabbedEnemy.transform.localRotation = Quaternion.identity;
+            }
+            else
+            {
+                Debug.Log("ล็อคคอไม่ได้! คุณต้องอยู่ข้างหลังมัน");
+            }
         }
         else
         {
-            Debug.Log("ล็อคคอไม่ได้! คุณต้องอยู่ข้างหลังมัน");
+            Debug.Log("ผู้เล่นไม่ได้อยู่ใน __ state __ Idle or Crouch");
         }
     }
 

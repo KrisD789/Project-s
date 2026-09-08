@@ -18,6 +18,12 @@ public class Weapon_system : MonoBehaviour
     public int primary_ReserveAmmo;   // กระสุนสำรองอาวุธหลัก
     public int secondary_ReserveAmmo; // กระสุนสำรองอาวุธรอง
 
+    [Header("Recoil Settings")]
+    public float recoilUp;
+    public float recoilSide;
+
+    public CameraControl cameraControlScript;
+
     // Property สำหรับจัดการกระสุนในแม็กกาซีน
     public int CurrentAmmo
     {
@@ -70,6 +76,8 @@ public class Weapon_system : MonoBehaviour
 
     public Camera playerCamera;
 
+   
+
     private void Awake()
     {
         Instance = this;
@@ -79,9 +87,15 @@ public class Weapon_system : MonoBehaviour
     void Start()
     {
         //LoadoutManager = Load_out_manager.Instance;
+        if(!TryGetComponent(out cameraControlScript))
+        {
+            Debug.LogWarning("Weapond_System Notfound cameraControlScript ");
+        }
 
         Player_Primary_weapon = Load_out_manager.Instance.selectedPrimaryWeapon;
         Player_Secondary_weapon = Load_out_manager.Instance.selectedSecondaryWeapon;
+
+        
 
         if (Player_Primary_weapon != null && Player_Secondary_weapon != null)
         {
@@ -95,6 +109,7 @@ public class Weapon_system : MonoBehaviour
 
             secondary_CurrentAmmo = Player_Secondary_weapon.Max_Ammo;
             secondary_ReserveAmmo = Player_Secondary_weapon.Max_Reserve_Ammo;
+
         }
         else
         {
@@ -112,12 +127,20 @@ public class Weapon_system : MonoBehaviour
             current_Weapon_FireMode = CurrentFireMode.Semi_Auto;
         }
 
+        recoilUp = currentWeapon.RecoilUp;
+        recoilSide = currentWeapon.RecoilSide;
+
         HandleReload();
     }
 
     public void HandleShooting(bool isHolding, bool isClicking)
     {
-        if (current_Weapon_Status == Weapon_Status.reload)
+        if (Player.Instance.currentState != Player.PlayerState.Aim)
+        {
+            return;
+        }
+
+        if (current_Weapon_Status == Weapon_Status.reload )
         {
             if (CurrentAmmo > 0 && (isClicking || isHolding))
             {
@@ -129,15 +152,18 @@ public class Weapon_system : MonoBehaviour
             }
         }
 
-        if (Time.time < nextTimeToFire) return;
+        if (Time.time < nextTimeToFire) return; //ดักการยิงรัวทั้ง Semi และ Full Auto
 
         if (current_Weapon_FireMode == CurrentFireMode.full_Auto && isHolding)
         {
+            nextTimeToFire = Time.time + currentWeapon.FireRate;
             CreateGunshotNoise();
             Shoot();
         }
         else if (current_Weapon_FireMode == CurrentFireMode.Semi_Auto && isClicking)
         {
+            
+            nextTimeToFire = Time.time + currentWeapon.FireRate;
             CreateGunshotNoise();
             Shoot();
         }
@@ -153,7 +179,12 @@ public class Weapon_system : MonoBehaviour
         }
 
         CurrentAmmo--;
-        nextTimeToFire = Time.time + currentWeapon.FireRate;
+        //nextTimeToFire = Time.time + currentWeapon.FireRate;
+
+        if (cameraControlScript != null) //สั่ง camera controll ให้ตัวRecoilทำงาน
+        {
+            cameraControlScript.ApplyRecoil(recoilUp, recoilSide);
+        }
 
         Ray cameraRay = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         Vector3 targetPoint;
