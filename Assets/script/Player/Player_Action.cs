@@ -63,6 +63,8 @@ public class Player_Action : MonoBehaviour
                 Debug.Log("ขยับตัว! ยกเลิกการแฮ็กอัตโนมัติ");
             }
         }
+
+        //print(currentInteractableTarget.name);
     }
 
     private void OnTriggerEnter(Collider other)

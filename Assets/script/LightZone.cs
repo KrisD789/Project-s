@@ -3,25 +3,32 @@ using UnityEngine;
 public class LightZone : MonoBehaviour
 {
     public bool lightZoneState = true;
-    public light_switch masterSwitch;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        if(!masterSwitch.TryGetComponent<light_switch>(out masterSwitch)) Debug.LogWarning("lightZone:  หา Light_Switch ไม่เจอ!"); 
+    public light_switch masterSwitch; // จะถูก light_switch ยัดค่ามาให้ตอน Awake()
+    public float lightRadius;
+    public float visualRadiusMultiplier = 0.3f;
 
-        else {
-            Debug.Log("หา Light_Switch ไม่เจอ! ไม่เป็นไรเพราะอันนี้คือ หรอดไปที่ไม่ต้องมีสวิต");
+    void Awake()
+    {
+        Light myLight = GetComponentInChildren<Light>();
+        SphereCollider myCollider = GetComponent<SphereCollider>();
+
+        if (myLight != null && myCollider != null)
+        {
+            // 1. ดึงค่ารัศมีแสงจริงมาเก็บไว้
+            lightRadius = myLight.range * visualRadiusMultiplier;
+
+            // 2. ปรับขนาด Collider ให้เท่ากับรัศมีแสงอัตโนมัติ
+            myCollider.radius = lightRadius;
+            myCollider.isTrigger = true;
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    void Start()
     {
-        //lightZoneState = masterSwitch.lightSW_Status;
+        // เช็คว่ามีสวิตช์คุมหรือไม่ (เผื่อกรณีเป็นหลอดไฟเปิดถาวรที่ไม่มีสวิตช์)
+        if (masterSwitch == null)
+        {
+            Debug.Log($"{gameObject.name}: ไม่มีสวิตช์ควบคุม (หลอดไฟติดถาวร)");
+        }
     }
-
-   
-
-    
-
 }

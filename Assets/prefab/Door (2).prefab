@@ -12,9 +12,8 @@ GameObject:
   - component: {fileID: 508596701721330657}
   - component: {fileID: 8684382971143541335}
   - component: {fileID: 1745320462793740635}
-  - component: {fileID: 7880245836307907264}
   - component: {fileID: 7744976010085624536}
-  m_Layer: 13
+  m_Layer: 18
   m_Name: Door (2)
   m_TagString: Door
   m_Icon: {fileID: 0}
@@ -29,9 +28,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3838164300034263432}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.23, y: 5.715509, z: -13.657667}
-  m_LocalScale: {x: 2.03, y: 3.12, z: 0.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -67,7 +66,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 463afcbf0f01cd146afea539da04e16f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -106,27 +105,10 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &7880245836307907264
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3838164300034263432}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0afe4f9d68e0fd846adfffe7a5925a06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  currentState: 1
-  openAngle: 90
-  smoothSpeed: 5
-  checkRadius: 3
-  openByAi: 0
 --- !u!208 &7744976010085624536
 NavMeshObstacle:
   m_ObjectHideFlags: 0
