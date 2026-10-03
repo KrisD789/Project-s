@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 86bca14448a7f2b4a9f9c6cdd3a7f113, type: 3}
-  m_Name: Arrest
+  m_Name: drop off
   m_EditorClassIdentifier: 
-  missionName: Arrest
-  missionDescrip: find Scam commander
-  type: 1
-  isCompleted: 1
+  missionName: Drop-Off
+  missionDescrip: drop scamcommander in drop Zone
+  type: 3
+  isCompleted: 0
   isRequiredForExit: 1
   targetAmount: 0
   currentAmount: 0

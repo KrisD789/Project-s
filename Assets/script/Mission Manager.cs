@@ -85,7 +85,10 @@ public class MissionManager : MonoBehaviour
         {
             if (mission.isRequiredForExit && !mission.isCompleted) return false;
         }
+        Debug.Log("Extraction Complete !!!!!");
+
         return true;
+
     }
 
     public bool All_Mission_Complete()

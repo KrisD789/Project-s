@@ -1,46 +1,29 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-
-
 public class enemy_stage : MonoBehaviour
 {
-    //public static enemy enemy_script {  get; private set; }
     Enemy_Alert enemy_alert_script;
     Enemy_Investigate enemy_investigate_script;
     enemy_stage target_enemy_Script;
     public GameObject player_Obj;
     public Transform playerTransform;
-    //gameplay gameplay;
     NavMeshAgent agent;
-    //LightDetect lightDetect_Script = LightDetect.lightDetect;
     LightZone lightZoneHit;
 
-    float playerStealthBar;
     public bool alert = false;
     public bool lineOfSight = false;
-    //public bool noisAlert = false;
-
-    //float timer = 0;
-    //float waitTime = 3f;
-    
-    //bool isenemyLatePos = false;
-    //public bool onAlert = false;
-    public bool wasFaint = false; //เป็นตัวไว้บอกว่าศัตรูตัวนี้เคยโดนplayerทำให้สลบ
-
+    public bool wasFaint = false;
 
     public float E_runSpeed = 7;
     public float E_waklSpeed = 3;
 
-
     public enum EnemyState
     {
-        Patrol,      // เดินลาดตระเวนตามปกติ
-        Investigate, // ตรวจสอบตำแหน่งที่ได้ยินเสียง
-        Alert,        // ไล่ล่าผู้เล่นที่ถูกมองเห็น
+        Patrol,
+        Investigate,
+        Alert,
         faint,
         awake,
         report,
@@ -53,38 +36,27 @@ public class enemy_stage : MonoBehaviour
 
     public EnemyState baseState = EnemyState.Patrol;
     public EnemyState currentState = EnemyState.Patrol;
-    private Vector3 lastHeardPosition; // ตำแหน่งที่ได้ยินเสียงล่าสุด
+    private Vector3 lastHeardPosition;
     private Vector3 enemy_late_Position;
     public MeshRenderer headRenderer;
 
     public float E_lightMeter = 0;
     float brightness = 0;
 
-    
-
-    private void Awake()
-    {
-        
-    }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         enemy_alert_script = GetComponent<Enemy_Alert>();
         enemy_investigate_script = GetComponent<Enemy_Investigate>();
-        
+
         agent.speed = E_waklSpeed;
         player_Obj = GameObject.FindGameObjectWithTag("Player");
         playerTransform = player_Obj.transform;
-        
-        
     }
 
-    // Update is called once per frame
     void Update()
     {
-        //playerStealthBar = LightDetect.lightDetect.light_meter;
-        
+        SafetyCheckForSaveLoad();
 
         switch (currentState)
         {
@@ -94,7 +66,6 @@ public class enemy_stage : MonoBehaviour
                 break;
             case EnemyState.Investigate:
                 Investigate();
-                
                 headRenderer.material.color = Color.yellow;
                 break;
             case EnemyState.Alert:
@@ -102,62 +73,138 @@ public class enemy_stage : MonoBehaviour
                 baseState = EnemyState.alertSearching;
                 headRenderer.material.color = Color.red;
                 break;
-
             case EnemyState.faint:
-                OnDown();
+            case EnemyState.dead:
+                headRenderer.material.color = Color.black;
                 break;
-
             case EnemyState.awake:
                 WakeUp();
                 break;
-
-            case EnemyState.dead:
-                headRenderer.material.color = Color.black;
-                OnDown();
-                break;
-
             case EnemyState.alertSearching:
                 headRenderer.material.color = Color.gray;
                 agent.speed = E_runSpeed;
                 break;
-
             case EnemyState.Dummy:
                 headRenderer.material.color = Color.blue;
-                //agent.speed = E_runSpeed;
                 break;
-
             case EnemyState.OnGrab:
                 headRenderer.material.color = Color.black;
-                //agent.speed = E_runSpeed;
                 break;
-
             case EnemyState.idle:
-                
                 break;
         }
-
-        //if(wasFaint) currentState = EnemyState.Investigate;
-        //if (currentState == EnemyState.Alert  && playerStealthBar < 50) currentState = EnemyState.Investigate;
-
-        //print("Timer = " + timer);
     }
 
-    public void Alert()
+    public void Alert() { agent.speed = E_runSpeed; }
+    public void Investigate() { agent.speed = E_waklSpeed; }
+    private void Patrol() { agent.speed = E_waklSpeed; }
+
+
+    // -------------------------------------------------------------
+    //  ฟังก์ชัน: ตัวดักจับฟิสิกส์ค้าง
+    // -------------------------------------------------------------
+    private void SafetyCheckForSaveLoad()
     {
-        agent.speed = E_runSpeed;
-        //agent.SetDestination(playerTransform.position);
-        //print("On Alert !!!!!");
+        // เช็กเฉพาะสถานะที่ศัตรู "ยังมีชีวิต" และ "ต้องเดินได้อิสระ"
+        if (currentState == EnemyState.Patrol ||
+            currentState == EnemyState.Investigate ||
+            currentState == EnemyState.Alert ||
+            currentState == EnemyState.alertSearching ||
+            currentState == EnemyState.awake ||
+            currentState == EnemyState.idle)
+        {
+            // ก. ถ้าเผลอติดอยู่กับมือ/ไหล่ใคร ให้หลุดออกทันที
+            if (transform.parent != null)
+            {
+                transform.SetParent(null);
+            }
+
+            // ข. คืนค่าฟิสิกส์และการชน ให้กลับมาสมบูรณ์
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null && rb.isKinematic) rb.isKinematic = false;
+
+            Collider col = GetComponent<Collider>();
+            if (col != null && !col.enabled) col.enabled = true;
+
+            // ค. บังคับเปิด NavMeshAgent ให้เดินได้
+            if (!agent.enabled) agent.enabled = true;
+            if (agent.isActiveAndEnabled && agent.isStopped) agent.isStopped = false;
+        }
     }
 
-    public void Investigate()
+
+    // --- ส่วนที่ศัตรูจัดการตัวเองตอนโดนจับ ---
+    public void EnterGrabState(Transform playerGrabPos)
     {
-        agent.speed = E_waklSpeed;
+        currentState = EnemyState.OnGrab;
+        Enemy_Anime_Controller enemyAnim = GetComponent<Enemy_Anime_Controller>();
+        Rigidbody rb = GetComponent<Rigidbody>();
+        Collider col = GetComponent<Collider>();
+
+        if (agent.isActiveAndEnabled) agent.isStopped = true;
+        agent.enabled = false;
+
+        if (rb != null) rb.isKinematic = true;
+        if (col != null) col.enabled = false;
+
+        transform.SetParent(playerGrabPos);
+        transform.localPosition = Vector3.zero;
+        transform.localRotation = Quaternion.identity;
+
+        if (enemyAnim != null) enemyAnim.PlayGrabbed();
     }
 
-    private void Patrol()
+    public void ChangeState(EnemyState newState)
     {
-        //agent.SetDestination(PatroPosition);
-        agent.speed = E_waklSpeed;
+        currentState = newState;
+        Enemy_Anime_Controller enemyAnim = GetComponent<Enemy_Anime_Controller>();
+        Rigidbody rb = GetComponent<Rigidbody>();
+        Collider col = GetComponent<Collider>();
+
+        switch (newState)
+        {
+            case EnemyState.dead:
+            case EnemyState.faint:
+                transform.SetParent(null);
+
+                agent.enabled = false;
+                if (rb != null) rb.isKinematic = false;
+                if (col != null) col.enabled = true;
+
+                if (enemyAnim != null) enemyAnim.PlayDie();
+                OnDown();
+                break;
+
+            case EnemyState.awake:
+                if (rb != null) rb.isKinematic = false;
+                if (col != null) col.enabled = true;
+                agent.enabled = true;
+                agent.isStopped = false;
+                WakeUp();
+                break;
+        }
+    }
+
+    public void OnDown()
+    {
+        wasFaint = true;
+        if (agent.isActiveAndEnabled)
+        {
+            agent.isStopped = true;
+            agent.velocity = Vector3.zero;
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
+        }
+    }
+
+    public void WakeUp()
+    {
+        currentState = EnemyState.Investigate;
+        if (agent.isActiveAndEnabled)
+        {
+            agent.isStopped = false;
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+        }
+        Debug.Log("AI: ฟื้นแล้ว! กลับไปทำงานต่อ");
     }
 
     private void OnTriggerStay(Collider other)
@@ -165,40 +212,20 @@ public class enemy_stage : MonoBehaviour
         if (other.CompareTag("Light"))
         {
             lightZoneHit = other.GetComponent<LightZone>();
-
             if (lightZoneHit != null && lightZoneHit.lightZoneState)
             {
-                // 1. คำนวณระยะห่างเฉพาะแนวราบ (XZ) เพื่อความแม่นยำ 100%
                 Vector3 playerPos = new Vector3(transform.position.x, 0, transform.position.z);
                 Vector3 lightPos = new Vector3(other.transform.position.x, 0, other.transform.position.z);
                 float distance = Vector3.Distance(playerPos, lightPos);
 
                 float maxRadius;
-                // 2. ดึงรัศมีตามแบบที่นายพิสูจน์แล้วว่า Smooth
-                if (!other.TryGetComponent<SphereCollider>(out SphereCollider sphere))
-                {
-                    maxRadius = Mathf.Max(other.bounds.extents.x, other.bounds.extents.z);
-                }
-                else
-                {
-                    maxRadius = other.bounds.extents.x;
-                }
+                if (!other.TryGetComponent<SphereCollider>(out SphereCollider sphere)) maxRadius = Mathf.Max(other.bounds.extents.x, other.bounds.extents.z);
+                else maxRadius = other.bounds.extents.x;
 
-                // 3. กำหนดพื้นที่สว่างสูงสุด (Core Radius)
-                // เช่น 30% ของรัศมีทั้งหมดให้เป็น 100% เสมอ
                 float coreRadius = maxRadius * 0.2f;
 
-                if (distance <= coreRadius)
-                {
-                    // ถ้าอยู่ในเขต Core ให้สว่างเต็มทันที
-                    brightness = 1f;
-                }
-                else
-                {
-                    // 4. ส่วนที่สำคัญที่สุด: ค่อยๆ ไล่จาก 0 (ที่ขอบ maxRadius) ไปหา 1 (ที่ขอบ coreRadius)
-                    // วิธีนี้จะทำให้มันค่อยๆ เพิ่มจาก 0 แบบที่นายชอบ และเต็ม 100 ก่อนถึงจุดศูนย์กลาง
-                    brightness = Mathf.InverseLerp(maxRadius, coreRadius, distance);
-                }
+                if (distance <= coreRadius) brightness = 1f;
+                else brightness = Mathf.InverseLerp(maxRadius, coreRadius, distance);
 
                 E_lightMeter = Mathf.RoundToInt(brightness * 100f);
             }
@@ -206,7 +233,6 @@ public class enemy_stage : MonoBehaviour
         }
     }
 
-    // เพิ่ม OnTriggerExit เพื่อล้างค่าเมื่อออกจากเขตแสงแน่นอน
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Light"))
@@ -216,58 +242,14 @@ public class enemy_stage : MonoBehaviour
         }
     }
 
-    public void OnDown() // ฟังก์ชันตอนสลบ
-    {
-        wasFaint = true; //เป็นตัวไว้บอกว่าศัตรูตัวนี้เคยโดนplayerทำให้สลบ
-
-        agent.isStopped = true;
-        agent.velocity = Vector3.zero;
-
-        // ปิดการคำนวณหลบหลีก เพื่อไม่ให้มันขยับเอง
-        agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
-
-        // ถ้ามี Rigidbody ให้เซ็ตเป็น Kinematic กันเพื่อนเดินมาชนแล้วกระเด็น
-        if (GetComponent<Rigidbody>() != null)
-        {
-            GetComponent<Rigidbody>().isKinematic = true;
-        } 
-
-        //Debug.Log("AI: ฉันสลบแล้วนะ อย่ามาเข็นฉัน!dxes");
-    }
-
-    public void WakeUp()
-    {
-        currentState = EnemyState.Investigate;
-
-        agent.isStopped = false; // สั่งให้เดินต่อได้
-
-        // ปรับการหลบหลีกกลับเป็นแบบเดิม (ปกติคือ HighQuality หรือ LowQuality)
-        agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
-
-        // ถ้ามี Rigidbody และเซ็ต Kinematic ไว้ ให้ปิดด้วยเพื่อให้รับแรงฟิสิกส์ได้เหมือนเดิม
-        if (GetComponent<Rigidbody>() != null)
-        {
-            GetComponent<Rigidbody>().isKinematic = false;
-        }
-
-        Debug.Log("AI: ฟื้นแล้ว! กลับไปทำงานต่อ");
-    }
-
     IEnumerator OnTalk()
     {
         yield return new WaitForSeconds(2);
-        Debug.Log("are you okay.....");
-
-        if(target_enemy_Script != null)
+        if (target_enemy_Script != null)
         {
-            currentState = EnemyState.report; 
-
-            target_enemy_Script.currentState = enemy_stage.EnemyState.awake; //สั่งให้ศัตรูคัวอื่น ให้ตื่น
+            currentState = EnemyState.report;
+            target_enemy_Script.currentState = enemy_stage.EnemyState.awake;
             target_enemy_Script = null;
         }
     }
-
-   
-
-    
-} 
+}

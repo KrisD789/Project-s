@@ -13,14 +13,13 @@ public class Player_moveMent : MonoBehaviour
     [Header("Rotation Settings")]
     public float turnSpeed = 15f;
 
-    
+    [Header("สถานะการควบคุม")]
+    public bool canMove = true; // สวิตช์เปิดปิดการขยับและหมุน
 
     Rigidbody rb;
     Transform camTransform;
     public LayerMask InteracMask;
 
-    // 3. ระบบใหม่จำเป็นต้องเปิด (Enable) และปิด (Disable) การรับค่าเสมอ
-   
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -32,17 +31,37 @@ public class Player_moveMent : MonoBehaviour
 
     void Update()
     {
-        //HandleScrollInput();
         setSpeedPlayer();
         setCollider();
-        //Interaction();
+    }
+
+    // ฟังก์ชันสั่งล็อกการเดินและการหมุนแบบ 100%
+    public void SetMovementLock(bool isLocked)
+    {
+        Debug.Log("SetMovementLock in Player controller.cs !!!!! Activate !!!!!");
+        canMove = !isLocked;
+        if (isLocked)
+        {
+            // หยุดความเร็วเดิน และหยุดความเร็วหมุน (กันผู้เล่นไถลหรือหมุนค้าง)
+            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+            rb.angularVelocity = Vector3.zero;
+        }
+    }
+
+    // ฟังก์ชันส่งความเร็วจริงไปให้ PlayerAnimator
+    public float GetCurrentVelocity()
+    {
+        Vector3 actualVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+        return actualVelocity.magnitude;
     }
 
     public void MoveAndRotate(Vector2 moveInput, bool isAiming)
     {
+        // ถ้าระบบโดนล็อกอยู่ ให้ออกจากการคำนวณเดินและการหมุนทันที
+        if (!canMove) return;
+
         float H = moveInput.x;
         float V = moveInput.y;
-
         Vector3 moveDir = Vector3.zero;
 
         if (camTransform != null)
@@ -72,7 +91,7 @@ public class Player_moveMent : MonoBehaviour
             if (camTransform != null)
             {
                 Vector3 camForward = camTransform.forward;
-                camForward.y = 0; 
+                camForward.y = 0;
                 if (camForward != Vector3.zero)
                 {
                     Quaternion targetRotation = Quaternion.LookRotation(camForward);
@@ -92,12 +111,10 @@ public class Player_moveMent : MonoBehaviour
 
     public void SpeedControll(float ScrollValue)
     {
-        // 5. เช็กว่ามีการขยับลูกกลิ้งในเฟรมนี้หรือไม่ ( triggered )
-            if (ScrollValue > 0f) playerState++;
-            else if (ScrollValue < 0f) playerState--;
+        if (ScrollValue > 0f) playerState++;
+        else if (ScrollValue < 0f) playerState--;
 
-        print(playerState);
-            playerState = Mathf.Clamp(playerState, -1, 2); 
+        playerState = Mathf.Clamp(playerState, -1, 2);
     }
 
     void setSpeedPlayer()
@@ -111,55 +128,19 @@ public class Player_moveMent : MonoBehaviour
 
     void setCollider()
     {
-        // 1. เช็คความเร็วที่ขยับจริงๆ ในโลก (ตัดแกน Y ออก ป้องกันบั๊กตกจากที่สูงแล้วเกิดเสียงดัง)
         Vector3 actualVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
-
         float targetRadius = 0f;
 
-        // 2. ถ้าตัวละครมีการขยับจริงๆ (มากกว่า 0.1 กันค่าคลาดเคลื่อน)
         if (actualVelocity.magnitude > 0.1f)
         {
-            // คำนวณรัศมีเสียงตามความเร็ว (Speed) ที่เราเลือกล็อคไว้
             float speedNormalized = Mathf.InverseLerp(3f, 10f, speed);
             targetRadius = Mathf.Lerp(minNoiseRadius, maxNoiseRadius, speedNormalized);
         }
         else
         {
-            // ถ้ายืนนิ่งๆ ให้เป้าหมายรัศมีเสียงเป็น 0 ไปเลย (หรือจะให้เหลือ minNoiseRadius ก็ได้)
             targetRadius = 0f;
         }
 
-        // 3. ใช้ Lerp เพื่อให้วงกลมสมูท ไม่กางหรือหุบทันทีใน 1 เฟรม (ดูเป็นมืออาชีพขึ้นเยอะครับ!)
         noiseCollider.radius = Mathf.Lerp(noiseCollider.radius, targetRadius, Time.deltaTime * 15f);
     }
-
-    //void Interaction()
-    //{
-    //Collider[] enviroment = Physics.OverlapSphere(transform.position, 5f, InteracMask);
-
-    //foreach (var Obj in enviroment)
-    //{
-    // 6. ใช้ WasPressedThisFrame() ซึ่งมีความหมายเหมือน Input.GetKeyDown() เป๊ะ
-    //if (Obj.CompareTag("lightSwitch") && interactAction.action.WasPressedThisFrame())
-    //{
-    //Obj.GetComponent<light_switch>().Turn();
-    //}
-
-    //if (Obj.CompareTag("Door") && interactAction.action.WasPressedThisFrame())
-    //{
-    //var DoorTarget = Obj.GetComponent<Door>();
-    //if (DoorTarget != null)
-    //{
-    //if (DoorTarget.currentState == Door.DoorState.Closed)
-    //{
-    //DoorTarget.ToggleDoor(false, Door.DoorState.Open);
-    //}
-    //else
-    //{
-    //DoorTarget.ToggleDoor(false, Door.DoorState.Closed);
-    //}
-    //}
-    //}
-    //}
-    //}
 }

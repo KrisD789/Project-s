@@ -3,27 +3,25 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     public static Player Instance { get; private set; }
+
     [Header("สถานะพลังชีวิต")]
-    //public float HP = 100f;
     public float MaxHP = 100f;
-    public float currentHP ;
-    public float currentMaxHP ;
+    public float currentHP;
+    public float currentMaxHP;
     public float PermanentDamage = 3;
     public bool isDead = false;
 
     [Header("Equipped Armor")]
-    public Armor_Item currentArmorProfile; // ช่องสำหรับลากไฟล์เกราะ (ScriptableObject) มาใส่
+    public Armor_Item currentArmorProfile;
     public float currentArmorDurability;
-    
 
-    // ย้าย PlayerState จาก Player_Action มาไว้ที่นี่ (เป็นศูนย์กลาง)
     public enum PlayerState
     {
-        Idle,           // ว่างเปล่า (เดิน/วิ่ง/ยิงปืน ปกติ)
-        CarryingBody,   // กำลังแบกศพ
-        GrabbingEnemy,  // กำลังล็อคคอศัตรู
-        Crouch,         // กำลังนั่งย่อ
-        Aim,             // กำลังเล็ง
+        Idle,
+        CarryingBody,
+        GrabbingEnemy,
+        Crouch,
+        Aim,
         Healing
     }
 
@@ -33,7 +31,7 @@ public class Player : MonoBehaviour
     [Header("ระบบ Stealth")]
     public bool OnDark = false;
 
-    [Header("อ้างอิง Component ต่างๆ (เพื่อให้คนอื่นเรียกใช้)")]
+    [Header("อ้างอิง Component ต่างๆ")]
     public Player_Action action;
     public Player_moveMent movement;
     public Weapon_system weaponSystem;
@@ -45,93 +43,63 @@ public class Player : MonoBehaviour
     {
         Instance = this;
 
-        // ให้มันดึงสคริปต์ในตัวเองมาเก็บไว้เลย
-        if (!TryGetComponent<Player_Action>(out action))
-            Debug.LogWarning("Player: หา Player_Action ไม่เจอ!");
-
-        if (!TryGetComponent<LightDetect>(out player_Light_Detect))
-            Debug.LogWarning("Player: หา CameraControl ไม่เจอ!");
-
-        if (!TryGetComponent<Player_moveMent>(out movement))
-            Debug.LogWarning("Player: หา Player_moveMent ไม่เจอ!");
-
-        if (!TryGetComponent<Weapon_system>(out weaponSystem))
-            Debug.LogWarning("Player: หา Weapon_system ไม่เจอ!");
-
-        if (!TryGetComponent<CameraControl>(out cameraControl))
-            Debug.LogWarning("Player: หา CameraControl ไม่เจอ!");
-
-        if (!TryGetComponent<Player_Inventory>(out player_Inventory))
-            Debug.LogWarning("Player: หา Player_Inventory ไม่เจอ!");
+        if (!TryGetComponent<Player_Action>(out action)) Debug.LogWarning("Player: หา Player_Action ไม่เจอ!");
+        if (!TryGetComponent<LightDetect>(out player_Light_Detect)) Debug.LogWarning("Player: หา LightDetect ไม่เจอ!");
+        if (!TryGetComponent<Player_moveMent>(out movement)) Debug.LogWarning("Player: หา Player_moveMent ไม่เจอ!");
+        if (!TryGetComponent<Weapon_system>(out weaponSystem)) Debug.LogWarning("Player: หา Weapon_system ไม่เจอ!");
+        if (!TryGetComponent<CameraControl>(out cameraControl)) Debug.LogWarning("Player: หา CameraControl ไม่เจอ!");
+        if (!TryGetComponent<Player_Inventory>(out player_Inventory)) Debug.LogWarning("Player: หา Player_Inventory ไม่เจอ!");
     }
+
     private void Start()
     {
         currentArmorProfile = Load_out_manager.Instance.selectedArmor;
-
         EquipArmor(currentArmorProfile);
-
         currentHP = MaxHP;
         currentMaxHP = MaxHP;
     }
 
     public void Player_TakeDamage(float incomingDamage)
     {
-        // 1. ตรวจสอบว่าใส่เกราะอยู่ และเกราะยังไม่แตก
         if (currentArmorProfile != null && currentArmorDurability > 0)
         {
-            // ใช้เปอร์เซ็นต์จาก ScriptableObject มาคำนวณ
-            float damageToArmor = incomingDamage ;
-
+            float damageToArmor = incomingDamage;
             float damageToHP = incomingDamage * (1f - currentArmorProfile.Armor_Block_Percentage);
 
             if (currentArmorDurability >= damageToArmor)
             {
-                currentArmorDurability -= damageToArmor; // ลดความทนทานเกราะ
-                currentHP -= damageToHP;                 // ลดเลือดจริง
+                currentArmorDurability -= damageToArmor;
+                currentHP -= damageToHP;
             }
             else
             {
-                //กรณีเกราะเหลือน้อยก็ซับดาเมจเท่าที่เหลือ
                 float percentAbsorbed = currentArmorDurability / damageToArmor;
-
-                // ดาเมจส่วนที่เกราะซับไว้ทัน (ลดทอนแล้ว)
                 float mitigatedHP = (incomingDamage * percentAbsorbed) * (1f - currentArmorProfile.Armor_Block_Percentage);
-
-                // ดาเมจส่วนที่ทะลุเกราะเข้ามาแบบเต็มๆ 100%
                 float rawSpilloverHP = incomingDamage * (1f - percentAbsorbed);
 
                 currentArmorDurability = 0;
                 currentHP -= (mitigatedHP + rawSpilloverHP);
-
                 Debug.Log("เกราะแตกกระจาย!");
             }
         }
         else
         {
-            // 2. ถ้าไม่มีเกราะ หรือเกราะแตกไปแล้ว รับดาเมจ 100% พร้อมกับลด MaxHP (แผลฉกรรจ์)
             currentHP -= incomingDamage;
             currentMaxHP -= PermanentDamage;
         }
-        
-        // บังคับไม่ให้เพดานเลือด (currentMaxHP) ต่ำกว่า 1 และจำกัดเลือด (currentHP) ไม่ให้ทะลุเพดาน(currentMaxHp)
+
         currentMaxHP = Mathf.Clamp(currentMaxHP, 1f, MaxHP);
         currentHP = Mathf.Clamp(currentHP, 0f, currentMaxHP);
 
         Debug.Log($"โดนโจมตี! HP เหลือ: {currentHP} | เกราะเหลือ: {currentArmorDurability}");
-
-        if (currentHP <= 0)
-        {
-            Debug.Log("ผู้เล่นเสียชีวิต!");
-        }
+        if (currentHP <= 0) Debug.Log("ผู้เล่นเสียชีวิต!");
     }
 
     public void EquipArmor(Armor_Item newArmor)
     {
         currentArmorProfile = newArmor;
-
         if (currentArmorProfile != null)
         {
-            // ดึงค่าความทนทานสูงสุด มาใส่ในตัวแปรจำลอง
             currentArmorDurability = currentArmorProfile.Max_Armor_Durability;
             Debug.Log($"สวมใส่เกราะ: {currentArmorProfile.name} | พลังป้องกัน: {currentArmorProfile.Armor_Block_Percentage * 100}%");
         }
@@ -144,16 +112,11 @@ public class Player : MonoBehaviour
 
     public void Healing(float HpRecovery, float MaxHpRecovery)
     {
-        // 1. ต้องเลือดเต็มหลอด และเพดานเต็ม 100 ทั้งคู่ ถึงจะห้ามฮีล (เปลี่ยนเป็น &&)
         if (currentHP >= currentMaxHP && currentMaxHP >= MaxHP) return;
 
         currentHP += HpRecovery;
         currentMaxHP += MaxHpRecovery;
-
-        // 2. เลือดปัจจุบัน (currentHP) ต้องห้ามทะลุเพดานที่โดนเนิร์ฟ (currentMaxHP)
         currentHP = Mathf.Clamp(currentHP, 0f, currentMaxHP);
-
-        // 3. ส่วนเพดานที่โดนเนิร์ฟ (currentMaxHP) ก็ฟื้นได้สูงสุดแค่ 100 (MaxHP)
         currentMaxHP = Mathf.Clamp(currentMaxHP, 1f, MaxHP);
     }
 }

@@ -19,7 +19,7 @@ public class Demo_end : MonoBehaviour
         // ทำงานเฉพาะตอนที่ยังไม่จบ Demo
         if (!isDemoEnded)
         {
-            CheckDemoEnd();
+            //CheckDemoEnd();
         }
     }
 

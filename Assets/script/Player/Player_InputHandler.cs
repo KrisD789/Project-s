@@ -144,20 +144,10 @@ public class Player_InputHanler : MonoBehaviour
     {
         if (player_MoveMent == null) return;
 
-        // ดึงค่าปุ่มแบบ "เช็คต่อเนื่อง" (Continuous)
         Vector2 moveInput = moveAction.action.ReadValue<Vector2>();
         bool isAiming = aimAction.action.IsPressed();
 
-        // ส่งค่าการเดินและการเล็งไปให้ร่างกายจัดการทุกเฟรม!
         player_MoveMent.MoveAndRotate(moveInput, isAiming);
-
-        //if (FireAction != null && FireAction.action.IsPressed())
-        //{
-        //OnFire();
-        //}
-
-        
-
     }
 
     public void OnFire(bool isHolding, bool isClicking)

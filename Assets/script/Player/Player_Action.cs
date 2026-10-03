@@ -1,16 +1,16 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 
 public class Player_Action : MonoBehaviour
 {
     private GameObject currentInteractableTarget;
     private GameObject CurrentKey_Item;
 
-    [Header("®ÿ¥∑’Ë®–‡Õ“»æ‰ª«“ß∫π∫Ë“")]
+    [Header("‡∏à‡∏∏‡∏î‡∏ó‡∏µ‡πà‡∏à‡∏∞‡πÄ‡∏≠‡∏≤‡∏®‡∏û‡πÑ‡∏õ‡∏ß‡∏≤‡∏á‡∏ö‡∏ô‡∏ö‡πà‡∏≤")]
     public Transform carryPosition;
     private GameObject carriedBody = null;
     private GameObject NearbyBody = null;
 
-    [Header("√–∫∫≈ÁÕ§§Õ (Takedown)")]
+    [Header("‡∏£‡∏∞‡∏ö‡∏ö‡∏•‡πá‡∏≠‡∏Ñ‡∏Ñ‡∏≠ (Takedown)")]
     public Transform grabPosition;
     private GameObject grabbedEnemy = null;
     private GameObject targetAliveEnemy = null;
@@ -24,7 +24,7 @@ public class Player_Action : MonoBehaviour
 
     private CapsuleCollider capsuleCollider;
 
-    [Header("√–∫∫¿“√°‘®")]
+    [Header("‡∏£‡∏∞‡∏ö‡∏ö‡∏†‡∏≤‡∏£‡∏Å‡∏¥‡∏à")]
     private MissionTrigger activeQuestTrigger = null;
 
     //[Header("Player referent")]
@@ -40,7 +40,7 @@ public class Player_Action : MonoBehaviour
 
     private void Update()
     {
-        // ‡√’¬°„™È State ®“° Player.Instance ·∑π
+        // ‡πÄ‡∏£‡∏µ‡∏¢‡∏Å‡πÉ‡∏ä‡πâ State ‡∏à‡∏≤‡∏Å Player.Instance ‡πÅ‡∏ó‡∏ô
         if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy && grabbedEnemy != null)
         {
             grabbedEnemy.transform.localPosition = Vector3.zero;
@@ -55,12 +55,12 @@ public class Player_Action : MonoBehaviour
 
         if (activeQuestTrigger != null && activeQuestTrigger.OnInteract)
         {
-            // ‡™Á§«Ë“ºŸÈ‡≈Ëπ¡’°“√°¥ªÿË¡¢¬—∫µ—« (WASD / ≈Ÿ°»√) À√◊Õ‰¡Ë
+            // ‡πÄ‡∏ä‡πá‡∏Ñ‡∏ß‡πà‡∏≤‡∏ú‡∏π‡πâ‡πÄ‡∏•‡πà‡∏ô‡∏°‡∏µ‡∏Å‡∏≤‡∏£‡∏Å‡∏î‡∏õ‡∏∏‡πà‡∏°‡∏Ç‡∏¢‡∏±‡∏ö‡∏ï‡∏±‡∏ß (WASD / ‡∏•‡∏π‡∏Å‡∏®‡∏£) ‡∏´‡∏£‡∏∑‡∏≠‡πÑ‡∏°‡πà
             if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
             {
-                activeQuestTrigger.cancel_HackQuest(); //  —Ëß¬°‡≈‘°‡§« µÏ
-                activeQuestTrigger = null;             // §◊π§Ë“„ÀÈ¡◊Õ«Ë“ß
-                Debug.Log("¢¬—∫µ—«! ¬°‡≈‘°°“√·ŒÁ°Õ—µ‚π¡—µ‘");
+                activeQuestTrigger.cancel_HackQuest(); // ‡∏™‡∏±‡πà‡∏á‡∏¢‡∏Å‡πÄ‡∏•‡∏¥‡∏Å‡πÄ‡∏Ñ‡∏ß‡∏™‡∏ï‡πå
+                activeQuestTrigger = null;             // ‡∏Ñ‡∏∑‡∏ô‡∏Ñ‡πà‡∏≤‡πÉ‡∏´‡πâ‡∏°‡∏∑‡∏≠‡∏ß‡πà‡∏≤‡∏á
+                Debug.Log("‡∏Ç‡∏¢‡∏±‡∏ö‡∏ï‡∏±‡∏ß! ‡∏¢‡∏Å‡πÄ‡∏•‡∏¥‡∏Å‡∏Å‡∏≤‡∏£‡πÅ‡∏Æ‡πá‡∏Å‡∏≠‡∏±‡∏ï‡πÇ‡∏ô‡∏°‡∏±‡∏ï‡∏¥");
             }
         }
 
@@ -76,7 +76,7 @@ public class Player_Action : MonoBehaviour
 
         //if (other.gameObject.layer == LayerMask.NameToLayer("KeyItem"))
         //{
-            //CurrentKey_Item = other.gameObject;
+        //CurrentKey_Item = other.gameObject;
         //}
 
 
@@ -113,52 +113,52 @@ public class Player_Action : MonoBehaviour
             return;
         }
 
-        // ---  Ë«π∑’Ë‡æ‘Ë¡„À¡Ë (1): ¥—°‡™Á§°“√¬°‡≈‘°‡§«  ---
-        // ∂È“√–∫∫®”‰¥È«Ë“¡’‡§« ∑’Ë°”≈—ß°¥∑”Õ¬ŸË ·≈–‡§« π—Èπ¡’ ∂“π– OnInteract ‡ªÁπ true
+        // --- ‡∏™‡πà‡∏ß‡∏ô‡∏ó‡∏µ‡πà‡πÄ‡∏û‡∏¥‡πà‡∏°‡πÉ‡∏´‡∏°‡πà (1): ‡∏î‡∏±‡∏Å‡πÄ‡∏ä‡πá‡∏Ñ‡∏Å‡∏≤‡∏£‡∏¢‡∏Å‡πÄ‡∏•‡∏¥‡∏Å‡πÄ‡∏Ñ‡∏ß‡∏™ ---
+        // ‡∏ñ‡πâ‡∏≤‡∏£‡∏∞‡∏ö‡∏ö‡∏à‡∏≥‡πÑ‡∏î‡πâ‡∏ß‡πà‡∏≤‡∏°‡∏µ‡πÄ‡∏Ñ‡∏ß‡∏™‡∏ó‡∏µ‡πà‡∏Å‡∏≥‡∏•‡∏±‡∏á‡∏Å‡∏î‡∏ó‡∏≥‡∏≠‡∏¢‡∏π‡πà ‡πÅ‡∏•‡∏∞‡πÄ‡∏Ñ‡∏ß‡∏™‡∏ô‡∏±‡πâ‡∏ô‡∏°‡∏µ‡∏™‡∏ñ‡∏≤‡∏ô‡∏∞ OnInteract ‡πÄ‡∏õ‡πá‡∏ô true
         if (activeQuestTrigger != null && activeQuestTrigger.OnInteract)
         {
-            activeQuestTrigger.cancel_HackQuest(); // ‡√’¬°„™Èø—ß°Ï™—π¬°‡≈‘°
-            activeQuestTrigger = null; // ≈È“ß§Ë“„π¡◊Õ∑‘Èß
-            Debug.Log("¬°‡≈‘°°“√∑”‡§« °≈“ß§—π!");
-            return; // ®∫°“√∑”ß“π ‰¡ËµÈÕß‰ª‡™Á§Õ¬Ë“ßÕ◊ËπµËÕ
+            activeQuestTrigger.cancel_HackQuest(); // ‡πÄ‡∏£‡∏µ‡∏¢‡∏Å‡πÉ‡∏ä‡πâ‡∏ü‡∏±‡∏á‡∏Å‡πå‡∏ä‡∏±‡∏ô‡∏¢‡∏Å‡πÄ‡∏•‡∏¥‡∏Å
+            activeQuestTrigger = null; // ‡∏•‡πâ‡∏≤‡∏á‡∏Ñ‡πà‡∏≤‡πÉ‡∏ô‡∏°‡∏∑‡∏≠‡∏ó‡∏¥‡πâ‡∏á
+            Debug.Log("‡∏¢‡∏Å‡πÄ‡∏•‡∏¥‡∏Å‡∏Å‡∏≤‡∏£‡∏ó‡∏≥‡πÄ‡∏Ñ‡∏ß‡∏™‡∏Å‡∏•‡∏≤‡∏á‡∏Ñ‡∏±‡∏ô!");
+            return; // ‡∏à‡∏ö‡∏Å‡∏≤‡∏£‡∏ó‡∏≥‡∏á‡∏≤‡∏ô ‡πÑ‡∏°‡πà‡∏ï‡πâ‡∏≠‡∏á‡πÑ‡∏õ‡πÄ‡∏ä‡πá‡∏Ñ‡∏≠‡∏¢‡πà‡∏≤‡∏á‡∏≠‡∏∑‡πà‡∏ô‡∏ï‡πà‡∏≠
         }
         // ------------------------------------------
 
-        // ‚§È¥‡°Á∫°ÿ≠·®‡¥‘¡
+        // ‡πÇ‡∏Ñ‡πâ‡∏î‡πÄ‡∏Å‡πá‡∏ö‡∏Å‡∏∏‡∏ç‡πÅ‡∏à‡πÄ‡∏î‡∏¥‡∏°
         //if (CurrentKey_Item != null)
         //{
-            //if (CurrentKey_Item.TryGetComponent<PickUp_Item>(out PickUp_Item item))
-            //{
-                //item.PickUp();
-                //CurrentKey_Item = null;
-            //}
+        //if (CurrentKey_Item.TryGetComponent<PickUp_Item>(out PickUp_Item item))
+        //{
+        //item.PickUp();
+        //CurrentKey_Item = null;
+        //}
         //}
 
         if (carriedBody != null) { DropBody(); return; }
         if (targetAliveEnemy != null) { GrabEnemy(); return; }
         if (carriedBody == null && NearbyBody != null) { PickUpBody(); return; }
 
-        //  Ë«π¢Õß°“√µ√«®®—∫ ‘Ëß∑’Ë Interact ‰¥È
+        // ‡∏™‡πà‡∏ß‡∏ô‡∏Ç‡∏≠‡∏á‡∏Å‡∏≤‡∏£‡∏ï‡∏£‡∏ß‡∏à‡∏à‡∏±‡∏ö‡∏™‡∏¥‡πà‡∏á‡∏ó‡∏µ‡πà Interact ‡πÑ‡∏î‡πâ
         if (currentInteractableTarget != null)
         {
             print("currentInteractableTarget != null");
-            // ---  Ë«π∑’Ë‡æ‘Ë¡„À¡Ë (2): µ√«®®—∫ Mission Trigger ---
+            // --- ‡∏™‡πà‡∏ß‡∏ô‡∏ó‡∏µ‡πà‡πÄ‡∏û‡∏¥‡πà‡∏°‡πÉ‡∏´‡∏°‡πà (2): ‡∏ï‡∏£‡∏ß‡∏à‡∏à‡∏±‡∏ö Mission Trigger ---
             if (currentInteractableTarget.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
             {
                 print("if (currentInteractableTarget.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))");
-                // ∂È“‡ªÁπ‡§« ·∫∫°¥§È“ß (InteractObject) ·≈–¬—ß‰¡ËºË“π
+                // ‡∏ñ‡πâ‡∏≤‡πÄ‡∏õ‡πá‡∏ô‡πÄ‡∏Ñ‡∏ß‡∏™‡πÅ‡∏ö‡∏ö‡∏Å‡∏î‡∏Ñ‡πâ‡∏≤‡∏á (InteractObject) ‡πÅ‡∏•‡∏∞‡∏¢‡∏±‡∏á‡πÑ‡∏°‡πà‡∏ú‡πà‡∏≤‡∏ô
                 if (missionTrigger.Mission_Data.type == MissionType.Hack && !missionTrigger.Mission_Data.isCompleted)
                 {
-                    missionTrigger.startHackQuest(); // ‡√’¬°„ÀÈ‡«≈“‡√‘Ë¡‡¥‘π
-                    activeQuestTrigger = missionTrigger; // ®¥®”‡§√◊ËÕßπ’È‡Õ“‰«È ‡æ◊ËÕ√Õ°¥¬°‡≈‘°
-                    Debug.Log("‡√‘Ë¡·ŒÁ°√–∫∫!");
+                    missionTrigger.startHackQuest(); // ‡πÄ‡∏£‡∏µ‡∏¢‡∏Å‡πÉ‡∏´‡πâ‡πÄ‡∏ß‡∏•‡∏≤‡πÄ‡∏£‡∏¥‡πà‡∏°‡πÄ‡∏î‡∏¥‡∏ô
+                    activeQuestTrigger = missionTrigger; // ‡∏à‡∏î‡∏à‡∏≥‡πÄ‡∏Ñ‡∏£‡∏∑‡πà‡∏≠‡∏á‡∏ô‡∏µ‡πâ‡πÄ‡∏≠‡∏≤‡πÑ‡∏ß‡πâ ‡πÄ‡∏û‡∏∑‡πà‡∏≠‡∏£‡∏≠‡∏Å‡∏î‡∏¢‡∏Å‡πÄ‡∏•‡∏¥‡∏Å
+                    Debug.Log("‡πÄ‡∏£‡∏¥‡πà‡∏°‡πÅ‡∏Æ‡πá‡∏Å‡∏£‡∏∞‡∏ö‡∏ö!");
                     return;
                 }
 
             }
             // ----------------------------------------------
 
-            // ‚§È¥ «‘µ™Ï‰ø·≈–ª√–µŸ‡¥‘¡
+            // ‡πÇ‡∏Ñ‡πâ‡∏î‡∏™‡∏ß‡∏¥‡∏ï‡∏ä‡πå‡πÑ‡∏ü‡πÅ‡∏•‡∏∞‡∏õ‡∏£‡∏∞‡∏ï‡∏π‡πÄ‡∏î‡∏¥‡∏°
             if (currentInteractableTarget.TryGetComponent<light_switch>(out light_switch target_light_Switch))
             {
                 target_light_Switch.Turn();
@@ -167,7 +167,7 @@ public class Player_Action : MonoBehaviour
 
             if (currentInteractableTarget.TryGetComponent<Door>(out Door DoorTarget))
             {
-                print("·µ–ª√–µŸ++");
+                print("‡πÅ‡∏ï‡∏∞‡∏õ‡∏£‡∏∞‡∏ï‡∏π++");
                 if (DoorTarget.currentState == Door.DoorState.Closed)
                     DoorTarget.ToggleDoor(false, Door.DoorState.Open);
                 else
@@ -193,7 +193,7 @@ public class Player_Action : MonoBehaviour
     {
         Player.Instance.currentState = Player.PlayerState.Idle;
         carriedBody.transform.SetParent(null);
-        carriedBody.GetComponent<Rigidbody>().isKinematic = false;
+        carriedBody.GetComponent<Rigidbody>().isKinematic = true;
         carriedBody.GetComponent<Collider>().enabled = true;
         carriedBody = null;
     }
@@ -225,12 +225,12 @@ public class Player_Action : MonoBehaviour
             }
             else
             {
-                Debug.Log("≈ÁÕ§§Õ‰¡Ë‰¥È! §ÿ≥µÈÕßÕ¬ŸË¢È“ßÀ≈—ß¡—π");
+                Debug.Log("‡∏•‡πá‡∏≠‡∏Ñ‡∏Ñ‡∏≠‡πÑ‡∏°‡πà‡πÑ‡∏î‡πâ! ‡∏Ñ‡∏∏‡∏ì‡∏ï‡πâ‡∏≠‡∏á‡∏≠‡∏¢‡∏π‡πà‡∏Ç‡πâ‡∏≤‡∏á‡∏´‡∏•‡∏±‡∏á‡∏°‡∏±‡∏ô");
             }
         }
         else
         {
-            Debug.Log("ºŸÈ‡≈Ëπ‰¡Ë‰¥ÈÕ¬ŸË„π __ state __ Idle or Crouch");
+            Debug.Log("‡∏ú‡∏π‡πâ‡πÄ‡∏•‡πà‡∏ô‡πÑ‡∏°‡πà‡πÑ‡∏î‡πâ‡∏≠‡∏¢‡∏π‡πà‡πÉ‡∏ô __ state __ Idle or Crouch");
         }
     }
 
@@ -256,7 +256,7 @@ public class Player_Action : MonoBehaviour
     {
         Player.Instance.currentState = Player.PlayerState.Idle;
         grabbedEnemy.transform.SetParent(null);
-        grabbedEnemy.GetComponent<Rigidbody>().isKinematic = false;
+        grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
         grabbedEnemy.GetComponent<Collider>().enabled = true;
         NearbyBody = grabbedEnemy;
         grabbedEnemy = null;
@@ -265,9 +265,9 @@ public class Player_Action : MonoBehaviour
     public void HandleCrouch()
     {
         isCrouching = !isCrouching;
-        Debug.Log(isCrouching ? "¬ËÕµ—«≈ß!" : "≈ÿ°¢÷Èπ¬◊π!");
+        Debug.Log(isCrouching ? "‡∏¢‡πà‡∏≠‡∏ï‡∏±‡∏ß‡∏•‡∏á!" : "‡∏•‡∏∏‡∏Å‡∏Ç‡∏∂‡πâ‡∏ô‡∏¢‡∏∑‡∏ô!");
 
-        // Õ—ª‡¥µ State ‰ª∑’Ë Player.Instance
+        // ‡∏≠‡∏±‡∏õ‡πÄ‡∏î‡∏ï State ‡πÑ‡∏õ‡∏ó‡∏µ‡πà Player.Instance
         if (isCrouching) Player.Instance.currentState = Player.PlayerState.Crouch;
         else Player.Instance.currentState = Player.PlayerState.Idle;
     }
