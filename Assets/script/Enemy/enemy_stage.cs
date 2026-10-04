@@ -121,7 +121,7 @@ public class enemy_stage : MonoBehaviour
 
             // ข. คืนค่าฟิสิกส์และการชน ให้กลับมาสมบูรณ์
             Rigidbody rb = GetComponent<Rigidbody>();
-            if (rb != null && rb.isKinematic) rb.isKinematic = false;
+            if (rb != null && rb.isKinematic) rb.isKinematic = true;
 
             Collider col = GetComponent<Collider>();
             if (col != null && !col.enabled) col.enabled = true;
@@ -156,6 +156,8 @@ public class enemy_stage : MonoBehaviour
 
     public void ChangeState(EnemyState newState)
     {
+        if (currentState == newState) return;
+
         currentState = newState;
         Enemy_Anime_Controller enemyAnim = GetComponent<Enemy_Anime_Controller>();
         Rigidbody rb = GetComponent<Rigidbody>();
@@ -167,8 +169,24 @@ public class enemy_stage : MonoBehaviour
             case EnemyState.faint:
                 transform.SetParent(null);
 
+                // --- 1. สั่งเบรกและปิด AI ---
+                if (agent.isActiveAndEnabled)
+                {
+                    agent.isStopped = true;
+                    agent.ResetPath();
+                    agent.velocity = Vector3.zero;
+                }
                 agent.enabled = false;
-                if (rb != null) rb.isKinematic = false;
+
+                // --- 2. จัดการฟิสิกส์ให้ศพหยุดนิ่งสนิท (ตามที่คุณต้องการ) ---
+                if (rb != null)
+                {
+                    rb.linearVelocity = Vector3.zero;        // ล้างแรงเฉื่อยการพุ่ง
+                    rb.angularVelocity = Vector3.zero; // ล้างแรงหมุนกลิ้ง
+                    rb.isKinematic = true;             // ล็อกฟิสิกส์! ไม่ให้ไหลหรือโดนดัน
+                }
+
+                // (เปิด Collider ไว้เหมือนเดิม เพื่อให้ผู้เล่นยังเอามือไปชี้เพื่อ "กดลากศพ" ได้)
                 if (col != null) col.enabled = true;
 
                 if (enemyAnim != null) enemyAnim.PlayDie();
@@ -176,10 +194,17 @@ public class enemy_stage : MonoBehaviour
                 break;
 
             case EnemyState.awake:
-                if (rb != null) rb.isKinematic = false;
+                // --- จังหวะฟื้นคืนสติ ---
                 if (col != null) col.enabled = true;
+                if (rb != null) rb.isKinematic = true; // ล็อกฟิสิกส์ตอนเดินไว้กันเป๋
+
+                // --- เปิดระบบสมอง AI กลับมาทำงาน ---
                 agent.enabled = true;
-                agent.isStopped = false;
+                if (agent.isActiveAndEnabled)
+                {
+                    agent.isStopped = false;
+                }
+
                 WakeUp();
                 break;
         }

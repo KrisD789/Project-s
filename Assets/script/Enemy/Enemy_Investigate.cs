@@ -13,160 +13,124 @@ public class Enemy_Investigate : MonoBehaviour
 {
     NavMeshAgent agent;
     enemy_stage Enemy_script;
-    enemy_stage target_enemy_Script;
-    light_switch targetSW;
-    Door TargetDoor;
     Enemy_Task Enemy_Task;
-    //public LayerMask LayerMask;
-    //public LayerMask FriendNeraByMask;
-    //enemy Enemy_script = enemy.enemy_script;
 
-    Vector3 enemy_late_Position;
-    Vector3 lastHeardPosition;
-                                                                                                                                                                                                  
     float timer = 0;
     float waitTime = 2;
 
-    int coverLayerMask;
-
-    //public List<WorkTask> todoList = new List<WorkTask>();
-
     [Header("การสำรวจ (Search Settings)")]
-    public float searchRadius = 10f;  // รัศมีที่จะเดินวนดูรอบๆ
-    public int maxSearchPoints = 5;  // จะเดินสุ่มกี่จุดก่อนจะเลิก
+    public float searchRadius = 10f;
+    public int maxSearchPoints = 5;
     public int currentSearchCount = 0;
     private bool isSearching = false;
     private bool hearSound = false;
-    //private bool isFriendCheck = false;
-    //public bool isSearchingLight = false;
 
     Vector3 soundPosition;
-    
-    //Start stepback
-    [SerializeField] private float stepBackDistance = 1.5f;
-    [SerializeField] private float recoilDuration = 0.4f;
-    private bool isStartled = false;
-
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         Enemy_script = GetComponent<enemy_stage>();
-        //FriendNeraByMask = LayerMask.GetMask("enemy");
         Enemy_Task = GetComponent<Enemy_Task>();
     }
 
-
     void Update()
     {
-        
         if (Enemy_script.currentState == EnemyState.Investigate)
         {
             if (Enemy_Task.todoList.Count > 0)
             {
-                StopSearchingState(); // เลิกค้นหาสะเปะสะปะก่อน
-
+                // ถ้ามีงานด่วนเข้ามา (Todo list) ให้เลิกสำรวจแบบสุ่มทันที
+                StopSearchingState();
                 Enemy_Task.StartDoingTask();
             }
-
-
-            else if (hearSound)  //เช็กว่าไปถึงจุดที่ได้ยินเสียงรึยัง ถ้าถึงแล้วให้ค้นดูรอบๆ
+            else if (hearSound)
             {
-                // ตัดแกน Y ทิ้งก่อนวัดระยะ เพื่อป้องกันบั๊กความสูง
-                Vector3 myPos = new Vector3(transform.position.x, 0, transform.position.z);
-                Vector3 targetPos = new Vector3(soundPosition.x, 0, soundPosition.z);
+                // ถ้าเพิ่งได้ยินเสียง ให้เดินไปจุดที่เกิดเสียงก่อน
+                // เช็กระยะทางด้วย sqrMagnitude (ประหยัดพลังประมวลผลกว่า Vector3.Distance)
+                Vector3 offset = transform.position - soundPosition;
+                offset.y = 0;
 
-                // ถ้าระยะห่างน้อยกว่า 2 เมตร ค่อยถือว่าถึงจุดเกิดเหตุจริงๆ
-                if (Vector3.Distance(myPos, targetPos) <= 2.0f)
+                if (!agent.pathPending && offset.sqrMagnitude <= (2.0f * 2.0f))
                 {
-                    Debug.Log("เดินมาถึงจุดที่เกิดเสียงแล้ว! เริ่มค้นหา...");
-                    hearSound = false;
+                    Debug.Log("เดินมาถึงจุดที่เกิดเสียงแล้ว! เริ่มค้นหาสุ่มรอบๆ...");
+                    hearSound = false; // ถึงจุดหมายแล้ว ปิดสวิตช์ได้
+
+                    // สั่งหยุดเดินชั่วคราวเพื่อเตรียมเข้าโหมด StartSearching แบบสุ่ม
+                    if (agent.isActiveAndEnabled) agent.ResetPath();
+
                     StartSearching();
                 }
-            }   
-
-            else if (Enemy_Task.todoList.Count == 0)
-            {
-                StartSearching();
-                    
-                    if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
-                    {
-                        //Debug.Log("กำลังเดินสุ่มตรวจรอบๆ.....");
-                        timer += Time.deltaTime;
-                        if (timer >= waitTime)
-                        {
-                            GoToNextSearchPoint();
-                            timer = 0;
-                        }
-
-                    }
-                //Debug.Log("เข้าเงื่อนไข else if (Enemy_Task.todoList.Count == 0)");
             }
-
+            else if (isSearching)
+            {
+                // ถ้าเข้าสู่โหมดสุ่มสำรวจรอบๆ (isSearching) แล้ว
+                if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
+                {
+                    timer += Time.deltaTime;
+                    if (timer >= waitTime)
+                    {
+                        GoToNextSearchPoint();
+                        timer = 0;
+                    }
+                }
+            }
             else
             {
+                // ถ้าไม่มีอะไรให้ทำแล้ว (ไม่ได้ hearSound และไม่ได้ isSearching) ให้กลับสู่สถานะเดิม
+                Debug.Log("ไม่มีอะไรให้ Investigate แล้ว กลับสู่ปกติ");
                 Enemy_script.currentState = Enemy_script.baseState;
-                print("หลุดจาก investigate");
             }
         }
-        
     }
 
-    
-
-   
-   
     Vector3 GetRandomPoint(Vector3 center, float radius)
     {
-        Vector3 randomDir = Random.insideUnitSphere * radius; // สุ่มทิศทางในวงกลม
-        randomDir += center; // อ้างอิงจากจุดศูนย์กลาง (เช่น จุดที่เห็นไฟดับ)
+        Vector3 randomDir = Random.insideUnitSphere * radius;
+        randomDir += center;
 
         NavMeshHit hit;
-        // หาจุดที่ใกล้ที่สุดบน NavMesh ในระยะ radius
         if (NavMesh.SamplePosition(randomDir, out hit, radius, NavMesh.AllAreas))
         {
             return hit.position;
         }
-        return center; // ถ้าหาไม่ได้ให้กลับที่เดิม
+        return center;
     }
 
     public void StartSearching()
     {
+        // เช็กก่อนว่ายังไม่ได้อยู่ในโหมดค้นหา เพื่อป้องกันบั๊กการรันซ้ำ
         if (!isSearching)
         {
             isSearching = true;
             currentSearchCount = 0;
             timer = 0;
             GoToNextSearchPoint();
-
-            //Debug.Log("StartSearching...");
         }
-
-        
     }
 
     void GoToNextSearchPoint()
     {
-        if (currentSearchCount < maxSearchPoints && isSearching == true)
+        if (currentSearchCount < maxSearchPoints && isSearching)
         {
             Vector3 nextPoint = GetRandomPoint(transform.position, searchRadius);
             agent.SetDestination(nextPoint);
             currentSearchCount++;
-            //Debug.Log($"กำลังสำรวจจุดที่ {currentSearchCount}");
+            Debug.Log($"กำลังสำรวจจุดที่ {currentSearchCount}");
         }
-
-        else if (Enemy_script.wasFaint ) // if(Enemy_script.baseState == enemy.EnemyState.investigate) 
+        else if (Enemy_script.wasFaint)
         {
-            //print("wasFaint = "+Enemy_script.wasFaint);
-            //print("OnAlert = " + Enemy_script.onAlert);
             currentSearchCount = 0;
             Debug.Log("ไอ่คนที่มันทุบหันฉันมันอยู่ไหนว่ะ...");
         }
         else
         {
-            // สำรวจครบแล้ว กลับไป Patrol
             isSearching = false;
             Enemy_script.currentState = Enemy_script.baseState;
+
+            // สำคัญ! รีเซ็ตจุดหมายเมื่อเลิกหา เพื่อป้องกัน AI ยืนค้างแบบพยายามจะเดินต่อ
+            if (agent.isActiveAndEnabled) agent.ResetPath();
+
             Debug.Log("สำรวจเสร็จแล้ว ไม่เจออะไร... กลับไปเดินยามต่อ");
         }
     }
@@ -174,18 +138,26 @@ public class Enemy_Investigate : MonoBehaviour
     public void searcingLastHearPosition(Vector3 lastHearPosition)
     {
         soundPosition = lastHearPosition;
-        isSearching = false;
-        hearSound = true;
-        agent.SetDestination(soundPosition);
+        isSearching = false; // ปิดโหมดค้นหาสุ่มชั่วคราว
+        hearSound = true;    // เปิดโหมดพุ่งเป้าไปหาจุดเกิดเหตุ
+
+        // สั่ง AI เดินไปจุดเกิดเหตุทันที
+        if (agent.isActiveAndEnabled) agent.SetDestination(soundPosition);
     }
 
     void StopSearchingState()
     {
         isSearching = false;
         hearSound = false;
-        
+
+        // ล้างคำสั่งที่ค้างอยู่ในหัว
+        if (agent.isActiveAndEnabled)
+        {
+            agent.ResetPath();
+            agent.velocity = Vector3.zero;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//////////////////////////////////////////////////////////////////////////////////
-   
+
 }

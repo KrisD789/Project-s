@@ -206,7 +206,7 @@ public class Weapon_system : MonoBehaviour
             Debug.DrawLine(currentFirePoint.position, weaponHit.point, Color.red, 2f);
             CreateGunshotNoise();
 
-            if (weaponHit.collider.TryGetComponent<Enemy>(out Enemy enemy))
+            if (weaponHit.collider.TryGetComponent<Enemy_Hitbox>(out Enemy_Hitbox enemy))
             {
                 DoDamage(weaponHit);
             }
@@ -242,7 +242,14 @@ public class Weapon_system : MonoBehaviour
 
     public void DoDamage(RaycastHit targetHit)
     {
-        if (targetHit.collider.TryGetComponent<Enemy>(out Enemy TargetEnemy))
+        // 1. เช็กก่อนว่ากระสุนชนกล่อง Hitbox (หัว/ตัว) ที่เราแยกชิ้นไว้หรือเปล่า
+        if (targetHit.collider.TryGetComponent<Enemy_Hitbox>(out Enemy_Hitbox hitbox))
+        {
+            // ถ้าโดน ให้ส่งดาเมจของปืนกระบอกนี้ไปให้กล่อง Hitbox จัดการคูณดาเมจ
+            hitbox.OnHit(currentWeapon.weaponDamage);
+        }
+        // 2. ถ้าไม่มี Hitbox (เผื่อยิงโดนศัตรูตัวเก่าๆ ที่ยังไม่ได้ใส่ Hitbox แยกชิ้น) ให้ทำดาเมจปกติ
+        else if (targetHit.collider.TryGetComponent<Enemy>(out Enemy TargetEnemy))
         {
             TargetEnemy.TakeDamage(currentWeapon.weaponDamage);
         }
@@ -354,6 +361,11 @@ public class Weapon_system : MonoBehaviour
         {
             if (hitCollider.TryGetComponent<enemy_stage>(out enemy_stage enemyAI))
             {
+                // เพิ่มบรรทัดนี้: ถ้าเป็นศพหรือสลบอยู่ ให้ข้ามไปเลย ไม่ต้องให้มันได้ยินเสียงปืน!
+                if (enemyAI.currentState == enemy_stage.EnemyState.dead || enemyAI.currentState == enemy_stage.EnemyState.faint
+                    || enemyAI.currentState == enemy_stage.EnemyState.Dummy)
+                    continue;
+
                 float distanceToEnemy = Vector3.Distance(soundOrigin, hitCollider.transform.position);
 
                 enemyAI.currentState = enemy_stage.EnemyState.Alert;

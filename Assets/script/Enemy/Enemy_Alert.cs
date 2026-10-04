@@ -618,21 +618,19 @@ public class Enemy_Alert : MonoBehaviour
 
     public void TriggerGroupAlert()
     {
-        float shoutRadius = 40f; // รัศมีเสียงตะโกน (ปรับให้ได้ยินข้ามห้องได้)
-
-        // กางอาณาเขตวงกลมหาเพื่อนที่อยู่ในระยะ
+        float shoutRadius = 40f;
         Collider[] friendsNearby = Physics.OverlapSphere(transform.position, shoutRadius, FriendNeraByMask);
 
         foreach (Collider friend in friendsNearby)
         {
-            // เช็คว่าไม่ใช่ตัวเอง
             if (friend.gameObject != this.gameObject)
             {
-                // ใช้ TryGetComponent เช็คว่าเป็นศัตรูไหม พร้อมกับดึงสคริปต์มาในบรรทัดเดียว!
                 if (friend.TryGetComponent<enemy_stage>(out enemy_stage friendStage))
                 {
-                    // ถ้าเพื่อนยังไม่ได้อยู่ในโหมด Alert
-                    if (friendStage.currentState != enemy_stage.EnemyState.Alert)
+                    // เพิ่มเงื่อนไขดักไว้ตรงนี้: ต้องไม่ใช่ศพ (dead) และไม่ได้สลบอยู่ (faint)
+                    if (friendStage.currentState != enemy_stage.EnemyState.Alert &&
+                        friendStage.currentState != enemy_stage.EnemyState.dead &&
+                        friendStage.currentState != enemy_stage.EnemyState.faint)
                     {
                         // 1. ปลุกเพื่อนให้ตื่นตัว
                         friendStage.currentState = enemy_stage.EnemyState.Alert;
