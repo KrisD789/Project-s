@@ -21,6 +21,7 @@ public class Weapon_Item : Base_Item
     public FireMode fireMode;
 
     [Header("Stealth Mechanics")]
+    public bool isSuppressed;
     public float noiseLevel;
     public float lightConcealment;
 }

@@ -62,10 +62,12 @@ public class enemy_stage : MonoBehaviour
         {
             case EnemyState.Patrol:
                 Patrol();
+                agent.speed = E_waklSpeed;
                 headRenderer.material.color = Color.white;
                 break;
             case EnemyState.Investigate:
                 Investigate();
+                agent.speed = E_waklSpeed;
                 headRenderer.material.color = Color.yellow;
                 break;
             case EnemyState.Alert:
@@ -82,7 +84,7 @@ public class enemy_stage : MonoBehaviour
                 break;
             case EnemyState.alertSearching:
                 headRenderer.material.color = Color.gray;
-                agent.speed = E_runSpeed;
+                agent.speed = E_waklSpeed;
                 break;
             case EnemyState.Dummy:
                 headRenderer.material.color = Color.blue;
@@ -157,52 +159,52 @@ public class enemy_stage : MonoBehaviour
     public void ChangeState(EnemyState newState)
     {
         if (currentState == newState) return;
-
         currentState = newState;
+
         Enemy_Anime_Controller enemyAnim = GetComponent<Enemy_Anime_Controller>();
         Rigidbody rb = GetComponent<Rigidbody>();
-        Collider col = GetComponent<Collider>();
 
         switch (newState)
         {
             case EnemyState.dead:
             case EnemyState.faint:
-                transform.SetParent(null);
-
-                // --- 1. สั่งเบรกและปิด AI ---
+                // --- 1. สั่งเบรกและล้างเส้นทาง (เปิด AI ทิ้งไว้เพื่อกันศพติดบั๊กลอย) ---
                 if (agent.isActiveAndEnabled)
                 {
-                    agent.isStopped = true;
-                    agent.ResetPath();
+                    agent.isStopped = true; // เหยียบเบรก ไม่ให้ขยับ
+                    agent.ResetPath();      // ล้างเป้าหมายในหัวทิ้ง
                     agent.velocity = Vector3.zero;
                 }
-                agent.enabled = false;
+                // ลบคำสั่ง agent.enabled = false; ออกไปแล้วครับ
 
-                // --- 2. จัดการฟิสิกส์ให้ศพหยุดนิ่งสนิท (ตามที่คุณต้องการ) ---
+                // --- 2. จัดการฟิสิกส์ให้ศพหยุดนิ่งสนิท ---
                 if (rb != null)
                 {
-                    rb.linearVelocity = Vector3.zero;        // ล้างแรงเฉื่อยการพุ่ง
-                    rb.angularVelocity = Vector3.zero; // ล้างแรงหมุนกลิ้ง
-                    rb.isKinematic = true;             // ล็อกฟิสิกส์! ไม่ให้ไหลหรือโดนดัน
+                    rb.linearVelocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                    rb.isKinematic = true; // ล็อกฟิสิกส์ไว้ ศพจะได้ไม่ไถล
                 }
-
-                // (เปิด Collider ไว้เหมือนเดิม เพื่อให้ผู้เล่นยังเอามือไปชี้เพื่อ "กดลากศพ" ได้)
-                if (col != null) col.enabled = true;
 
                 if (enemyAnim != null) enemyAnim.PlayDie();
                 OnDown();
                 break;
 
             case EnemyState.awake:
-                // --- จังหวะฟื้นคืนสติ ---
-                if (col != null) col.enabled = true;
-                if (rb != null) rb.isKinematic = true; // ล็อกฟิสิกส์ตอนเดินไว้กันเป๋
+                if (gameObject.CompareTag("ScamCommander") || baseState == EnemyState.Dummy)
+                {
+                    Debug.Log("ลูกน้องพยายามปลุกบอส... แต่บอสสลบเหมือด ปลุกไม่ตื่น!");
 
-                // --- เปิดระบบสมอง AI กลับมาทำงาน ---
-                agent.enabled = true;
+                    // สลับสถานะกลับเป็นสลบเหมือนเดิมเพื่อไม่ให้ระบบค้าง
+                    currentState = EnemyState.faint;
+                    return; // เตะออกจากฟังก์ชันทันที ไม่ต้องรันโค้ดปลุกให้ตื่นด้านล่าง
+                }
+
+                // --- ปลดเบรกตอนฟื้นคืนสติ ---
+                if (rb != null) rb.isKinematic = true;
+
                 if (agent.isActiveAndEnabled)
                 {
-                    agent.isStopped = false;
+                    agent.isStopped = false; // ปลดเบรกให้กลับมาเดินได้
                 }
 
                 WakeUp();

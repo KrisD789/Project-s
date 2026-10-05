@@ -119,6 +119,18 @@ public class Player_moveMent : MonoBehaviour
 
     void setSpeedPlayer()
     {
+        int maxState = 2; // สภาพปกติวิ่งได้เร็วสุดที่ State 2 (Speed = 8)
+
+        // ดึงสถานะมาจากสคริปต์ Player หลักโดยตรง
+        if (Player.Instance.currentState == Player.PlayerState.Crouch ||
+            Player.Instance.currentState == Player.PlayerState.CarryingBody)
+        {
+            maxState = 0; // ถ้านั่งยองหรือแบกศพ เพดานความเร็วจะถูกล็อกไว้ที่ระดับกลาง (State 0)
+        }
+
+        // แคลมป์ค่า playerState เพื่อป้องกันไม่ให้เกิน maxState
+        playerState = Mathf.Clamp(playerState, -2, maxState);
+
         if (playerState == 0) speed = 4f;
         else if (playerState == 1) speed = 6f;
         else if (playerState == 2) speed = 8f;

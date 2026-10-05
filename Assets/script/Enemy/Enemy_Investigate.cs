@@ -24,6 +24,7 @@ public class Enemy_Investigate : MonoBehaviour
     public int currentSearchCount = 0;
     private bool isSearching = false;
     private bool hearSound = false;
+    private bool isDoingTask = false;
 
     Vector3 soundPosition;
 
@@ -38,48 +39,81 @@ public class Enemy_Investigate : MonoBehaviour
     {
         if (Enemy_script.currentState == EnemyState.Investigate)
         {
-            if (Enemy_Task.todoList.Count > 0)
+            if (Enemy_script.currentState == EnemyState.Investigate)
             {
-                // ถ้ามีงานด่วนเข้ามา (Todo list) ให้เลิกสำรวจแบบสุ่มทันที
-                StopSearchingState();
-                Enemy_Task.StartDoingTask();
-            }
-            else if (hearSound)
-            {
-                // ถ้าเพิ่งได้ยินเสียง ให้เดินไปจุดที่เกิดเสียงก่อน
-                // เช็กระยะทางด้วย sqrMagnitude (ประหยัดพลังประมวลผลกว่า Vector3.Distance)
-                Vector3 offset = transform.position - soundPosition;
-                offset.y = 0;
-
-                if (!agent.pathPending && offset.sqrMagnitude <= (2.0f * 2.0f))
+                if (Enemy_Task.todoList.Count > 0)
                 {
-                    Debug.Log("เดินมาถึงจุดที่เกิดเสียงแล้ว! เริ่มค้นหาสุ่มรอบๆ...");
-                    hearSound = false; // ถึงจุดหมายแล้ว ปิดสวิตช์ได้
-
-                    // สั่งหยุดเดินชั่วคราวเพื่อเตรียมเข้าโหมด StartSearching แบบสุ่ม
-                    if (agent.isActiveAndEnabled) agent.ResetPath();
-
-                    StartSearching();
-                }
-            }
-            else if (isSearching)
-            {
-                // ถ้าเข้าสู่โหมดสุ่มสำรวจรอบๆ (isSearching) แล้ว
-                if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
-                {
-                    timer += Time.deltaTime;
-                    if (timer >= waitTime)
+                    // ใส่ตัวล็อค: ถ้ายังไม่ได้เริ่มทำ ค่อยสั่งหยุดสำรวจและเริ่มงาน
+                    if (!isDoingTask)
                     {
-                        GoToNextSearchPoint();
-                        timer = 0;
+                        StopSearchingState();
+                        isDoingTask = true; // ล็อคไว้เลย เฟรมหน้าจะได้ไม่เข้ามาเบรกซ้ำ
+                    }
+
+                    Enemy_Task.StartDoingTask(); //ให้มันทำงานทุกเฟรม เพื่อเช็กการทำTask
+                }
+                else
+                {
+                    isDoingTask = false; // ถ้าคิวงานว่างแล้ว ค่อยปลดล็อค
+
+                    if (hearSound)
+                    {
+                        // (โค้ดเดินไปจุดที่เกิดเสียงเหมือนเดิม)
+                        Vector3 offset = transform.position - soundPosition;
+                        offset.y = 0;
+
+                        if (!agent.pathPending && offset.sqrMagnitude <= (2.0f * 2.0f))
+                        {
+                            Debug.Log("เดินมาถึงจุดที่เกิดเสียงแล้ว! เริ่มค้นหาสุ่มรอบๆ...");
+                            hearSound = false;
+                            if (agent.isActiveAndEnabled) agent.ResetPath();
+                            StartSearching();
+                        }
+                    }
+                    else if (isSearching)
+                    {
+                        // (โค้ดสำรวจสุ่มเหมือนเดิม)
+                        if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
+                        {
+                            timer += Time.deltaTime;
+                            if (timer >= waitTime)
+                            {
+                                GoToNextSearchPoint();
+                                timer = 0;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // (โค้ดกลับโหมดปกติเหมือนเดิม)
+                        Debug.Log("ไม่มีอะไรให้ Investigate แล้ว กลับสู่ปกติ");
+                        Enemy_script.currentState = Enemy_script.baseState;
                     }
                 }
             }
             else
             {
-                // ถ้าไม่มีอะไรให้ทำแล้ว (ไม่ได้ hearSound และไม่ได้ isSearching) ให้กลับสู่สถานะเดิม
-                Debug.Log("ไม่มีอะไรให้ Investigate แล้ว กลับสู่ปกติ");
-                Enemy_script.currentState = Enemy_script.baseState;
+                // เผื่อมันโดนเตะไปสเตตัสอื่น (เช่น โดนยิงเข้า Alert) ให้ปลดล็อคสวิตช์ไว้ด้วย
+                isDoingTask = false;
+            }
+        }
+
+        else
+        {
+            // ระบบเซฟตี้! ถ้าถูกเตะไปสเตตัสอื่น (เช่น โดนยิง, ชนผู้เล่น)
+            // ให้ล้างความจำการสำรวจที่ค้างอยู่ทิ้งให้เกลี้ยงทันที!
+            if (isSearching || hearSound || isDoingTask || currentSearchCount > 0)
+            {
+                isSearching = false;
+                hearSound = false;
+                isDoingTask = false;
+                currentSearchCount = 0;
+                timer = 0;
+
+                // หมายเหตุ: ไม่ต้องสั่ง agent.ResetPath() ตรงนี้ 
+                // เพราะสคริปต์สเตตัสใหม่ (เช่น Alert หรือ Report) จะเป็นคนเข้ายึดพวงมาลัย NavMesh ไปจัดการเอง
+
+                Debug.Log("หลุดจาก Investigate -> ล้างความจำการค้นหาทิ้งเรียบร้อย ปลอดภัย 100%");
             }
         }
     }

@@ -122,6 +122,21 @@ public class Weapon_system : MonoBehaviour
 
     private void Update()
     {
+        // ดักไว้เลยตอนแรก: ถ้ากำลังแบกศพอยู่ ห้ามใช้อาวุธเด็ดขาด
+        if (Player.Instance.currentState == Player.PlayerState.CarryingBody)
+        {
+            // (ทางเลือกเสริม) คุณอาจจะสั่งซ่อนโมเดลปืนตรงนี้ก็ได้
+            // weaponModel.SetActive(false); 
+
+            // ถ้ากำลังรีโหลดค้างอยู่ตอนที่เผลอไปยกศพ ให้ยกเลิกการรีโหลดนั้นทิ้งซะ!
+            if (current_Weapon_Status == Weapon_Status.reload)
+            {
+                Cancel_Reload();
+            }
+
+            return; // เตะออกจากฟังก์ชัน Update ทันที โค้ดยิง/เล็ง ด้านล่างจะไม่ทำงาน
+        }
+
         if (currentWeapon.fireMode == Weapon_Item.FireMode.Semi)
         {
             current_Weapon_FireMode = CurrentFireMode.Semi_Auto;
@@ -352,27 +367,49 @@ public class Weapon_system : MonoBehaviour
 
     public void CreateGunshotNoise()
     {
-        Vector3 soundOrigin = currentFirePoint.position;
-        float noiseRadius = currentWeapon.noiseLevel;
+        // 1. กำหนดจุดกำเนิดเสียง (ตำแหน่งผู้เล่น หรือ ปลายกระบอกปืน)
+        Vector3 soundOrigin = transform.position;
 
-        Collider[] enemiesInHearingRange = Physics.OverlapSphere(soundOrigin, noiseRadius, Target_mask);
+        // 2. เช็กว่าปืนใส่ที่เก็บเสียงหรือไม่ เพื่อกำหนดความกว้างของรัศมี
+        float currentNoiseRadius = currentWeapon.noiseLevel;
 
+        // 3. กางวงกลมหาศัตรูในระยะ (ใช้ LayerMask ของศัตรู เพื่อความรวดเร็วในการประมวลผล)
+        int enemyLayer = LayerMask.GetMask("enemy");
+        Collider[] enemiesInHearingRange = Physics.OverlapSphere(soundOrigin, currentNoiseRadius, enemyLayer);
+
+        // 4. ส่งสัญญาณเตือน AI ทุกตัวที่อยู่ในระยะ
         foreach (Collider hitCollider in enemiesInHearingRange)
         {
             if (hitCollider.TryGetComponent<enemy_stage>(out enemy_stage enemyAI))
             {
-                // เพิ่มบรรทัดนี้: ถ้าเป็นศพหรือสลบอยู่ ให้ข้ามไปเลย ไม่ต้องให้มันได้ยินเสียงปืน!
-                if (enemyAI.currentState == enemy_stage.EnemyState.dead || enemyAI.currentState == enemy_stage.EnemyState.faint
-                    || enemyAI.currentState == enemy_stage.EnemyState.Dummy)
-                    continue;
-
-                float distanceToEnemy = Vector3.Distance(soundOrigin, hitCollider.transform.position);
-
-                enemyAI.currentState = enemy_stage.EnemyState.Alert;
-
-                if (hitCollider.TryGetComponent<Enemy_Alert>(out Enemy_Alert enemyAIAlert))
+                // ดักความปลอดภัย: ถ้าเป็นศพหรือสลบอยู่ ให้ข้ามไปเลย! (ศพจะได้ไม่เด้งตื่นเพราะเสียงปืน)
+                if (enemyAI.currentState == enemy_stage.EnemyState.dead ||
+                    enemyAI.currentState == enemy_stage.EnemyState.faint)
                 {
-                    enemyAIAlert.HandleNoiseAlert(transform.position);
+                    continue;
+                }
+
+                if (hitCollider.TryGetComponent<Enemy_Alert>(out Enemy_Alert enemyAlert))
+                {
+                    // --- แยกการตอบสนองตามประเภทปืน ---
+                    if (currentWeapon.isSuppressed)
+                    {
+                        // กรณีปืนเก็บเสียง: ถ้ายังไม่รู้ตัว ให้เปลี่ยนแค่สถานะสงสัย (Investigate)
+                        if (enemyAI.currentState != enemy_stage.EnemyState.Alert)
+                        {
+                            enemyAI.currentState = enemy_stage.EnemyState.Investigate;
+                        }
+                        enemyAlert.HandleNoiseAlert(soundOrigin);
+                    }
+                    else
+                    {
+                        // กรณีปืนเสียงดังลั่น: รู้เลยว่าโดนบุก! บังคับเข้าโหมด Alert ทันที
+                        enemyAI.currentState = enemy_stage.EnemyState.Alert;
+                        enemyAlert.HandleNoiseAlert(soundOrigin);
+
+                        // สำคัญ: สั่งให้มันตะโกนปลุกเพื่อนรอบๆ ให้ตื่นตัวตามไปด้วย!
+                        enemyAlert.Start_TriggerGroupAlert();
+                    }
                 }
             }
         }

@@ -478,6 +478,8 @@ public class Enemy_Alert : MonoBehaviour
             return; // ตัดจบฟังก์ชัน ไม่ต้องไปอัปเดตเป้าหมายหรือหันหน้าตามเสียง
         }
 
+        //Reset_AlerTimer();
+
         // 1. หันขวับไปทางจุดที่เกิดเสียง
         Vector3 lookPos = new Vector3(P_Position.x, transform.position.y, P_Position.z);
         transform.LookAt(lookPos);

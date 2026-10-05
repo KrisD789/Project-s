@@ -21,8 +21,18 @@ public class Enemypatro : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>(); 
-        enemy_script = GetComponent<enemy_stage>(); 
-        agent.SetDestination(wayPoint[0].position); 
+        enemy_script = GetComponent<enemy_stage>();
+
+        // ---  เซฟตี้ดักไว้เผื่อลืมใส่ Waypoint จะได้ไม่พัง ---
+        if (wayPoint != null && wayPoint.Length > 0)
+        {
+            agent.SetDestination(wayPoint[0].position);
+            Debug.Log($"[Patrol AI] เริ่มต้นทำงาน! กำลังเดินไปประจำที่ Waypoint [0]");
+        }
+        else
+        {
+            Debug.LogWarning("[Patrol AI] แจ้งเตือน! ศัตรูตัวนี้ยังไม่ได้ใส่ Waypoint เลย ระบบลาดตระเวนจะไม่ทำงาน");
+        }
     }
 
     void Update()
@@ -67,21 +77,27 @@ public class Enemypatro : MonoBehaviour
             // 2. ค่อยๆ หมุนหน้าศัตรู (แกน Z) ให้ตรงกับแกน Z ของ Waypoint ปัจจุบัน
             transform.rotation = Quaternion.Slerp(transform.rotation, wayPoint[index].rotation, turnSpeed * Time.deltaTime);
 
-            Timer += Time.deltaTime; 
+            
 
-            if (Timer >= waitTime) 
+            //  จุดเดียวที่ดัดแปลง: ถ้ามี Waypoint มากกว่า 1 จุด ถึงจะอนุญาตให้นับเวลาและเดินสลับจุด
+            if (wayPoint.Length > 1)
             {
-                index++; 
+                Timer += Time.deltaTime;
 
-                // ดัก index เกินไว้ตรงนี้เพื่อป้องกัน error ก่อนสั่งเดิน
-                if (index >= wayPoint.Length) index = 0;
+                if (Timer >= waitTime)
+                {
+                    index++;
 
-                // 3. คืนสิทธิ์การหันหน้าให้ NavMeshAgent ตอนเริ่มเดินไปจุดใหม่
-                agent.updateRotation = true;
-                agent.SetDestination(wayPoint[index].position); 
+                    // ดัก index เกินไว้ตรงนี้เพื่อป้องกัน error ก่อนสั่งเดิน
+                    if (index >= wayPoint.Length) index = 0;
 
-                Timer = 0; 
-                isWaiting = false; 
+                    // 3. คืนสิทธิ์การหันหน้าให้ NavMeshAgent ตอนเริ่มเดินไปจุดใหม่
+                    agent.updateRotation = true;
+                    agent.SetDestination(wayPoint[index].position);
+
+                    Timer = 0;
+                    isWaiting = false;
+                }
             }
         }
         else

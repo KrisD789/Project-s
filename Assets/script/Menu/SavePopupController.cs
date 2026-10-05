@@ -1,14 +1,21 @@
 using UnityEngine;
 using TMPro;
+using System.Collections; // เพิ่มเข้ามาเพื่อใช้งาน Coroutine
 
 public class SavePopupController : MonoBehaviour
 {
     [Header("UI Elements")]
     public TMP_InputField fileNameInput;
 
+    [Header("ระบบแจ้งเตือน")]
+    // ลากป้ายเตือนข้อความสีแดงด้านล่าง (Cannot save while grabbing an enemy) มาใส่ช่องนี้
+    public GameObject saveWarningPopup;
+
     private void OnEnable()
     {
-        // เคลียร์ข้อความและโฟกัสช่องพิมพ์อัตโนมัติเมื่อหน้าต่างนี้เด้งขึ้นมา
+        // ปิดป้ายเตือนไว้ก่อนเสมอตอนหน้าต่างเซฟถูกเปิดขึ้นมาใหม่
+        if (saveWarningPopup != null) saveWarningPopup.SetActive(false);
+
         if (fileNameInput != null)
         {
             fileNameInput.text = "";
@@ -18,14 +25,30 @@ public class SavePopupController : MonoBehaviour
 
     public void OnClick_ConfirmSave()
     {
-        // ตัดช่องว่างหน้า-หลังทิ้ง
+        // 1. ย้ายการเช็กสถานะมาไว้ตรงจังหวะกดปุ่ม Save
+        if (Player.Instance != null && Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
+        {
+            // โชว์ป้ายเตือน
+            if (saveWarningPopup != null)
+            {
+                saveWarningPopup.SetActive(true);
+
+                // หยุด Coroutine เก่าก่อนเผื่อผู้เล่นกดปุ่ม Save รัวๆ
+                StopAllCoroutines();
+                // สั่งให้นับเวลาถอยหลัง 2.5 วินาทีแล้วซ่อนป้ายเตือน
+                StartCoroutine(HideWarningAfterDelay(2.5f));
+            }
+
+            Debug.LogWarning("ระบบปฏิเสธการเซฟ: ผู้เล่นกำลังล็อคคอศัตรู!");
+            return; //  เตะออก ไม่ให้คำสั่งเซฟด้านล่างทำงาน
+        }
+
+        // 2. ถ้าสถานะปลอดภัย (ไม่ได้ล็อคคอ) ค่อยทำการเซฟตามปกติ
         string fileName = fileNameInput.text.Trim();
 
         if (!string.IsNullOrEmpty(fileName))
         {
-            // จุดสำคัญ: SaveManager ของคุณต้องเปลี่ยนไปรับค่า string แทน int แล้ว
             SaveManager.Instance.SaveGame(fileName);
-
             FindAnyObjectByType<GameMenuManager>().CloseSavePopup();
         }
         else
@@ -37,5 +60,14 @@ public class SavePopupController : MonoBehaviour
     public void OnClick_Cancel()
     {
         FindAnyObjectByType<GameMenuManager>().CloseSavePopup();
+    }
+
+    // ฟังก์ชันสำหรับซ่อนป้ายเตือนอัตโนมัติ
+    private IEnumerator HideWarningAfterDelay(float delay)
+    {
+        // ต้องใช้ WaitForSecondsRealtime เพราะเวลาในเกมถูกหยุดไว้ (Time.timeScale = 0)
+        yield return new WaitForSecondsRealtime(delay);
+
+        if (saveWarningPopup != null) saveWarningPopup.SetActive(false);
     }
 }

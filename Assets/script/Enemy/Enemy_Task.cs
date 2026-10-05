@@ -25,6 +25,7 @@ public class Enemy_Task : MonoBehaviour
     private bool TaskActivate = false;
 
     private Coroutine wakeUpCoroutine;
+    private Coroutine doingTaskCoroutine;
 
 
     // --- ตัวแปรสำหรับระบบจับเวลาปลุกเพื่อน ---
@@ -57,6 +58,9 @@ public class Enemy_Task : MonoBehaviour
              enemyMain_script.currentState == enemy_stage.EnemyState.OnGrab)
         {
             if (wakeUpCoroutine != null) StopCoroutine(wakeUpCoroutine);
+
+            // เพิ่มบรรทัดนี้ เพื่อยกเลิกงานที่กำลังหน่วงเวลาอยู่
+            if (doingTaskCoroutine != null) StopCoroutine(doingTaskCoroutine);
 
             if (todoList.Count > 0)
             {
@@ -148,42 +152,21 @@ public class Enemy_Task : MonoBehaviour
             return; 
         }
 
+        // ยกเลิกงานเก่าที่อาจจะค้างอยู่
+        if (doingTaskCoroutine != null) StopCoroutine(doingTaskCoroutine);
+
         switch (task.currentType)
         {
-            case WorkTask.TaskType.Slight:   //ทำงานคู่กับเงื่อนไขcase ต่อไป Tlight
-                // ดึงสคริปต์ LightZone จากงานที่ AI เพิ่งเดินมาถึง
-                var light = task.targetObject as LightZone;
-                if (light != null && !light.lightZoneState)
-                {
-                    // ถ้าหลอดไฟนี้บอกเราได้ว่าสวิตช์อยู่ที่ไหน
-                    if (light.masterSwitch != null)
-                    {
-                        Debug.Log("AI: รู้แล้วว่าสวิตช์ไฟดวงนี้อยู่ตรงไหน! กำลังเดินไป...");
-
-                        // สั่งให้เดินไปที่ตำแหน่งของสวิตช์นั้นจริงๆ และเปลี่ยนประเภทงานเป็น TLight
-                        AddToTodoList(light.masterSwitch.transform.position, light.masterSwitch, WorkTask.TaskType.TLight);
-                    }
-                }
-                Clear_Current_Task();
-                Debug.Log("AI: หาสวิตไฟที่ปิดอยู่ " + task.position);
+            case WorkTask.TaskType.Slight:
+                doingTaskCoroutine = StartCoroutine(ProcessSlight(task));
                 break;
 
             case WorkTask.TaskType.TLight:
-                // ตัวอย่าง: แปลง MonoBehaviour กลับเป็นสคริปต์ไฟแล้วสั่งเปิด
-                var lightSW = task.targetObject as light_switch;
-                if (lightSW != null) lightSW.Turn();
-
-                Clear_Current_Task();
-                Debug.Log("AI: กำลังจัดการกับไฟที่ " + task.position);
+                doingTaskCoroutine = StartCoroutine(ProcessTLight(task));
                 break;
 
             case WorkTask.TaskType.TDoor:
-                // ตัวอย่าง: แปลงเป็นสคริปต์ประตูแล้วสั่งปิด
-                var door = task.targetObject as Door;
-                if (door != null) door.ToggleDoor(true, Door.DoorState.Closed);
-
-                Clear_Current_Task();
-                Debug.Log("AI: กำลังจัดการกับประตูที่ " + task.position);
+                doingTaskCoroutine = StartCoroutine(ProcessTDoor(task));
                 break;
 
             case WorkTask.TaskType.wakeUp:
@@ -204,8 +187,9 @@ public class Enemy_Task : MonoBehaviour
                 break;
 
             case WorkTask.TaskType.alarm:
-                Alarm();
-                enemyMain_script.currentState = enemy_stage.EnemyState.Alert;
+                Alarm(task);
+
+                //enemyMain_script.currentState = enemy_stage.EnemyState.Alert;
 
                 Clear_Current_Task();
                 Debug.Log("Alarmmm!!!!");
@@ -230,9 +214,58 @@ public class Enemy_Task : MonoBehaviour
 
     }
 
-    void Alarm()
+    IEnumerator ProcessSlight(WorkTask task)
+    {
+        Debug.Log("AI: เดินมาถึงจุดที่ไฟดับ กำลังยืนงงหาต้นเหตุ... (หน่วง 1.5 วิ)");
+        yield return new WaitForSeconds(2f);
+
+        var light = task.targetObject as LightZone;
+        if (light != null && !light.lightZoneState)
+        {
+            if (light.masterSwitch != null)
+            {
+                Debug.Log("AI: รู้แล้วว่าสวิตช์ไฟดวงนี้อยู่ตรงไหน! กำลังเดินไป...");
+                AddToTodoList(light.masterSwitch.transform.position, light.masterSwitch, WorkTask.TaskType.TLight);
+            }
+        }
+        Clear_Current_Task();
+    }
+
+    IEnumerator ProcessTLight(WorkTask task)
+    {
+        Debug.Log("AI: กำลังจะเอื้อมมือเปิดสวิตช์ไฟ... (ผู้เล่นมีเวลา 2 วิ)");
+        yield return new WaitForSeconds(2.0f);
+
+        var lightSW = task.targetObject as light_switch;
+        if (lightSW != null) lightSW.Turn();
+
+        Clear_Current_Task();
+        Debug.Log("AI: เปิดไฟเรียบร้อย");
+    }
+
+    IEnumerator ProcessTDoor(WorkTask task)
+    {
+        Debug.Log("AI: กำลังจะผลักประตูปิด... (ผู้เล่นมีเวลา 1.5 วิ)");
+        yield return new WaitForSeconds(1.5f);
+
+        var door = task.targetObject as Door;
+        if (door != null) door.ToggleDoor(true, Door.DoorState.Closed);
+
+        Clear_Current_Task();
+        Debug.Log("AI: ปิดประตูเรียบร้อย");
+    }
+
+
+    void Alarm(WorkTask task)
     {
         enemyMain_script.currentState = enemy_stage.EnemyState.report;
+
+        // สั่งเรียก Report แบบเดียวกับตอนปลุกเพื่อน
+        // หมายเหตุ: ตรง IncidentType.FoundDead ให้คุณเช็กอีกทีว่าใน Enum ของคุณตั้งชื่อไว้ว่าอะไร (อาจจะเป็น FoundBody เป็นต้น)
+        if (enemy_report_script != null && task != null)
+        {
+            enemy_report_script.StartReportState(IncidentType.FoundDead, task.position);
+        }
 
         ClearAllTasks();
     }

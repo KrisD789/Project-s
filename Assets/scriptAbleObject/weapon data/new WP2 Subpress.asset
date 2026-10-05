@@ -10,23 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fdcec219e247cbb48883d4a02ce037b2, type: 3}
-  m_Name: new WP1
+  m_Name: new WP2 Subpress
   m_EditorClassIdentifier: 
-  itemIcon: {fileID: 21300000, guid: 4a53a75d2a231f54c8f5d6da972e4e92, type: 3}
-  itemName: ak
-  description: Full-Auto Gun
-  itemPrefab: {fileID: 6364898671825374264, guid: 988fd8c3334f86646a56fe1dd36ad9d6, type: 3}
+  itemIcon: {fileID: 21300000, guid: ed404916ab6a27542ba73b5513da711f, type: 3}
+  itemName: Pistol
+  description: semi-Auto Pistol
+  itemPrefab: {fileID: 2360988138355781369, guid: 5a3be66789d136f4bbbed3f5606d4fec, type: 3}
   weaponDamage: 20
-  Max_Ammo: 30
-  Current_Ammo: 30
-  Max_Reserve_Ammo: 200
-  weaponRange: 50
-  ReloadTime: 2
-  FireRate: 0.1
-  RecoilUp: 2
-  RecoilSide: 1
-  type: 0
-  fireMode: 1
-  isSuppressed: 0
+  Max_Ammo: 12
+  Current_Ammo: 12
+  Max_Reserve_Ammo: 36
+  weaponRange: 30
+  ReloadTime: 0.5
+  FireRate: 0.2
+  RecoilUp: 1
+  RecoilSide: 0.5
+  type: 1
+  fireMode: 0
+  isSuppressed: 1
   noiseLevel: 50
   lightConcealment: 0

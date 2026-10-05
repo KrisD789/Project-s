@@ -103,7 +103,7 @@ public class Player_Action : MonoBehaviour
     {
         if (other.gameObject == currentInteractableTarget) currentInteractableTarget = null;
         if (other.gameObject == NearbyBody) NearbyBody = null;
-        //if (other.gameObject == CurrentKey_Item) CurrentKey_Item = null;
+        if (other.gameObject == targetAliveEnemy) targetAliveEnemy = null;
     }
 
     public void Interaction()
@@ -123,6 +123,19 @@ public class Player_Action : MonoBehaviour
             return; // จบการทำงาน ไม่ต้องไปเช็คอย่างอื่นต่อ
         }
         // ------------------------------------------
+
+        // เพิ่มบล็อกนี้: ดักเช็กก่อนว่าคนที่อยู่ตรงหน้าตายหรือยัง ถ้าตายแล้วให้ย้ายไปเป็นศพ (NearbyBody)
+        if (targetAliveEnemy != null)
+        {
+            if (targetAliveEnemy.TryGetComponent<enemy_stage>(out enemy_stage stage))
+            {
+                if (stage.currentState == enemy_stage.EnemyState.dead || stage.currentState == enemy_stage.EnemyState.faint)
+                {
+                    NearbyBody = targetAliveEnemy;
+                    targetAliveEnemy = null; // ลบออกจากหมวดคนเป็น
+                }
+            }
+        }
 
         // โค้ดเก็บกุญแจเดิม
         //if (CurrentKey_Item != null)
@@ -184,7 +197,13 @@ public class Player_Action : MonoBehaviour
         NearbyBody = null;
 
         carriedBody.GetComponent<Rigidbody>().isKinematic = true;
-        carriedBody.GetComponent<Collider>().enabled = false;
+
+        // ปิด Collider ทั้งตัวแม่และลูก (Hitbox) ทุกชิ้น!
+        foreach (Collider col in carriedBody.GetComponentsInChildren<Collider>())
+        {
+            col.enabled = false;
+        }
+
         carriedBody.transform.SetParent(carryPosition);
         carriedBody.transform.localPosition = Vector3.zero;
     }
@@ -193,8 +212,14 @@ public class Player_Action : MonoBehaviour
     {
         Player.Instance.currentState = Player.PlayerState.Idle;
         carriedBody.transform.SetParent(null);
-        carriedBody.GetComponent<Rigidbody>().isKinematic = true;
-        carriedBody.GetComponent<Collider>().enabled = true;
+        carriedBody.GetComponent<Rigidbody>().isKinematic = true; // ล็อกฟิสิกส์ไว้ ศพจะได้ไม่ไถล
+
+        // เปิด Collider ทุกชิ้นคืนกลับมา (ศพบนพื้นจะได้โดนยิงซ้ำได้ หรือกดหยิบซ้ำได้)
+        foreach (Collider col in carriedBody.GetComponentsInChildren<Collider>())
+        {
+            col.enabled = true;
+        }
+
         carriedBody = null;
     }
 
@@ -215,6 +240,11 @@ public class Player_Action : MonoBehaviour
                 if (grabbedEnemy.TryGetComponent<enemy_stage>(out enemy_stage Target_grabbedEnemy))
                 {
                     Target_grabbedEnemy.currentState = enemy_stage.EnemyState.OnGrab;
+                }
+
+                foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
+                {
+                    col.enabled = false;
                 }
 
                 grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
@@ -238,7 +268,20 @@ public class Player_Action : MonoBehaviour
     {
         if (grabbedEnemy != null)
         {
-            grabbedEnemy.GetComponent<enemy_stage>().currentState = enemy_stage.EnemyState.dead;
+            // Safety: เช็กแท็กของศัตรูที่กำลังถูกล็อกคอ
+            if (grabbedEnemy.CompareTag("ScamCommander"))
+            {
+                Debug.Log("เป้าหมายสำคัญ (ScamCommander)! ระบบไม่อนุญาตให้ฆ่า บังคับทำให้สลบแทน");
+
+                // บังคับเปลี่ยนสเตตัสเป็นสลบ (faint) แทนการตาย
+                return;
+            }
+            else
+            {
+                // ถ้าไม่ใช่บอส เป็นศัตรูทั่วไป ก็เชือดได้ตามปกติ
+                grabbedEnemy.GetComponent<enemy_stage>().ChangeState(enemy_stage.EnemyState.dead);
+            }
+
             FinishTakedown();
         }
     }
@@ -247,7 +290,7 @@ public class Player_Action : MonoBehaviour
     {
         if (grabbedEnemy != null)
         {
-            grabbedEnemy.GetComponent<enemy_stage>().currentState = enemy_stage.EnemyState.faint;
+            grabbedEnemy.GetComponent<enemy_stage>().ChangeState(enemy_stage.EnemyState.faint);
             FinishTakedown();
         }
     }
@@ -257,7 +300,13 @@ public class Player_Action : MonoBehaviour
         Player.Instance.currentState = Player.PlayerState.Idle;
         grabbedEnemy.transform.SetParent(null);
         grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
-        grabbedEnemy.GetComponent<Collider>().enabled = true;
+
+        // เปิด Collider ทุกชิ้นคืนกลับมาตอนปล่อยศพลงพื้น
+        foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
+        {
+            col.enabled = true;
+        }
+
         NearbyBody = grabbedEnemy;
         grabbedEnemy = null;
     }

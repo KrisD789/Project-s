@@ -22,20 +22,23 @@ public class WayPointTrigger : MonoBehaviour
     public GameObject waypointDisplay;
 
     // ตัวแปรนี้จะดึงมาจาก MissionTrigger อัตโนมัติ เพื่อไว้เช็กตอนปิดตัวเอง
-    private MissionData myMissionData;
+    [SerializeField] private MissionData myMissionData;
 
     private bool isDiscovered = false;
     private bool isCompleted = false;
 
     private void Awake()
     {
-        //GetComponent<Collider>().isTrigger = true;
+        // เปลี่ยนจาก GetComponent เป็น GetComponentInParent
+        MissionTrigger trigger = GetComponentInParent<MissionTrigger>();
 
-        // ดึง MissionData จากสคริปต์ MissionTrigger ที่แปะอยู่บน Object เดียวกันมาเก็บไว้
-        MissionTrigger trigger = GetComponent<MissionTrigger>();
         if (trigger != null)
         {
             myMissionData = trigger.Mission_Data;
+        }
+        else
+        {
+            Debug.LogError("บั๊กแล้ว! Waypoint ตัวนี้หา MissionTrigger ที่ตัวแม่ไม่เจอ");
         }
     }
 
@@ -135,6 +138,11 @@ public class WayPointTrigger : MonoBehaviour
         if (mode == WaypointMode.Proximity && !isDiscovered && !isCompleted && other.CompareTag("Player"))
         {
             ActivateWaypoint();
+            if (NotificationManager.Instance != null)
+            {
+                //แจ้งเตือนเมื่อผู้เล่นค้นพบพื้นที่ภารกิจใหม่
+                NotificationManager.Instance.ShowNotification("Objective Updated : " + myMissionData.name );
+            }
         }
     }
 

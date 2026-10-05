@@ -42,7 +42,7 @@ public class EnemyInteraction : MonoBehaviour
 
         if (other.CompareTag("Player"))
         {
-            enemy_Alert_Script.Reset_AlerTimer();
+            //enemy_Alert_Script.Reset_AlerTimer();
             HandleNormalInteraction(other);
             return; // ตัดจบฟังก์ชันทันที! ศัตรูจะหูหนวกชั่วคราว ไม่สนใจเสียงเลย
         }
@@ -120,7 +120,7 @@ public class EnemyInteraction : MonoBehaviour
         // 2. แยกการประมวลผลเสียงและเพื่อน ตามสถานะของ AI
         if (col.CompareTag("Noi"))
         {
-            enemy_Alert_Script.Reset_AlerTimer();
+            //enemy_Alert_Script.Reset_AlerTimer();
 
             switch (enemy_main.currentState)
             {

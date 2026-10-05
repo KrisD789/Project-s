@@ -62,66 +62,91 @@ public class Enemy_Report : MonoBehaviour
 
     private IEnumerator ReportSequence(IncidentType incident, Vector3 targetPos, GameObject bodyFound)
     {
-        agent.isStopped = true;
+        // ลบเป้าหมายเดิมทิ้งและเหยียบเบรกก่อน
         agent.ResetPath();
+        agent.isStopped = true;
 
+        // เฟส 1: ตกใจผงะถอยหลัง (ใช้ agent.Move)
         yield return StartCoroutine(RecoilRoutine(targetPos));
-        // เฟส 2: วิทยุสื่อสาร
+
+        // เฟส 2: ยืนคุยวิทยุสื่อสาร
         Debug.Log($"Enemy: ศูนย์กลาง! ขอรายงานเหตุการณ์ประเภท: {incident}");
         yield return new WaitForSeconds(radioCallDuration);
 
-        
-
-        // เฟส 3: กระจายข่าวตามความรุนแรง
+        // เฟส 3: กระจายข่าวปลุกเพื่อน
         BroadcastAlert(incident, targetPos);
-        //enemy_Stage_script.currentState = enemy_stage.EnemyState.Alert;
 
         agent.isStopped = false;
     }
+
     private IEnumerator RecoilRoutine(Vector3 playerPos)
     {
+        // หาเวกเตอร์ทิศทางชี้ออกจากตัวผู้เล่น (เพื่อถอยหลัง)
         Vector3 pushDir = (transform.position - playerPos).normalized;
         pushDir.y = 0;
-        Vector3 startPos = transform.position;
-        Vector3 targetRecoil = startPos + (pushDir * stepBackDistance);
 
+        // คำนวณความเร็วในการถอยหลัง (ระยะทาง / เวลา)
+        float speed = stepBackDistance / recoilDuration;
         float elapsed = 0f;
+
+        // 🚨 ปิดการควบคุมการหมุนของ NavMesh ชั่วคราว เพราะเราจะหมุนหัวมันเอง
+        agent.updateRotation = false;
+
         while (elapsed < recoilDuration)
         {
-            transform.position = Vector3.Lerp(startPos, targetRecoil, elapsed / recoilDuration);
+            // 1. บังคับหันหน้าจ้องผู้เล่นตลอดเวลาที่ถอย (Slerp เพื่อความสมูท)
+            Vector3 lookPos = new Vector3(playerPos.x, transform.position.y, playerPos.z);
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookPos - transform.position), Time.deltaTime * 10f);
+
+            // 2. ใช้คำสั่ง agent.Move() แทนการขยับ Transform ดิบๆ เพื่อความปลอดภัยบน NavMesh
+            agent.Move(pushDir * speed * Time.deltaTime);
+
             elapsed += Time.deltaTime;
             yield return null;
         }
-        transform.position = targetRecoil;
-    }
 
+        // คืนสิทธิ์การหันหน้าให้ NavMesh กลับไปจัดการตามปกติหลังถอยเสร็จ
+        agent.updateRotation = true;
+    }
     private void BroadcastAlert(IncidentType incident, Vector3 knownPosition)
     {
         if (enemy_Stage_script.currentState != enemy_stage.EnemyState.report) return;
 
         // โค้ดส่งสัญญาณแจ้งศัตรูตัวอื่นในสเตจ (เช่น อัปเดตตัวแปร Global Alert)
         Debug.Log("BroadcastAlert ส่งพิกัดผู้เล่นให้ศัตรูทุกตัวในพื้นที่ทราบแล้ว!");
-        
+
+        if (incident == IncidentType.FoundDead || incident == IncidentType.PlayerBump)
+        {
+            enemy_Stage_script.currentState = enemy_stage.EnemyState.Alert;
+        }
+        else if (incident == IncidentType.FoundUnconscious)
+        {
+            enemy_Stage_script.currentState = enemy_stage.EnemyState.alertSearching;
+        }
+
         // กางอาณาเขตวงกลมหาเพื่อนที่อยู่ในระยะ
         Collider[] friendsNearby = Physics.OverlapSphere(transform.position, shoutRadius, FriendNeraByMask);
 
         foreach (Collider friend in friendsNearby)
         {
             // เช็คว่าไม่ใช่ตัวเอง
-            if (friend.gameObject != this.gameObject)
+            if (friend.gameObject != this.gameObject )
             {
-                // ใช้ TryGetComponent เช็คว่าเป็นศัตรูไหม พร้อมกับดึงสคริปต์มาในบรรทัดเดียว!
-                if (friend.TryGetComponent<enemy_stage>(out enemy_stage friendStage))
+                if (friend.gameObject.CompareTag("enemy"))
                 {
-                    if (friendStage.currentState == enemy_stage.EnemyState.faint
-                        || friendStage.currentState == enemy_stage.EnemyState.dead
-                        || friendStage.currentState == enemy_stage.EnemyState.Dummy)
+                    // ใช้ TryGetComponent เช็คว่าเป็นศัตรูไหม พร้อมกับดึงสคริปต์มาในบรรทัดเดียว!
+                    if (friend.TryGetComponent<enemy_stage>(out enemy_stage friendStage))
                     {
-                        continue;
-                    }
+                        if (friendStage.currentState == enemy_stage.EnemyState.faint
+                            || friendStage.currentState == enemy_stage.EnemyState.dead
+                            || friendStage.currentState == enemy_stage.EnemyState.Dummy)
+                        {
+                            continue;
+                        }
 
-                    if (incident == IncidentType.FoundDead || incident == IncidentType.PlayerBump)
-                    {
+
+                        if (incident == IncidentType.FoundDead || incident == IncidentType.PlayerBump)
+                        {
                             // ถ้าเพื่อนยังไม่ได้อยู่ในโหมด Alert
                             if (friendStage.currentState != enemy_stage.EnemyState.Alert)
                             {
@@ -134,16 +159,17 @@ public class Enemy_Report : MonoBehaviour
                                     friendAlert.HandleNoiseAlert(knownPosition);
                                 }
 
-                                enemy_Stage_script.currentState = enemy_stage.EnemyState.Alert;
+                                //enemy_Stage_script.currentState = enemy_stage.EnemyState.Alert;
                             }
-                    }
+                        }
 
-                    if (incident == IncidentType.FoundUnconscious)
-                    {
-                        friendStage.currentState = enemy_stage.EnemyState.alertSearching;
-                        enemy_Stage_script.currentState = enemy_stage.EnemyState.alertSearching;
+                        if (incident == IncidentType.FoundUnconscious)
+                        {
+                            friendStage.currentState = enemy_stage.EnemyState.alertSearching;
+                            //enemy_Stage_script.currentState = enemy_stage.EnemyState.alertSearching;
+                        }
+
                     }
-                    
                 }
             }
         }

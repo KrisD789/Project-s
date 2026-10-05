@@ -33,10 +33,13 @@ public class Enemy_Hitbox : MonoBehaviour
         float currentMultiplier = 1.0f;
 
         // 2. เช็กสถานะ Stealth ก่อนเป็นอันดับแรก (โดนตรงไหนก็คูณ ถ้าศัตรูยังไม่รู้ตัว)
-        if (EnemyStateScript != null && EnemyStateScript.baseState == enemy_stage.EnemyState.Patrol)
+        if (EnemyStateScript != null )
         {
-            currentMultiplier *= stealthMultiplier;
-            Debug.Log("STEALTH HIT! โจมตีตอนศัตรูเผลอ x" + stealthMultiplier);
+            if (EnemyStateScript.baseState == enemy_stage.EnemyState.Patrol || EnemyStateScript.baseState == enemy_stage.EnemyState.idle)
+            {
+                currentMultiplier *= stealthMultiplier;
+                Debug.Log("STEALTH HIT! โจมตีตอนศัตรูเผลอ x" + stealthMultiplier);
+            }
         }
 
         // 3. เช็กว่าเป็นจุดอ่อน (Headshot) หรือไม่ 

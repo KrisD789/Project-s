@@ -270,7 +270,7 @@ Transform:
   m_GameObject: {fileID: 3914801127215653067}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.5300003, y: 0.78999996, z: -0.22000033}
+  m_LocalPosition: {x: 1.2300127, y: 0.78999996, z: -0.22000039}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -477,6 +477,48 @@ MonoBehaviour:
   raycastOffset: {x: 0, y: 1, z: 0}
   scanInterval: 0.1
   uiSmoothSpeed: 5
+  lightFalloff:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.9999695
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.26670495
+      value: 0.98785913
+      inSlope: -0.29213825
+      outSlope: -0.29213825
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.6244241
+    - serializedVersion: 3
+      time: 0.6477476
+      value: 0.17007025
+      inSlope: -1.4963386
+      outSlope: -1.4963386
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0.0023956299
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!114 &7540878571123692758
 MonoBehaviour:
   m_ObjectHideFlags: 0

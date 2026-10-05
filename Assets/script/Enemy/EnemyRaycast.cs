@@ -81,8 +81,9 @@ public class EnemyRaycast : MonoBehaviour
 
     void Update()
     {
-        if (Enemy_script.currentState == enemy_stage.EnemyState.dead || Enemy_script.currentState == enemy_stage.EnemyState.faint 
-            || Enemy_script.currentState == enemy_stage.EnemyState.Dummy || Enemy_script.currentState == enemy_stage.EnemyState.OnGrab)
+        if (Enemy_script.currentState == enemy_stage.EnemyState.dead || Enemy_script.currentState == enemy_stage.EnemyState.faint
+            || Enemy_script.currentState == enemy_stage.EnemyState.Dummy || Enemy_script.currentState == enemy_stage.EnemyState.OnGrab
+            || Enemy_script.currentState == enemy_stage.EnemyState.report) // 
             return;
 
         Raycast();
@@ -157,7 +158,10 @@ public class EnemyRaycast : MonoBehaviour
 
             if (Physics.Raycast(EnemyHeadRaycast.position, direction, out RaycastHit hit, viewRadius, combinedMask))
             {
-                if (((1 << hit.collider.gameObject.layer) & obstacleMask) != 0) continue;
+                // ทำให้ประตูสามารถหลุดเข้าไปประมวลผลใน RayCastHit_Process ได้
+                //if (((1 << hit.collider.gameObject.layer) & obstacleMask) != 0 && !hit.collider.CompareTag("Door"))
+                    //continue;
+
                 RayCastHit_Process(direction, hit);
             }
         }
@@ -211,6 +215,7 @@ public class EnemyRaycast : MonoBehaviour
         {
             if (Enemy_script.currentState != enemy_stage.EnemyState.Alert)
             {
+
                 // -- กรณี 1: ยืนเดินปกติ --
                 if (Player_state != null && Player_state.currentState != Player.PlayerState.Crouch)
                 {
@@ -230,7 +235,10 @@ public class EnemyRaycast : MonoBehaviour
                 else if (Player_state != null && Player_state.currentState == Player.PlayerState.Crouch)
                 {
                     // จุดที่ 2: ใช้ crouchTargetPos มาเช็คอีกรอบว่าระดับการหมอบมีลัง/กล่องเตี้ยๆ บังมิดไหม
-                    Vector3 crouchTargetPos = playerObj.transform.position + new Vector3(0, -2f, 0);
+                    Vector3 crouchTargetPos = playerObj.transform.position + new Vector3(0, 0f, 0);
+
+                    // เพิ่มคำสั่งนี้เพื่อวาดเส้นเลเซอร์สีชมพูสว่างๆ ให้เห็นในหน้า Scene
+                    Debug.DrawLine(EnemyHeadRaycast.position, crouchTargetPos, Color.magenta);
 
                     if (!Physics.Linecast(EnemyHeadRaycast.position, crouchTargetPos, obstacleMask))
                     {
@@ -269,8 +277,11 @@ public class EnemyRaycast : MonoBehaviour
             var obj = hit.collider.GetComponent<LightZone>();
             if (obj != null && !obj.lightZoneState)
             {
+                Debug.Log("GetComponent<LightZone>();  Success!!!!!!!!");
                 lightZone = obj;
-                enemy_task_script.AddToTodoList(hit.point, obj, WorkTask.TaskType.Slight);
+
+                // เปลี่ยนเป้าหมายจาก hit.point เป็น obj.transform.position
+                enemy_task_script.AddToTodoList(obj.transform.position, obj, WorkTask.TaskType.Slight);
                 Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
             }
             CheckBehindObject(hit.point + direction * 0.1f, direction, hit);
@@ -293,8 +304,9 @@ public class EnemyRaycast : MonoBehaviour
                     enemy_task_script.AddToTodoList(hit.point, obj, WorkTask.TaskType.TDoor);
                     Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
                 }
-            }
-            CheckBehindObject(hit.point + direction * 0.1f, direction, hit);
+
+                CheckBehindObject(hit.point + direction * 0.1f, direction, hit);
+            } 
         }
     }
 

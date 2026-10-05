@@ -19,14 +19,38 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float damageAmount)
     {
+        if(gameObject.CompareTag("ScamCommander")) return;
+
         Enemy_Health -= damageAmount;
         Debug.Log("ศัตรูโดนยิง! เลือดเหลือ: " + Enemy_Health);
 
         if (Enemy_Health <= 0)
         {
             Debug.Log("ศัตรูตายแล้ว!");
-            enemy_Stage.currentState = enemy_stage.EnemyState.dead;
+            //enemy_Stage.currentState = enemy_stage.EnemyState.dead;
             Die();
+        }
+
+        else
+        {
+            // 1. บังคับเข้าโหมด Alert
+            if (enemy_Stage.currentState != enemy_stage.EnemyState.Alert)
+            {
+                enemy_Stage.currentState = enemy_stage.EnemyState.Alert;
+            }
+
+            if (TryGetComponent<Enemy_Alert>(out Enemy_Alert enemyAlert))
+            {
+                if (Player.Instance != null)
+                {
+                    Vector3 playerPos = Player.Instance.transform.position;
+                    enemyAlert.HandleNoiseAlert(playerPos);
+                    enemyAlert.PointBlankShoot(playerPos);
+
+                    // เพิ่มบรรทัดนี้: โดนยิงปุ๊บ ตะโกนบอกพิกัดให้เพื่อนทั้งแคมป์รู้ทันที!
+                    enemyAlert.Start_TriggerGroupAlert();
+                }
+            }
         }
     }
 
