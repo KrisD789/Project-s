@@ -200,15 +200,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5.764717
+      value: -5.857772
       objectReference: {fileID: 0}
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.6999962
+      value: 10.185227
       objectReference: {fileID: 0}
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -422.35782
+      value: -4.4560547
       objectReference: {fileID: 0}
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalRotation.w
@@ -246,6 +246,10 @@ PrefabInstance:
       propertyPath: m_TagString
       value: ScamCommander
       objectReference: {fileID: 0}
+    - target: {fileID: 2109175066143703119, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
+      propertyPath: uniqueID
+      value: f8f0c9ee-7408-48f5-858b-acdc10e7aeb7
+      objectReference: {fileID: 0}
     - target: {fileID: 2690784582577920843, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -260,11 +264,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7571786209374755954, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: baseState
-      value: 10
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 7571786209374755954, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: currentState
-      value: 10
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -300,7 +304,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7701851084007089138}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a94a62114213f1e4583fd8b2a4a8ac63, type: 3}
   m_Name: 
@@ -309,6 +313,7 @@ MonoBehaviour:
   overrideCloseMission: {fileID: 11400000, guid: 4df2e51f915b96a49a18242355389ca3, type: 2}
   prerequisiteMission: {fileID: 0}
   waypointDisplay: {fileID: 4475514490231277801}
+  myMissionData: {fileID: 0}
 --- !u!114 &9052162231283838320
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -316,7 +321,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7701851084007089138}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43e5744fab9a21c42a8f23c269d0509d, type: 3}
   m_Name: 

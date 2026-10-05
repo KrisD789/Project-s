@@ -6,20 +6,24 @@ using UnityEngine.Rendering.Universal;
 public class scanner : MonoBehaviour
 {
     [Header("Settings")]
-    public ScriptableRendererFeature xRayFeature;
-    public Volume scannerVolume; // ลาก ScannerVolume มาใส่ตรงนี้
-
-    //public TextMeshProUGUI ui;
+    public ScriptableRendererFeature xRayFeature; // ตัวเปิด X-Ray มองทะลุกำแพง
+    public Volume scannerVolume;                  // Volume สำหรับปรับแสงสว่างในที่มืด
 
     private bool isScanning = false;
+    private enemy_stage[] cachedEnemies;
 
     private void Start()
     {
-        //ui = GetComponent<TextMeshProUGUI>();
+        if (xRayFeature != null)
+            xRayFeature.SetActive(false);
 
-        xRayFeature.SetActive(false);
-        scannerVolume.enabled = false;
+        if (scannerVolume != null)
+            scannerVolume.enabled = false;
+
         isScanning = false;
+
+        // แคชรายชื่อศัตรูไว้ตั้งแต่เริ่มฉาก เพื่อความลื่นไหล
+        cachedEnemies = Object.FindObjectsByType<enemy_stage>(FindObjectsSortMode.None);
     }
 
     void Update()
@@ -29,23 +33,29 @@ public class scanner : MonoBehaviour
             isScanning = !isScanning;
             ToggleScanner(isScanning);
         }
-
-        //ui.text = "Scanner: " + (isScanning ? "ON" : "OFF");
-
     }
 
     void ToggleScanner(bool active)
     {
-        // 1. เปิด/ปิด เห็นทะลุกำแพง
+        // 1. เปิด/ปิด การมองเห็นทะลุกำแพง (X-Ray Feature)
         if (xRayFeature != null)
             xRayFeature.SetActive(active);
 
-        // 2. เปิด/ปิด หน้าจอเปลี่ยนสี
+        // 2. เปิด/ปิด โหมดปรับแสงสว่างรอบตัวในที่มืด
         if (scannerVolume != null)
             scannerVolume.enabled = active;
 
-        // 3. (แถม) ใส่เสียงตอนเปิดปิดตรงนี้ได้เลย
+        // 3. สั่งเปิด/ปิด ไฮไลท์ศัตรูทุกตัวที่แคชไว้ทันที
+        if (cachedEnemies != null)
+        {
+            foreach (enemy_stage enemy in cachedEnemies)
+            {
+                if (enemy != null)
+                {
+                    // ตรงนี้สามารถเรียกใช้ฟังก์ชันเปิด/ปิด Material ไฮไลท์ของศัตรูได้ครับ
+                    // เช่น enemy.SetHighlight(active);
+                }
+            }
+        }
     }
-
-
 }

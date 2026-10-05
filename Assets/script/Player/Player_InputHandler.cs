@@ -115,6 +115,9 @@ public class Player_InputHanler : MonoBehaviour
     {
         if (weapon_system == null) return;
 
+        //  ดักไว้ตรงนี้: ถ้าตายแล้ว ห้ามทำอะไรเลยทั้งสิ้น!
+        if (Player.Instance.isDead) return;
+
         // แยกการรับค่า 2 แบบ: การยิง
         // .IsPressed() = เป็น True ตลอดเวลาที่เอานิ้วกดเมาส์ค้างไว้
         bool isHoldingFire = FireAction.action.IsPressed();
@@ -144,6 +147,9 @@ public class Player_InputHanler : MonoBehaviour
     {
         if (player_MoveMent == null) return;
 
+        // ดักเดินและหมุนตัว
+        if (Player.Instance.isDead) return;
+
         Vector2 moveInput = moveAction.action.ReadValue<Vector2>();
         bool isAiming = aimAction.action.IsPressed();
 
@@ -168,6 +174,7 @@ public class Player_InputHanler : MonoBehaviour
 
     public void OnInteract(InputAction.CallbackContext context)
     {
+        if (Player.Instance.isDead) return;
         Debug.Log("interaction!");
         player_action.Interaction();
     }
@@ -179,12 +186,14 @@ public class Player_InputHanler : MonoBehaviour
 
     public void HandleScrollInput(InputAction.CallbackContext context)
     {
+        if (Player.Instance.isDead) return;
         float scrollY = scrollAction.action.ReadValue<Vector2>().y;
         player_MoveMent.SpeedControll(scrollY); 
     }
 
     public void TakeAim(bool HoldAim, bool clickAim)
     {
+        if (Player.Instance.isDead) return;
         // เปลี่ยนจาก player_action.currentState เป็น Player.Instance.currentState
         if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
         {
@@ -201,43 +210,51 @@ public class Player_InputHanler : MonoBehaviour
 
     public void Activate_Primary_Weapon(InputAction.CallbackContext context)
     {
+        if (Player.Instance.isDead) return;
         Debug.Log("เปลี่ยนไปใช้ปืนหลัก!!!!");
         weapon_system.EquipPrimary();
     }
 
     public void Activate_Secondary_Weapon(InputAction.CallbackContext context)
     {
+        if (Player.Instance.isDead) return;
         Debug.Log("เปลี่ยนไปใช้ปืนรอง!!!!");
         weapon_system.EquipSecondary();
     }
 
     public void SwitchFireMode(InputAction.CallbackContext context)
     {
+        if (Player.Instance.isDead) return;
         weapon_system.Switch_FireMode();
     }
 
     public void Reload(InputAction.CallbackContext context)
     {
+        if (Player.Instance.isDead) return;
         weapon_system.Start_Reload();
     }
 
     public void ToggleCrouch(InputAction.CallbackContext context)
     {
+        if (Player.Instance.isDead) return;
         player_action.HandleCrouch();
     }
 
     public void ToggleCameraSwitch(InputAction.CallbackContext context)
     {
+        if (Player.Instance.isDead) return;
         camera_control.SwapShoulder();
     }
 
     public void ToggleUseConsume_Item_1(InputAction.CallbackContext context)
     {
+        if (Player.Instance.isDead) return;
         Player_Inventory.Instance.EquipConsumeItem1();
     }
 
     public void ToggleUseConsume_Item_2(InputAction.CallbackContext context)
     {
+        if (Player.Instance.isDead) return;
         Player_Inventory.Instance.EquipConsumeItem2();
     }
 }

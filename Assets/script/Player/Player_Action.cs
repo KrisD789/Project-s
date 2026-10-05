@@ -168,6 +168,11 @@ public class Player_Action : MonoBehaviour
                     return;
                 }
 
+                if (missionTrigger.Mission_Data.type == MissionType.InteractObject && !missionTrigger.Mission_Data.isCompleted)
+                {
+                    missionTrigger.OnInteractionQuest();
+                }
+
             }
             // ----------------------------------------------
 

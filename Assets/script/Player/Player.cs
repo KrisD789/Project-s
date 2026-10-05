@@ -22,7 +22,8 @@ public class Player : MonoBehaviour
         GrabbingEnemy,
         Crouch,
         Aim,
-        Healing
+        Healing,
+        Dead
     }
 
     [Header("สถานะปัจจุบันของผู้เล่น")]
@@ -92,7 +93,11 @@ public class Player : MonoBehaviour
         currentHP = Mathf.Clamp(currentHP, 0f, currentMaxHP);
 
         Debug.Log($"โดนโจมตี! HP เหลือ: {currentHP} | เกราะเหลือ: {currentArmorDurability}");
-        if (currentHP <= 0) Debug.Log("ผู้เล่นเสียชีวิต!");
+        if (currentHP <= 0 && !isDead)
+        {
+            Die();
+            Debug.Log("ผู้เล่นเสียชีวิต!");
+        }
     }
 
     public void EquipArmor(Armor_Item newArmor)
@@ -118,5 +123,25 @@ public class Player : MonoBehaviour
         currentMaxHP += MaxHpRecovery;
         currentHP = Mathf.Clamp(currentHP, 0f, currentMaxHP);
         currentMaxHP = Mathf.Clamp(currentMaxHP, 1f, MaxHP);
+    }
+
+    private void Die()
+    {
+        isDead = true;
+        currentState = PlayerState.Dead;
+
+        Debug.Log("ผู้เล่นเสียชีวิต! ตัดการควบคุม");
+
+        // 3. สั่งหยุดเวลา และเรียกหน้าต่าง Death Menu
+        Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        // TODO: เรียกเปิด UI Death Menu ของคุณตรงนี้
+        GameMenuManager menuManager = FindAnyObjectByType<GameMenuManager>();
+        if (menuManager != null)
+        {
+            menuManager.ShowDeadMenu();
+        }
     }
 }

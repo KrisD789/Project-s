@@ -61,4 +61,10 @@ public class Enemy : MonoBehaviour
 
         enemy_Stage.ChangeState(enemy_stage.EnemyState.dead);
     }
+
+    public void SetHighlight(bool active)
+    {
+        // ตัวอย่าง: เปิด-ปิด GameObject ลูกที่เป็น Effect ไฮไลท์ หรือเปลี่ยน Material
+        // highlightObject.SetActive(active);
+    }
 }

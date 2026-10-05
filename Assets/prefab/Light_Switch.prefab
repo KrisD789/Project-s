@@ -15,6 +15,8 @@ GameObject:
   - component: {fileID: 8542622393223862795}
   - component: {fileID: 6031739572317794007}
   - component: {fileID: 7229789372496897570}
+  - component: {fileID: 7877723042466269892}
+  - component: {fileID: 4579215348276551432}
   m_Layer: 18
   m_Name: Light_Switch
   m_TagString: Untagged
@@ -367,3 +369,29 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lightZones: []
   lightSW_Status: 1
+--- !u!114 &7877723042466269892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8110369646489784440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c2e7e2d5aee72c429266f0d644b3347, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uniqueID: 
+--- !u!114 &4579215348276551432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8110369646489784440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ecf4438106623f4eb3af0d08c8c0b0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  light_switch_Script: {fileID: 0}
