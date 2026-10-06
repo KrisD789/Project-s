@@ -15,17 +15,13 @@ public class Player : MonoBehaviour
     public Armor_Item currentArmorProfile;
     public float currentArmorDurability;
 
-    public enum PlayerState
-    {
-        Idle,
-        CarryingBody,
-        GrabbingEnemy,
-        Crouch,
-        Aim,
-        Healing,
-        Dead
-    }
+    // หมวดการเคลื่อนไหว (เพิ่มมาใหม่)
+    public enum MovementState { Standing, Crouch }
+    public MovementState currentMovementState = MovementState.Standing;
 
+    // หมวดการกระทำ (ใช้ชื่อเดิม ตัวแปรเดิม แต่ลบ Crouch ออกไป)
+    public enum PlayerState { Idle, CarryingBody, GrabbingEnemy, Aim, Healing, Dead }
+    
     [Header("สถานะปัจจุบันของผู้เล่น")]
     public PlayerState currentState = PlayerState.Idle;
 

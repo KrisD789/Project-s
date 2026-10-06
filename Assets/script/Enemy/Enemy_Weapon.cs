@@ -7,6 +7,7 @@ public class Enemy_Weapon : MonoBehaviour
     private EnemyRaycast enemy_raycast;
     private GameObject Player_Obj;
     private Player player_Script;
+    private Enemy_Alert enemy_alert;
 
     [Header("ตั้งค่าปืน")]
     public float fireRate = 0.5f;     // ความเร็วในการยิง (วินาทีต่อนัด)
@@ -30,6 +31,9 @@ public class Enemy_Weapon : MonoBehaviour
         {
             Debug.Log("!!-----Warning-----!!  Enemy_Weapon  !! Not Found !! Player_Obj!!");
         }
+
+        if(!TryGetComponent<Enemy_Alert>(out enemy_alert)) 
+            Debug.Log("Enemy_Weapon  !!Found ---> Player_Obj!!");
     }
 
     void Update()
@@ -70,6 +74,7 @@ public class Enemy_Weapon : MonoBehaviour
         // 1. เล่นเสียงปืน: AudioSource.PlayClipAtPoint(...)
         // 2. เล่นแสงปลายปืน: muzzleFlash.Play();
         // 3. ส่งดาเมจให้ Player: 
+        //enemy_alert.Start_TriggerGroupAlert();
         if (player_Script != null) player_Script.Player_TakeDamage(weaponDamage);
     }
 }

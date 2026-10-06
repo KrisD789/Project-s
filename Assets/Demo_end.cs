@@ -35,7 +35,7 @@ public class Demo_end : MonoBehaviour
             }
 
             // 1. หยุดเวลาในเกม
-            Time.timeScale = 0f;
+            //Time.timeScale = 0f;
 
             // 2. ปลดล็อกเมาส์ และโชว์เคอร์เซอร์ เพื่อให้ผู้เล่นกด UI ได้
             Cursor.lockState = CursorLockMode.None;

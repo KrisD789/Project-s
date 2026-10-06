@@ -150,9 +150,10 @@ public class Player_moveMent : MonoBehaviour
             maxState = -1;
         }
         
-        if (Player.Instance.currentState == Player.PlayerState.Crouch ||
+        if (Player.Instance.currentMovementState == Player.MovementState.Crouch ||
             Player.Instance.currentState == Player.PlayerState.CarryingBody ||
-            Player.Instance.currentState == Player.PlayerState.Aim)
+            Player.Instance.currentState == Player.PlayerState.Aim ||
+            Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
         {
             maxState = 0;
         }
@@ -184,7 +185,16 @@ public class Player_moveMent : MonoBehaviour
 
         if (actualVelocity.magnitude > 0.1f)
         {
-            float speedNormalized = Mathf.InverseLerp(3f, 10f, speed);
+            // --- เพิ่มตรงนี้: สร้างตัวแปรจำลองความเร็วตั้งต้น เพื่อใช้คำนวณเสียงโดยเฉพาะ ---
+            float baseSpeedForNoise = 0f;
+            if (playerState == 0) baseSpeedForNoise = 4f;
+            else if (playerState == 1) baseSpeedForNoise = 6f;
+            else if (playerState == 2) baseSpeedForNoise = 10f;
+            else if (playerState == -1) baseSpeedForNoise = 3f;
+            else if (playerState == -2) baseSpeedForNoise = 1f;
+
+            // ใช้ baseSpeedForNoise (ความเร็วที่ยังไม่โดนเกราะถ่วง) มาคำนวณหลอดเสียงแทน
+            float speedNormalized = Mathf.InverseLerp(3f, 10f, baseSpeedForNoise);
             targetRadius = Mathf.Lerp(minNoiseRadius, maxNoiseRadius, speedNormalized);
         }
         else

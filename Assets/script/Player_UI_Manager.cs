@@ -47,7 +47,7 @@ public class Player_UI_Manager : MonoBehaviour
         if (Player_Script != null)
         {
             Player_Health.text = "Health: " + Player_Script.currentHP.ToString() + " / " + Player_Script.MaxHP;
-            Player_armor.text = Player_Script.currentArmorDurability.ToString();
+            Player_armor.text = Player_Script.currentArmorProfile.name + ": " + Player_Script.currentArmorDurability.ToString();
         }
 
         if (LightDetect.Instance != null && lightCircleUI != null)

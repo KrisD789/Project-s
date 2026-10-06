@@ -15,6 +15,7 @@ public enum MissionType
     Extraction // หนีออกจากพื้นที่
 }
 
+
 public class MissionManager : MonoBehaviour
 {
     public static MissionManager Instance;
@@ -22,6 +23,9 @@ public class MissionManager : MonoBehaviour
 
     // 1. สร้างช่องทางประกาศข่าว (ส่งไฟล์ MissionData ไปกับข่าวด้วย)
     public event Action<MissionData> OnMissionComplete;
+
+    [Tooltip("ใส่เลขด่านนี้เพื่อให้ระบบรู้ว่าต้องปลดล็อกด่านถัดไปคือด่านไหน")]
+    public int currentLevelIndex = 1;
 
     private void Awake()
     {
@@ -46,6 +50,12 @@ public class MissionManager : MonoBehaviour
 
             // 2. ประกาศข่าวออกไป! ว่าเควสต์นี้สำเร็จแล้ว (ถ้ามีคนรอฟังอยู่)
             OnMissionComplete?.Invoke(incomingMission);
+        }
+
+        //  เพิ่มเงื่อนไขตรงนี้: ถ้าภารกิจที่เพิ่งเสร็จคือจุดหนี (Extraction) ให้จบด่านทันที
+        if (incomingMission.type == MissionType.Extraction)
+        {
+            FinishLevelSequence();
         }
     }
 
@@ -99,4 +109,21 @@ public class MissionManager : MonoBehaviour
         }
         return true;
     }
+    
+    public void FinishLevelSequence()
+    {
+        Debug.Log("จบด่าน! กำลังส่งข้อมูลให้ Scene_Manager ดำเนินการต่อ...");
+
+        Scene_Manager sceneManager = FindAnyObjectByType<Scene_Manager>();
+
+        if (sceneManager != null)
+        {
+            sceneManager.CompleteMission(currentLevelIndex);
+        }
+        else
+        {
+            Debug.LogError("หา Scene_Manager ไม่เจอในฉากนี้! โปรดตรวจสอบว่ามี GameObject ที่ติดสคริปต์นี้อยู่หรือไม่");
+        }
+    }
+
 }

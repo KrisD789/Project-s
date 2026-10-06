@@ -466,7 +466,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   light_meter: 0
-  UI: {fileID: 0}
   radarRadius: 15
   lightLayer:
     serializedVersion: 2
@@ -490,8 +489,8 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.26670495
-      value: 0.98785913
+      time: 0.20837161
+      value: 0.985475
       inSlope: -0.29213825
       outSlope: -0.29213825
       tangentMode: 0
@@ -499,14 +498,14 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.6244241
     - serializedVersion: 3
-      time: 0.6477476
-      value: 0.17007025
-      inSlope: -1.4963386
-      outSlope: -1.4963386
+      time: 0.651902
+      value: 0.15337713
+      inSlope: -0.9640968
+      outSlope: -0.9640968
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.33333334
+      outWeight: 0.2261063
     - serializedVersion: 3
       time: 1
       value: 0.0023956299
@@ -519,6 +518,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  currentBrightness: 0
 --- !u!114 &7540878571123692758
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -648,6 +648,7 @@ MonoBehaviour:
   isDead: 0
   currentArmorProfile: {fileID: 0}
   currentArmorDurability: 0
+  currentMovementState: 0
   currentState: 0
   OnDark: 0
   action: {fileID: 0}

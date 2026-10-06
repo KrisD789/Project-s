@@ -65,7 +65,7 @@ public class LightDetect : MonoBehaviour
         Vector3 currentOffset = raycastOffset;
 
         // 2. ดักเช็กสถานะ ถ้าผู้เล่นกำลังนั่งยอง ให้โหลดจุดรับแสงต่ำลงมา
-        if (Player.Instance != null && Player.Instance.currentState == Player.PlayerState.Crouch)
+        if (Player.Instance != null && Player.Instance.currentMovementState == Player.MovementState.Crouch)
         {
             // ปรับระดับการยิงเลเซอร์ตอนนั่ง (ลองปรับค่า 0.4f ดูถ้ามันยังสูงหรือต่ำไป)
             currentOffset = new Vector3(0, 0f, 0);

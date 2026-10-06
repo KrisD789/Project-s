@@ -421,12 +421,12 @@ public class Enemy_Alert : MonoBehaviour
                 Debug.Log("AI flank");
                 Alert_CurrentBehavior = AlertBehave.flank;
             }
-            else if (chance <= 60f)
-            {
+            //else if (chance <= 60f)
+            //{
 
-                Debug.Log("AI cover");
-                Alert_CurrentBehavior = AlertBehave.cover;
-            }
+                //Debug.Log("AI cover");
+                //Alert_CurrentBehavior = AlertBehave.cover;
+            //}
             else if (chance <= 80)
             {
                 Debug.Log("AI chasePlayer_keepDist");

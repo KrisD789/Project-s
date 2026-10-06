@@ -29,7 +29,7 @@ public class PlayerAnimator : MonoBehaviour
 
         if (Player.Instance != null)
         {
-            anim.SetBool("isCrouching", Player.Instance.currentState == Player.PlayerState.Crouch);
+            anim.SetBool("isCrouching", Player.Instance.currentMovementState == Player.MovementState.Crouch);
             anim.SetBool("isCarrying", Player.Instance.currentState == Player.PlayerState.CarryingBody);
         }
     }

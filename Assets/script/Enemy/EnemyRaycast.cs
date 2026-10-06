@@ -217,14 +217,15 @@ public class EnemyRaycast : MonoBehaviour
             {
 
                 // -- กรณี 1: ยืนเดินปกติ --
-                if (Player_state != null && Player_state.currentState != Player.PlayerState.Crouch)
+                if (Player_state != null && Player.Instance.currentMovementState == Player.MovementState.Standing)
                 {
-                    if (P_Light_detect != null && P_Light_detect.light_meter >= 70)
+                    if (P_Light_detect != null && P_Light_detect.light_meter >= 60)
                     {
+                        enemt_alert_Script.Start_TriggerGroupAlert();
                         Enemy_script.currentState = enemy_stage.EnemyState.Alert;
                         foundPlayer = true;
                     }
-                    else if (P_Light_detect != null && P_Light_detect.light_meter >= 50)
+                    else if (P_Light_detect != null && P_Light_detect.light_meter >= 40)
                     {
                         Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
                         Enemy_Investigate_script.searcingLastHearPosition(playerObj.transform.position);
@@ -232,7 +233,7 @@ public class EnemyRaycast : MonoBehaviour
                     }
                 }
                 // -- กรณี 2: ผู้เล่นนั่งหมอบ (Crouch) --
-                else if (Player_state != null && Player_state.currentState == Player.PlayerState.Crouch)
+                else if (Player_state != null && Player.Instance.currentMovementState == Player.MovementState.Crouch)
                 {
                     // จุดที่ 2: ใช้ crouchTargetPos มาเช็คอีกรอบว่าระดับการหมอบมีลัง/กล่องเตี้ยๆ บังมิดไหม
                     Vector3 crouchTargetPos = playerObj.transform.position + new Vector3(0, 0f, 0);
@@ -243,12 +244,13 @@ public class EnemyRaycast : MonoBehaviour
                     if (!Physics.Linecast(EnemyHeadRaycast.position, crouchTargetPos, obstacleMask))
                     {
                         // ถ้าไม่มีอะไรบังตอนหมอบ ก็มาเช็คแสงต่อ
-                        if (P_Light_detect != null && P_Light_detect.light_meter >= 70)
+                        if (P_Light_detect != null && P_Light_detect.light_meter >= 60)
                         {
+                            enemt_alert_Script.Start_TriggerGroupAlert();
                             Enemy_script.currentState = enemy_stage.EnemyState.Alert;
                             foundPlayer = true;
                         }
-                        else if (P_Light_detect != null && P_Light_detect.light_meter >= 50)
+                        else if (P_Light_detect != null && P_Light_detect.light_meter >= 40)
                         {
                             Enemy_script.currentState = enemy_stage.EnemyState.Investigate;
                             //foundPlayer = true;
