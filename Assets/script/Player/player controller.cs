@@ -14,7 +14,7 @@ public class Player_moveMent : MonoBehaviour
     public float turnSpeed = 15f;
 
     [Header("สถานะการควบคุม")]
-    public bool canMove = true; // สวิตช์เปิดปิดการขยับและหมุน
+    public bool canMove = true;
 
     Rigidbody rb;
     Transform camTransform;
@@ -35,20 +35,17 @@ public class Player_moveMent : MonoBehaviour
         setCollider();
     }
 
-    // ฟังก์ชันสั่งล็อกการเดินและการหมุนแบบ 100%
     public void SetMovementLock(bool isLocked)
     {
         Debug.Log("SetMovementLock in Player controller.cs !!!!! Activate !!!!!");
         canMove = !isLocked;
         if (isLocked)
         {
-            // หยุดความเร็วเดิน และหยุดความเร็วหมุน (กันผู้เล่นไถลหรือหมุนค้าง)
             rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
             rb.angularVelocity = Vector3.zero;
         }
     }
 
-    // ฟังก์ชันส่งความเร็วจริงไปให้ PlayerAnimator
     public float GetCurrentVelocity()
     {
         Vector3 actualVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
@@ -57,7 +54,6 @@ public class Player_moveMent : MonoBehaviour
 
     public void MoveAndRotate(Vector2 moveInput, bool isAiming)
     {
-        // ถ้าระบบโดนล็อกอยู่ ให้ออกจากการคำนวณเดินและการหมุนทันที
         if (!canMove) return;
 
         float H = moveInput.x;
@@ -82,10 +78,38 @@ public class Player_moveMent : MonoBehaviour
             moveDir = new Vector3(H, 0, V).normalized;
         }
 
-        Vector3 velocity = moveDir * speed;
-        velocity.y = rb.linearVelocity.y;
-        rb.linearVelocity = velocity;
+        // --- ระบบอัตราเร่ง และผลกระทบจากเกราะ ---
+        float armorAccelModifier = 1f;
+        if (Player.Instance != null && Player.Instance.currentArmorProfile != null)
+        {
+            armorAccelModifier = Player.Instance.currentArmorProfile.Movement_Speed_Multiplier;
+        }
 
+        float accelerationRate = 10f;
+
+        if (isAiming)
+        {
+            // เล็งปืน: ตอบสนองทันที 100% ไม่สนน้ำหนักเกราะ
+            accelerationRate = 50f;
+        }
+        else if (playerState <= 0)
+        {
+            // ย่อง/เดิน/นั่งยอง: ออกตัวไวขึ้นเพื่อความแม่นยำในการตามศัตรู
+            accelerationRate = 25f * armorAccelModifier;
+        }
+        else
+        {
+            // วิ่ง/Sprint: แสดงน้ำหนักและความหนืดของเกราะอย่างเต็มที่
+            accelerationRate = 10f * armorAccelModifier;
+        }
+
+        // คำนวณความเร็วเป้าหมาย และใช้ Lerp ปรับความเร็วจริง
+        Vector3 targetVelocity = moveDir * speed;
+        targetVelocity.y = rb.linearVelocity.y;
+
+        rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, targetVelocity, Time.fixedDeltaTime * accelerationRate);
+
+        // --- ระบบหมุนตัว ---
         if (isAiming)
         {
             if (camTransform != null)
@@ -119,23 +143,38 @@ public class Player_moveMent : MonoBehaviour
 
     void setSpeedPlayer()
     {
-        int maxState = 2; // สภาพปกติวิ่งได้เร็วสุดที่ State 2 (Speed = 8)
-
-        // ดึงสถานะมาจากสคริปต์ Player หลักโดยตรง
-        if (Player.Instance.currentState == Player.PlayerState.Crouch ||
-            Player.Instance.currentState == Player.PlayerState.CarryingBody)
+        int maxState = 2;
+        //  เพิ่มเงื่อนไขดักตอนฮีล ให้เดินช้ามากๆ (ล็อกเพดานไว้ที่โหมดย่อง State -1)
+        if (Player.Instance.currentState == Player.PlayerState.Healing)
         {
-            maxState = 0; // ถ้านั่งยองหรือแบกศพ เพดานความเร็วจะถูกล็อกไว้ที่ระดับกลาง (State 0)
+            maxState = -1;
+        }
+        
+        if (Player.Instance.currentState == Player.PlayerState.Crouch ||
+            Player.Instance.currentState == Player.PlayerState.CarryingBody ||
+            Player.Instance.currentState == Player.PlayerState.Aim)
+        {
+            maxState = 0;
         }
 
-        // แคลมป์ค่า playerState เพื่อป้องกันไม่ให้เกิน maxState
         playerState = Mathf.Clamp(playerState, -2, maxState);
 
-        if (playerState == 0) speed = 4f;
-        else if (playerState == 1) speed = 6f;
-        else if (playerState == 2) speed = 8f;
-        else if (playerState == -1) speed = 3f;
-        else if (playerState == -2) speed = 1f;
+        // คำนวณความเร็วตั้งต้น
+        float baseSpeed = 0f;
+        if (playerState == 0) baseSpeed = 4f;
+        else if (playerState == 1) baseSpeed = 6f;
+        else if (playerState == 2) baseSpeed = 10f;
+        else if (playerState == -1) baseSpeed = 3f;
+        else if (playerState == -2) baseSpeed = 1f;
+
+        // คำนวณผลกระทบของเกราะต่อความเร็วสูงสุด
+        float armorSpeedModifier = 1f;
+        if (Player.Instance != null && Player.Instance.currentArmorProfile != null)
+        {
+            armorSpeedModifier = Player.Instance.currentArmorProfile.Movement_Speed_Multiplier;
+        }
+
+        speed = baseSpeed * armorSpeedModifier;
     }
 
     void setCollider()

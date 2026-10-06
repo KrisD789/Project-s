@@ -89,6 +89,9 @@ public class Player_Action : MonoBehaviour
                     if (target_body.currentState == enemy_stage.EnemyState.dead || target_body.currentState == enemy_stage.EnemyState.faint)
                     {
                         NearbyBody = target_body.gameObject;
+
+                        // --- เพิ่มตรงนี้: ให้ศพ/คนสลบ กลายเป็นเป้าหมาย Interact ได้ด้วย ---
+                        currentInteractableTarget = target_body.gameObject;
                     }
                     else
                     {
@@ -155,24 +158,31 @@ public class Player_Action : MonoBehaviour
         if (currentInteractableTarget != null)
         {
             print("currentInteractableTarget != null");
-            // --- ส่วนที่เพิ่มใหม่ (2): ตรวจจับ Mission Trigger ---
+            
+            // --- ส่วนที่เพิ่มใหม่: ตรวจจับ Mission Trigger (รวมถึงศพที่มี MissionTrigger แปะอยู่) ---
             if (currentInteractableTarget.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
             {
-                print("if (currentInteractableTarget.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))");
-                // ถ้าเป็นเควสแบบกดค้าง (InteractObject) และยังไม่ผ่าน
+                print("เจอ MissionTrigger!");
+                
+                // สำหรับเควส Hack
                 if (missionTrigger.Mission_Data.type == MissionType.Hack && !missionTrigger.Mission_Data.isCompleted)
                 {
-                    missionTrigger.startHackQuest(); // เรียกให้เวลาเริ่มเดิน
-                    activeQuestTrigger = missionTrigger; // จดจำเครื่องนี้เอาไว้ เพื่อรอกดยกเลิก
+                    missionTrigger.startHackQuest(); 
+                    activeQuestTrigger = missionTrigger; 
                     Debug.Log("เริ่มแฮ็กระบบ!");
                     return;
                 }
 
-                if (missionTrigger.Mission_Data.type == MissionType.InteractObject && !missionTrigger.Mission_Data.isCompleted)
+                // สำหรับเควสกดยืนยันปกติ (และเควสจับกุมตัว)
+                // *หมายเหตุ: เปลี่ยนมาใช้เป็น MissionType.CaptureTarget หรือ InteractObject ก็ได้
+                if ((missionTrigger.Mission_Data.type == MissionType.InteractObject || missionTrigger.Mission_Data.type == MissionType.CaptureTarget) 
+                    && !missionTrigger.Mission_Data.isCompleted) 
                 {
                     missionTrigger.OnInteractionQuest();
+                    Debug.Log("ทำภารกิจสำเร็จ!");
+                    // ถ้าจับกุมสำเร็จ ไม่อยากให้อุ้มศพต่อ ก็ Return ตรงนี้เลยได้ครับ
+                    return; 
                 }
-
             }
             // ----------------------------------------------
 
@@ -247,6 +257,15 @@ public class Player_Action : MonoBehaviour
                     Target_grabbedEnemy.currentState = enemy_stage.EnemyState.OnGrab;
                 }
 
+                if (grabbedEnemy.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
+                {
+                    if (missionTrigger.Mission_Data.type == MissionType.InteractObject && !missionTrigger.Mission_Data.isCompleted)
+                    {
+                        missionTrigger.OnInteractionQuest();
+                        Debug.Log("ล็อคคอเป้าหมาย! ภารกิจจับกุมสำเร็จทันที");
+                    }
+                }
+
                 foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
                 {
                     col.enabled = false;
@@ -277,6 +296,8 @@ public class Player_Action : MonoBehaviour
             if (grabbedEnemy.CompareTag("ScamCommander"))
             {
                 Debug.Log("เป้าหมายสำคัญ (ScamCommander)! ระบบไม่อนุญาตให้ฆ่า บังคับทำให้สลบแทน");
+
+                NotificationManager.Instance.ShowNotification("<color=red>คำเตือน!</color> เป้าหมายสำคัญ(ScamCommander)!ไม่อนุญาตให้ฆ่า บังคับทำให้(KnockOut)สลบแทน");
 
                 // บังคับเปลี่ยนสเตตัสเป็นสลบ (faint) แทนการตาย
                 return;

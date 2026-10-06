@@ -40,7 +40,7 @@ public class SaveManager : MonoBehaviour
             return;
         }
 
-        SaveData data = new SaveData(); 
+        SaveData data = new SaveData();
         string saveFilePath = GetSavePath(fileName);
 
         // บันทึกเวลาปัจจุบันลงไปด้วย เผื่อเอาไปโชว์หน้า UI
@@ -49,31 +49,41 @@ public class SaveManager : MonoBehaviour
         data.currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
 
         // 1. กวาดหาของทุกชิ้นที่มี SaveableEntity แปะอยู่ในฉาก
-        SaveableEntity[] allEntities = Object.FindObjectsByType<SaveableEntity>(FindObjectsSortMode.None); 
+        SaveableEntity[] allEntities = Object.FindObjectsByType<SaveableEntity>(FindObjectsSortMode.None);
 
         // 2. ลูปเข้าไปดูทีละชิ้น
-        foreach (SaveableEntity entity in allEntities) 
+        foreach (SaveableEntity entity in allEntities)
         {
-            Isaveable saveable = entity.GetComponent<Isaveable>(); 
+            Isaveable saveable = entity.GetComponent<Isaveable>();
 
             // 3. ถ้าของชิ้นนั้นมีสคริปต์เซ็นสัญญา ISaveable อยู่ด้วย
-            if (saveable != null) 
+            if (saveable != null)
             {
                 // ดึงรหัส ID และ ข้อมูล ยัดเก็บลงกล่อง SaveData
-                data.savedObjectIDs.Add(saveable.GetSaveID()); 
-                data.savedObjectStates.Add(saveable.SaveState()); 
+                data.savedObjectIDs.Add(saveable.GetSaveID());
+                data.savedObjectStates.Add(saveable.SaveState());
             }
         }
 
         // 4. แปลงข้อมูลทั้งหมดเป็น JSON แล้วเขียนลงไฟล์
-        string json = JsonUtility.ToJson(data, true); 
-        File.WriteAllText(saveFilePath, json); 
+        string json = JsonUtility.ToJson(data, true);
+        File.WriteAllText(saveFilePath, json);
 
-        // 5. แชะภาพหน้าจอเซฟไว้คู่กัน โดยเปลี่ยนนามสกุลจาก .json เป็น .png
+        //  5. เปลี่ยนแปลงการถ่ายภาพ: ใช้ Coroutine แทนการเรียกตรงๆ 
         string imagePath = saveFilePath.Replace(".json", ".png");
-        ScreenCapture.CaptureScreenshot(imagePath); 
+        StartCoroutine(CaptureScreenshotSafe(imagePath));
 
         Debug.Log($"<color=green>เซฟเกมในชื่อ {fileName} สำเร็จ!</color>\nพิกัดไฟล์: {saveFilePath}");
+    }
+
+    //  เพิ่มฟังก์ชัน Coroutine ตัวนี้เข้าไปในคลาส SaveManager 
+    private System.Collections.IEnumerator CaptureScreenshotSafe(string path)
+    {
+        // หัวใจสำคัญ: รอให้ Unity เรนเดอร์กราฟิกของเฟรมนี้ให้เสร็จสมบูรณ์ก่อน
+        yield return new WaitForEndOfFrame();
+
+        // ค่อยถ่ายภาพ จะทำให้ได้ภาพที่สมบูรณ์และไม่ทำให้เกมกระตุก
+        ScreenCapture.CaptureScreenshot(path);
     }
 
 

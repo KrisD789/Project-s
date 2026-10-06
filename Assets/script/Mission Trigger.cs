@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Linq.Expressions;
 using UnityEngine;
 
@@ -55,6 +56,8 @@ public class MissionTrigger : MonoBehaviour
                     gameObject.SetActive(false);
                 }
                 break;
+
+
         }
     }
 
@@ -73,8 +76,10 @@ public class MissionTrigger : MonoBehaviour
     {
         timer += Time.deltaTime;
         print("Hacking" + timer);
+        NotificationManager.Instance.ShowNotification("Hacking: " + timer);
         if (timer >= Max_timer)
         {
+            NotificationManager.Instance.ShowNotification("Hacking: <color=green> Complete </color>" );
             MissionManager.Instance.OnMissionEventReceived(Mission_Data);
             timer = 0;
             cancel_HackQuest();

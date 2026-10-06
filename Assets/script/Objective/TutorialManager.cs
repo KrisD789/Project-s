@@ -8,7 +8,8 @@ public class TutorialManager : MonoBehaviour
 
     [Header("UI Elements")]
     public GameObject tutorialPanel;
-    public Image tutorialImage;
+    public Image tutorialImage;   // กรอบรูปที่ 1
+    public Image tutorialImage2;  // กรอบรูปที่ 2 
     public TextMeshProUGUI tutorialText;
 
     private void Awake()
@@ -22,31 +23,26 @@ public class TutorialManager : MonoBehaviour
     }
 
     // ฟังก์ชันรับทั้งข้อความและรูปภาพ
-    public void ShowTutorial(string message, Sprite imageSprite)
+    public void ShowTutorial(Sprite img1, Sprite img2, string message)
     {
-        if (tutorialPanel == null) return;
-
-        // 1. เซตข้อความ
-        if (tutorialText != null) tutorialText.text = message;
-
-        // 2. เซตรูปภาพ (ถ้ามีรูปก็โชว์ ถ้าไม่มีก็ซ่อนกรอบรูปไปเลย)
+        // ใส่รูปที่ 1 และซ่อนกรอบถ้าไม่มีรูป
         if (tutorialImage != null)
         {
-            if (imageSprite != null)
-            {
-                tutorialImage.sprite = imageSprite;
-                tutorialImage.gameObject.SetActive(true);
-            }
-            else
-            {
-                tutorialImage.gameObject.SetActive(false);
-            }
+            tutorialImage.sprite = img1;
+            tutorialImage.gameObject.SetActive(img1 != null);
         }
 
-        // 3. เปิดหน้าต่าง
-        tutorialPanel.SetActive(true);
+        // ใส่รูปที่ 2 และซ่อนกรอบถ้าไม่มีรูป
+        if (tutorialImage2 != null)
+        {
+            tutorialImage2.sprite = img2;
+            tutorialImage2.gameObject.SetActive(img2 != null);
+        }
 
-        // 4. หยุดเวลาและเปิดเมาส์ให้กดปุ่มปิดได้
+        if (tutorialText != null) tutorialText.text = message;
+
+        if (tutorialPanel != null) tutorialPanel.SetActive(true);
+
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;

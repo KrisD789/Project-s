@@ -373,6 +373,12 @@ public class Weapon_system : MonoBehaviour
         // 2. เช็กว่าปืนใส่ที่เก็บเสียงหรือไม่ เพื่อกำหนดความกว้างของรัศมี
         float currentNoiseRadius = currentWeapon.noiseLevel;
 
+        //  ส่งข้อมูลไปให้ UI 
+        if (NoiseMeterUI.Instance != null)
+        {
+            NoiseMeterUI.Instance.RegisterGunshot(currentNoiseRadius);
+        }
+
         // 3. กางวงกลมหาศัตรูในระยะ (ใช้ LayerMask ของศัตรู เพื่อความรวดเร็วในการประมวลผล)
         int enemyLayer = LayerMask.GetMask("enemy");
         Collider[] enemiesInHearingRange = Physics.OverlapSphere(soundOrigin, currentNoiseRadius, enemyLayer);
@@ -384,7 +390,8 @@ public class Weapon_system : MonoBehaviour
             {
                 // ดักความปลอดภัย: ถ้าเป็นศพหรือสลบอยู่ ให้ข้ามไปเลย! (ศพจะได้ไม่เด้งตื่นเพราะเสียงปืน)
                 if (enemyAI.currentState == enemy_stage.EnemyState.dead ||
-                    enemyAI.currentState == enemy_stage.EnemyState.faint)
+                    enemyAI.currentState == enemy_stage.EnemyState.faint ||
+                    enemyAI.currentState == enemy_stage.EnemyState.Dummy)
                 {
                     continue;
                 }

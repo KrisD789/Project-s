@@ -7,7 +7,7 @@ public class LightDetect : MonoBehaviour
 
     [Header("UI & Output")]
     public float light_meter = 0;
-    public TextMeshProUGUI UI;
+    //public TextMeshProUGUI UI;
 
     [Header("Detection Settings")]
     public float radarRadius = 15f;
@@ -27,7 +27,7 @@ public class LightDetect : MonoBehaviour
     private Collider[] lightsInRange = new Collider[20];
     private float timer = 0f;
     private float targetBrightness = 0f;
-    private float currentBrightness = 0f;
+    public float currentBrightness = 0f;
 
     private void Awake()
     {
@@ -46,15 +46,15 @@ public class LightDetect : MonoBehaviour
         currentBrightness = Mathf.Lerp(currentBrightness, targetBrightness, Time.deltaTime * uiSmoothSpeed);
         light_meter = Mathf.RoundToInt(currentBrightness * 100f);
 
-        ui_Update();
+        //ui_Update();
     }
 
     void ui_Update()
     {
-        if (UI != null)
-        {
-            UI.text = "(..!..) " + light_meter.ToString("f1");
-        }
+        //if (UI != null)
+        //{
+            //UI.text = "(..!..) " + light_meter.ToString("f1");
+        //}
     }
 
     void CalculateLight()

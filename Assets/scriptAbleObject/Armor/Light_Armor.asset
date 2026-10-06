@@ -18,5 +18,5 @@ MonoBehaviour:
   itemPrefab: {fileID: 0}
   Max_Armor_Durability: 100
   Armor_Block_Percentage: 0.3
-  Movement_Speed_Multiplier: 1
+  Movement_Speed_Multiplier: 1.1
   Noise_Multiplier: 1
