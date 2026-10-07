@@ -181,6 +181,7 @@ public class EnemyRaycast : MonoBehaviour
 
             case enemy_stage.EnemyState.Investigate:
                 CheckEnvironment(hit, direction);
+                CheckPlayerPresence(hit, direction);
                 break ;
 
             case enemy_stage.EnemyState.alertSearching:
