@@ -138,7 +138,7 @@ public class Player_moveMent : MonoBehaviour
         if (ScrollValue > 0f) playerState++;
         else if (ScrollValue < 0f) playerState--;
 
-        playerState = Mathf.Clamp(playerState, -1, 2);
+        playerState = Mathf.Clamp(playerState, -2, 2);
     }
 
     void setSpeedPlayer()
@@ -162,11 +162,11 @@ public class Player_moveMent : MonoBehaviour
 
         // คำนวณความเร็วตั้งต้น
         float baseSpeed = 0f;
-        if (playerState == 0) baseSpeed = 4f;
+        if (playerState == 0) baseSpeed = 5f;
         else if (playerState == 1) baseSpeed = 6f;
         else if (playerState == 2) baseSpeed = 10f;
-        else if (playerState == -1) baseSpeed = 3f;
-        else if (playerState == -2) baseSpeed = 1f;
+        else if (playerState == -1) baseSpeed = 4f;
+        else if (playerState == -2) baseSpeed = 2f;
 
         // คำนวณผลกระทบของเกราะต่อความเร็วสูงสุด
         float armorSpeedModifier = 1f;
@@ -188,13 +188,13 @@ public class Player_moveMent : MonoBehaviour
             // --- เพิ่มตรงนี้: สร้างตัวแปรจำลองความเร็วตั้งต้น เพื่อใช้คำนวณเสียงโดยเฉพาะ ---
             float baseSpeedForNoise = 0f;
             if (playerState == 0) baseSpeedForNoise = 4f;
-            else if (playerState == 1) baseSpeedForNoise = 6f;
+            else if (playerState == 1) baseSpeedForNoise = 8f;
             else if (playerState == 2) baseSpeedForNoise = 10f;
             else if (playerState == -1) baseSpeedForNoise = 3f;
             else if (playerState == -2) baseSpeedForNoise = 1f;
 
             // ใช้ baseSpeedForNoise (ความเร็วที่ยังไม่โดนเกราะถ่วง) มาคำนวณหลอดเสียงแทน
-            float speedNormalized = Mathf.InverseLerp(3f, 10f, baseSpeedForNoise);
+            float speedNormalized = Mathf.InverseLerp(1f, 10f, baseSpeedForNoise); //********************************************//
             targetRadius = Mathf.Lerp(minNoiseRadius, maxNoiseRadius, speedNormalized);
         }
         else

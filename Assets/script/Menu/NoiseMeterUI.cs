@@ -37,10 +37,11 @@ public class NoiseMeterUI : MonoBehaviour
             // ดึงโหมดที่ผู้เล่นเลือกไว้ (จากการกลิ้งเมาส์) มาแสดงผลทันที ไม่ต้องสนว่ายืนนิ่งหรือเดินอยู่
             int pState = Player.Instance.movement.playerState;
 
-            if (pState == 2) currentModeName = "SPRINT MODE";
-            else if (pState == 1) currentModeName = "RUN MODE";
-            else if (pState == 0) currentModeName = "WALK MODE";
-            else currentModeName = "SNEAK MODE";
+            if (pState == 2) currentModeName = "SPRINT";
+            else if (pState == 1) currentModeName = "RUN";
+            else if (pState == 0) currentModeName = "WALK";
+            else if (pState == -1) currentModeName = "Stalk";
+            else if (pState == -2) currentModeName = "SNEAK";
         }
 
         // เช็กว่าเกจเสียงสูงกว่าปกติหรือไม่ (เช่น เพิ่งยิงปืน)
@@ -57,7 +58,9 @@ public class NoiseMeterUI : MonoBehaviour
         // อัปเดต UI หลอดเสียง
         if (noiseSlider != null)
         {
-            float noisePercent = Mathf.Clamp01(currentVisualNoise / maxNoiseRadius);
+            // ใช้ InverseLerp ช่วยเกลี่ยค่า โดยดึงค่า minNoiseRadius มาจาก Player.Instance
+            float minNoise = (Player.Instance != null && Player.Instance.movement != null) ? Player.Instance.movement.minNoiseRadius : 0f;
+            float noisePercent = Mathf.InverseLerp(minNoise, maxNoiseRadius, currentVisualNoise);
             noiseSlider.value = noisePercent;
 
             if (fillImage != null)

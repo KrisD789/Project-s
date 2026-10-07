@@ -404,10 +404,18 @@ public class Weapon_system : MonoBehaviour
                         // กรณีปืนเก็บเสียง: ถ้ายังไม่รู้ตัว ให้เปลี่ยนแค่สถานะสงสัย (Investigate)
                         if (enemyAI.currentState != enemy_stage.EnemyState.Alert)
                         {
+                            Debug.Log("if (enemyAI.currentState != enemy_stage.EnemyState.Alert)");
                             enemyAI.currentState = enemy_stage.EnemyState.Investigate;
+
+                            //  แก้ตรงนี้: ดึงสคริปต์ Investigate มาใช้งานแทน Alert 
+                            if (hitCollider.TryGetComponent<Enemy_Investigate>(out Enemy_Investigate enemyInvestigate))
+                            {
+                                enemyInvestigate.searcingLastHearPosition(soundOrigin);
+                            }
                         }
-                        enemyAlert.HandleNoiseAlert(soundOrigin);
+                       
                     }
+
                     else
                     {
                         // กรณีปืนเสียงดังลั่น: รู้เลยว่าโดนบุก! บังคับเข้าโหมด Alert ทันที

@@ -199,7 +199,15 @@ public class EnemyInteraction : MonoBehaviour
         // จัดการเรื่องเสียงรบกวน
         if (col.CompareTag("Noi"))
         {
-            //enemy_task.ClearAllTasks();
+            // ดึงค่า playerState มาเช็กผ่าน Player.Instance ตรงๆ เลย ชัวร์กว่า 100%
+            if (Player.Instance != null && Player.Instance.movement != null)
+            {
+                // ถ้าย่องอยู่ (น้อยกว่า 0) ให้ตัดจบการทำงาน ไม่ต้องสงสัยเสียง
+                if (Player.Instance.movement.playerState < 0)
+                {
+                    return;
+                }
+            }
 
             if (enemy_main.currentState != enemy_stage.EnemyState.Alert && enemy_main.currentState != enemy_stage.EnemyState.alertSearching)
             {

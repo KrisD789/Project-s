@@ -28,5 +28,5 @@ MonoBehaviour:
   type: 1
   fireMode: 0
   isSuppressed: 1
-  noiseLevel: 50
+  noiseLevel: 30
   lightConcealment: 0
