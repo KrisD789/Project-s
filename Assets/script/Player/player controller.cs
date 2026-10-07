@@ -20,6 +20,7 @@ public class Player_moveMent : MonoBehaviour
     Transform camTransform;
     public LayerMask InteracMask;
 
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();

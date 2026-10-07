@@ -27,6 +27,11 @@ public class Player_Action : MonoBehaviour
     [Header("ระบบภารกิจ")]
     private MissionTrigger activeQuestTrigger = null;
 
+    [Header("Interaction Settings")]
+    public float interactionRadius = 1.5f; // รัศมีวงกลมกำลังพอดี
+    public float forwardOffset = 1.0f;     // ระยะยื่นแขนไปข้างหน้า
+    public LayerMask interactableLayers;   // อย่าลืมไปตั้งค่า Layer ใน Inspector (ติ๊ก enemy, Interactable)
+
     private void Start()
     {
         capsuleCollider = GetComponent<CapsuleCollider>();
@@ -60,109 +65,106 @@ public class Player_Action : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.layer == LayerMask.NameToLayer("Interactable"))
-        {
-            currentInteractableTarget = other.gameObject;
-        }
-
-        if (other.gameObject.layer == LayerMask.NameToLayer("enemy"))
-        {
-            if (other.TryGetComponent<enemy_stage>(out enemy_stage target_body))
-            {
-                if (target_body != null)
-                {
-                    if (target_body.currentState == enemy_stage.EnemyState.dead || target_body.currentState == enemy_stage.EnemyState.faint)
-                    {
-                        NearbyBody = target_body.gameObject;
-                        currentInteractableTarget = target_body.gameObject;
-                    }
-                    else
-                    {
-                        targetAliveEnemy = target_body.gameObject;
-                    }
-                }
-            }
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.gameObject == currentInteractableTarget) currentInteractableTarget = null;
-        if (other.gameObject == NearbyBody) NearbyBody = null;
-        if (other.gameObject == targetAliveEnemy) targetAliveEnemy = null;
-    }
-
     public void Interaction()
     {
-        // เช็กว่ามือว่างไหม (ไม่ได้เล็งอยู่)
-        if (Player.Instance.currentState == Player.PlayerState.Aim)
-        {
-            return;
-        }
-
+        if (Player.Instance.currentState == Player.PlayerState.Aim) return;
         if (activeQuestTrigger != null && activeQuestTrigger.OnInteract)
         {
             activeQuestTrigger.cancel_HackQuest();
             activeQuestTrigger = null;
-            Debug.Log("ยกเลิกการทำเควสกลางคัน!");
             return;
         }
 
-        if (targetAliveEnemy != null)
+        if (carriedBody != null) { DropBody(); return; }
+
+        // 2. เทคนิคยื่นแขน: เลื่อนจุดศูนย์กลางวงกลมไปข้างหน้าผู้เล่น
+        Vector3 interactCenter = transform.position + (transform.forward * forwardOffset);
+
+        Collider[] hits = Physics.OverlapSphere(interactCenter, interactionRadius, interactableLayers);
+
+        GameObject bestAliveEnemy = null;
+        GameObject bestBody = null;
+        GameObject bestInteractable = null;
+
+        float closestAliveDist = Mathf.Infinity;
+        float closestBodyDist = Mathf.Infinity;
+        float closestIntDist = Mathf.Infinity;
+
+        foreach (Collider hit in hits)
         {
-            if (targetAliveEnemy.TryGetComponent<enemy_stage>(out enemy_stage stage))
+            float dist = Vector3.Distance(transform.position, hit.transform.position);
+
+            if (hit.gameObject.layer == LayerMask.NameToLayer("enemy"))
             {
-                if (stage.currentState == enemy_stage.EnemyState.dead || stage.currentState == enemy_stage.EnemyState.faint)
+                if (hit.TryGetComponent<enemy_stage>(out enemy_stage stage))
                 {
-                    NearbyBody = targetAliveEnemy;
-                    targetAliveEnemy = null;
+                    if (stage.currentState == enemy_stage.EnemyState.dead || stage.currentState == enemy_stage.EnemyState.faint)
+                    {
+                        if (dist < closestBodyDist) { closestBodyDist = dist; bestBody = hit.gameObject; }
+                    }
+                    else
+                    {
+                        if (dist < closestAliveDist) { closestAliveDist = dist; bestAliveEnemy = hit.gameObject; }
+                    }
                 }
+            }
+            else if (hit.gameObject.layer == LayerMask.NameToLayer("Interactable"))
+            {
+                if (dist < closestIntDist) { closestIntDist = dist; bestInteractable = hit.gameObject; }
             }
         }
 
-        if (carriedBody != null) { DropBody(); return; }
-        if (targetAliveEnemy != null) { GrabEnemy(); return; }
-        if (carriedBody == null && NearbyBody != null) { PickUpBody(); return; }
-
-        if (currentInteractableTarget != null)
+        // 3. เรียงลำดับความสำคัญ สิ่งไหนควรทำงานก่อน
+        if (bestAliveEnemy != null)
         {
-            if (currentInteractableTarget.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
-            {
-                if (missionTrigger.Mission_Data.type == MissionType.Hack && !missionTrigger.Mission_Data.isCompleted)
-                {
-                    missionTrigger.startHackQuest();
-                    activeQuestTrigger = missionTrigger;
-                    Debug.Log("เริ่มแฮ็กระบบ!");
-                    return;
-                }
+            targetAliveEnemy = bestAliveEnemy;
+            GrabEnemy();
+            return;
+        }
 
-                if ((missionTrigger.Mission_Data.type == MissionType.InteractObject || missionTrigger.Mission_Data.type == MissionType.CaptureTarget)
-                    && !missionTrigger.Mission_Data.isCompleted)
-                {
-                    missionTrigger.OnInteractionQuest();
-                    Debug.Log("ทำภารกิจสำเร็จ!");
-                    return;
-                }
-            }
+        if (bestBody != null)
+        {
+            NearbyBody = bestBody;
+            PickUpBody();
+            return;
+        }
 
-            if (currentInteractableTarget.TryGetComponent<light_switch>(out light_switch target_light_Switch))
-            {
-                target_light_Switch.Turn();
-                return;
-            }
-
-            if (currentInteractableTarget.TryGetComponent<Door>(out Door DoorTarget))
-            {
-                if (DoorTarget.currentState == Door.DoorState.Closed)
-                    DoorTarget.ToggleDoor(false, Door.DoorState.Open);
-                else
-                    DoorTarget.ToggleDoor(false, Door.DoorState.Closed);
-                return;
-            }
+        if (bestInteractable != null)
+        {
+            currentInteractableTarget = bestInteractable;
+            ProcessInteractable(bestInteractable);
+            return;
         }
     }
+
+    void ProcessInteractable(GameObject target)
+    {
+        if (target.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
+        {
+            if (missionTrigger.Mission_Data.type == MissionType.Hack && !missionTrigger.Mission_Data.isCompleted)
+            {
+                missionTrigger.startHackQuest();
+                activeQuestTrigger = missionTrigger;
+            }
+            else if ((missionTrigger.Mission_Data.type == MissionType.InteractObject || missionTrigger.Mission_Data.type == MissionType.CaptureTarget)
+                && !missionTrigger.Mission_Data.isCompleted)
+            {
+                missionTrigger.OnInteractionQuest();
+            }
+        }
+        else if (target.TryGetComponent<light_switch>(out light_switch target_light_Switch))
+        {
+            target_light_Switch.Turn();
+        }
+        else if (target.TryGetComponent<Door>(out Door DoorTarget))
+        {
+            if (DoorTarget.currentState == Door.DoorState.Closed)
+                DoorTarget.ToggleDoor(false, Door.DoorState.Open);
+            else
+                DoorTarget.ToggleDoor(false, Door.DoorState.Closed);
+        }
+    }
+
 
     void PickUpBody()
     {

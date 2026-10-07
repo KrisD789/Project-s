@@ -1,24 +1,35 @@
-using System.Collections; // ต้องเพิ่มตัวนี้เพื่อใช้ Coroutine
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI; // ต้องเพิ่มตัวนี้เพื่อใช้ Slider (หลอดโหลด)
+using UnityEngine.UI;
 
 public class Scene_Manager : MonoBehaviour
 {
-    //[Header("Loading UI")]
-    //public GameObject loadingPanel; // หน้าต่างฉากโหลด (Panel) ที่จะให้เด้งขึ้นมาบังจอ
-    //public Slider loadingSlider;    // หลอดความคืบหน้า (Progress Bar)
+    [Header("Transition Settings")]
+    public CanvasGroup fadeCanvasGroup; // ลาก UI Panel สีดำที่มี Canvas Group มาใส่ตรงนี้
+    public float fadeDuration = 0.5f;   // ระยะเวลาที่ใช้เฟด (วินาที)
+
+    private void Start()
+    {
+        // ทุกครั้งที่โหลดเข้าฉากใหม่ สั่งให้จอมืดก่อน แล้วค่อยๆ เฟดสว่างขึ้น
+        if (fadeCanvasGroup != null)
+        {
+            fadeCanvasGroup.alpha = 1f;
+            StartCoroutine(FadeInRoutine());
+        }
+    }
 
     public void ReStart()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        StartCoroutine(FadeAndLoadRoutine(SceneManager.GetActiveScene().name));
     }
 
     public void Menu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("Main Menu");
+        UnlockCursor(); // ปลดล็อกเมาส์ก่อนกลับเมนู
+        StartCoroutine(FadeAndLoadRoutine("Main Menu"));
     }
 
     public void Exit_Game()
@@ -30,22 +41,18 @@ public class Scene_Manager : MonoBehaviour
     {
         PlayerPrefs.SetString("TargetMission", missionSceneName);
         PlayerPrefs.Save();
-        SceneManager.LoadScene("LoadOut");
+
+        UnlockCursor(); // ปลดล็อกเมาส์ตรงนี้แหละที่แก้ปัญหาเมาส์ค้าง!
+
+        StartCoroutine(FadeAndLoadRoutine("LoadOut"));
     }
 
-    // ---------------------------------------------------------
-    // ปรับปรุงฟังก์ชันนี้: เปลี่ยนจากโหลดทันที เป็นการเรียก Coroutine
-    // ---------------------------------------------------------
     public void StartMissionFromLoadout()
     {
         string target = PlayerPrefs.GetString("TargetMission", "Main Menu");
         Time.timeScale = 1f;
-
-        // เริ่มต้นการโหลดเบื้องหลัง
-        //StartCoroutine(LoadAsynchronously(target));
+        StartCoroutine(FadeAndLoadRoutine(target));
     }
-
-   
 
     public void CompleteMission(int currentMissionIndex)
     {
@@ -56,9 +63,25 @@ public class Scene_Manager : MonoBehaviour
             PlayerPrefs.Save();
             Debug.Log("ปลดล็อกด่านที่ " + (currentMissionIndex + 1) + " แล้ว!");
         }
+        // --- เพิ่มเงื่อนไขเช็กว่าจบรอบเพลย์เทสต์ (ด่าน 3) หรือยัง ---
+        if (currentMissionIndex >= 3)
+        {
+            UnlockCursor(); // ปลดล็อกเมาส์ให้ผู้เล่นกดทำแบบสอบถามได้
+            StartCoroutine(FadeAndLoadRoutine("ThankYouScene")); // โหลดไปหน้าขอบคุณ
+        }
+        else
+        {
+            // ถ้ายังไม่ถึงด่าน 3 ก็ให้ไปหน้า Loadout ปกติ
+            string nextLevelName = "Level_" + (currentMissionIndex + 1).ToString();
+            SelectMissionAndGoLoadout(nextLevelName);
+        }
+    }
 
-        string nextLevelName = "Level_" + (currentMissionIndex + 1).ToString();
-        SelectMissionAndGoLoadout(nextLevelName);
+    // --- แถมฟังก์ชันสำหรับเปิดหน้าเว็บแบบสอบถาม (Google Form) ---
+    public void OpenSurveyLink()
+    {
+        // เอาลิงก์แบบฟอร์มของคุณมาใส่ในเครื่องหมายคำพูดได้เลย
+        Application.OpenURL("https://forms.gle/YOUR_FORM_LINK");
     }
 
     public bool IsMissionUnlocked(int missionIndex)
@@ -67,5 +90,50 @@ public class Scene_Manager : MonoBehaviour
         return missionIndex <= unlockedLevel;
     }
 
-   
+    // --- Helper Functions ---
+
+    private void UnlockCursor()
+    {
+        // คำสั่งคืนชีพเมาส์!
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    // --- ระบบ Transition ---
+
+    private IEnumerator FadeInRoutine()
+    {
+        float timer = 0f;
+        while (timer < fadeDuration)
+        {
+            // ใช้ unscaledDeltaTime เผื่อว่าเกมถูกหยุด (TimeScale = 0) อยู่ จะได้เฟดได้ปกติ
+            timer += Time.unscaledDeltaTime;
+            fadeCanvasGroup.alpha = Mathf.Lerp(1f, 0f, timer / fadeDuration);
+            yield return null;
+        }
+        fadeCanvasGroup.alpha = 0f;
+
+        // ปิดการบังเมาส์ของ CanvasGroup เพื่อให้ผู้เล่นคลิก UI ในฉากได้
+        fadeCanvasGroup.blocksRaycasts = false;
+    }
+
+    private IEnumerator FadeAndLoadRoutine(string sceneName)
+    {
+        // 1. เฟดจอมืดลง
+        if (fadeCanvasGroup != null)
+        {
+            fadeCanvasGroup.blocksRaycasts = true; // เปิดการบังเมาส์กันผู้เล่นกดปุ่มรัวๆ
+            float timer = 0f;
+            while (timer < fadeDuration)
+            {
+                timer += Time.unscaledDeltaTime;
+                fadeCanvasGroup.alpha = Mathf.Lerp(0f, 1f, timer / fadeDuration);
+                yield return null;
+            }
+            fadeCanvasGroup.alpha = 1f;
+        }
+
+        // 2. โหลดฉากต่อไป
+        SceneManager.LoadScene(sceneName);
+    }
 }

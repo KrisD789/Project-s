@@ -629,6 +629,11 @@ MonoBehaviour:
   standingHeight: 2
   crouchingHeight: 0
   crouchSpeed: 10
+  interactionRadius: 1.5
+  forwardOffset: 1
+  interactableLayers:
+    serializedVersion: 2
+    m_Bits: 262656
 --- !u!114 &8699299549623025668
 MonoBehaviour:
   m_ObjectHideFlags: 0
