@@ -16,7 +16,7 @@ public class MainMenu_Manager : MonoBehaviour
     }
 
     // ฟังก์ชันนี้จะทำหน้าที่ "กวาดล้าง" ปิดทุกหน้าต่างให้เกลี้ยงก่อน
-    void CloseAllPanels()
+    public void CloseAllPanels()
     {
         if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
         if (levelSelectPanel != null) levelSelectPanel.SetActive(false);

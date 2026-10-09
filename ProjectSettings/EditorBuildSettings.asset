@@ -12,8 +12,8 @@ EditorBuildSettings:
     path: Assets/Scenes/Chapter/LoadOut.unity
     guid: fc07bce95ae31a84a847ea1d9aa14e90
   - enabled: 1
-    path: Assets/Scenes/Demo chapter 1.unity
-    guid: e437f55e2bf105d4791d99a9f7521610
+    path: Assets/Scenes/Chapter/Level_1.unity
+    guid: 4d037e0ba43c5ba4b84e22fe8bbde3d8
   - enabled: 1
     path: Assets/Scenes/Chapter/Level_2.unity
     guid: 8790fa9aebb704d4ca74c7a3128cd682
@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Chapter/ThankYouScene.unity
     guid: f51180d74d8bf68439525dc080a6dfa8
+  - enabled: 0
+    path: Assets/Scenes/Demo chapter 1.unity
+    guid: e437f55e2bf105d4791d99a9f7521610
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

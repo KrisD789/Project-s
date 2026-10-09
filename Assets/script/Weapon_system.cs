@@ -261,11 +261,13 @@ public class Weapon_system : MonoBehaviour
         if (targetHit.collider.TryGetComponent<Enemy_Hitbox>(out Enemy_Hitbox hitbox))
         {
             // ถ้าโดน ให้ส่งดาเมจของปืนกระบอกนี้ไปให้กล่อง Hitbox จัดการคูณดาเมจ
+            Debug.Log("ให้ส่งดาเมจของปืนกระบอกนี้ไปให้กล่อง Hitbox จัดการคูณดาเมจ");
             hitbox.OnHit(currentWeapon.weaponDamage);
         }
         // 2. ถ้าไม่มี Hitbox (เผื่อยิงโดนศัตรูตัวเก่าๆ ที่ยังไม่ได้ใส่ Hitbox แยกชิ้น) ให้ทำดาเมจปกติ
         else if (targetHit.collider.TryGetComponent<Enemy>(out Enemy TargetEnemy))
         {
+            Debug.Log("หา HitBoxไม่เจอทำDamageแบบปกติ");
             TargetEnemy.TakeDamage(currentWeapon.weaponDamage);
         }
     }

@@ -18,6 +18,7 @@ public class LoadMenuController : MonoBehaviour
 
     [Header("ปุ่มส่วนกลาง (ลากปุ่มหลักมาใส่)")]
     public Button mainLoadButton;
+    public Button deleteSaveButton; 
 
     private SaveSlotUI currentSelectedSlot = null;
     private List<SaveSlotUI> allSlots = new List<SaveSlotUI>();
@@ -78,6 +79,7 @@ public class LoadMenuController : MonoBehaviour
         DisplaySceneNameFromSave(currentSelectedSlot.myFileName);
 
         mainLoadButton.interactable = true;
+        if (deleteSaveButton != null) deleteSaveButton.interactable = true;
 
         if (detailScreenshotImage != null)
         {
@@ -126,6 +128,7 @@ public class LoadMenuController : MonoBehaviour
         }
 
         mainLoadButton.interactable = false;
+        if (deleteSaveButton != null) deleteSaveButton.interactable = false;
     }
 
     public void OnClick_MainLoadButton()
@@ -159,6 +162,34 @@ public class LoadMenuController : MonoBehaviour
             {
                 detailFile_SceneNameText.text = "Chapter: ";
             }
+        }
+    }
+
+    public void OnClick_DeleteSaveButton()
+    {
+        if (currentSelectedSlot != null)
+        {
+            // 1. หาตำแหน่งไฟล์ JSON และไฟล์รูป PNG
+            string jsonPath = Application.persistentDataPath + "/" + currentSelectedSlot.myFileName;
+            string imagePath = jsonPath.Replace(".json", ".png");
+
+            // 2. สั่งลบไฟล์ JSON ถ้ามีอยู่
+            if (File.Exists(jsonPath))
+            {
+                File.Delete(jsonPath);
+            }
+
+            // 3. สั่งลบไฟล์รูปภาพ ถ้ามีอยู่
+            if (File.Exists(imagePath))
+            {
+                File.Delete(imagePath);
+            }
+
+            Debug.Log($"ลบเซฟ {currentSelectedSlot.myFileName} เรียบร้อยแล้ว!");
+
+            // 4. ล้างหน้าจอแล้วสร้างรายชื่อเซฟใหม่
+            ClearSelection();
+            GenerateSlots();
         }
     }
 }

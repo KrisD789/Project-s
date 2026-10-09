@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -36.23732
+      value: 57.695587
       objectReference: {fileID: 0}
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.99999666
+      value: -9.410538
       objectReference: {fileID: 0}
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -383.39755
+      value: -360.38336
       objectReference: {fileID: 0}
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalRotation.w
@@ -26,7 +26,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalRotation.y
@@ -34,7 +34,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1496495072579168252, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -50,7 +50,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1809919424905224780, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_Name
-      value: enemy version 5 Variant
+      value: ScamImp A
+      objectReference: {fileID: 0}
+    - target: {fileID: 2109175066143703119, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
+      propertyPath: uniqueID
+      value: 97d9af26-027e-4d77-b9d8-a9b96f1346af
+      objectReference: {fileID: 0}
+    - target: {fileID: 2690784582577920843, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
+      propertyPath: wayPoint.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5286651923100494433, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
+      propertyPath: damageMultiplier
+      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
