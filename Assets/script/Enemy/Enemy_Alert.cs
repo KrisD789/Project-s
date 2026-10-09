@@ -39,7 +39,7 @@ public class Enemy_Alert : MonoBehaviour
     public float AlertZone = 10f;
     public float keepDist = 10;
 
-    public float startSurroundRadius = 15f; // ระยะเริ่มล้อมวงนอกสุด
+    public float startSurroundRadius = 40f; // ระยะเริ่มล้อมวงนอกสุด
     public float minSurroundRadius = 5f;    // ระยะบีบเข้ามาใกล้สุด (จุดที่จะหยุดบีบวง)
     private bool isSurrounding = false;
     private float actionTimer = 0;
@@ -82,6 +82,10 @@ public class Enemy_Alert : MonoBehaviour
 
     private Coroutine surroundCoroutine;
     private Coroutine shootCoroutine;
+
+    [Header("Trail Search Settings")]
+    private bool isTrailing = false; // เช็กว่ากำลังเดินค้นหา 3 จุดอยู่ไหม
+    private Coroutine trailCoroutine;
 
 
 
@@ -363,39 +367,58 @@ public class Enemy_Alert : MonoBehaviour
 
     IEnumerator SurroundSteppingRoutine()
     {
-        float currentRadius = keepDist;
-        float dir = Random.Range(0, 2) == 0 ? 1f : -1f; // สุ่มเริ่มเดินซ้ายหรือขวา
+        float currentRadius = startSurroundRadius;
+        float dir = Random.Range(0, 2) == 0 ? 1f : -1f;
         int stepCount = 0;
-        int stepsToChangeDir = Random.Range(5, 10); // เดินไปกี่ก้าวถึงจะโยกสลับทิศ
+        int stepsToChangeDir = Random.Range(5, 10);
 
-        // ลูปหลัก: เดินวนไปเรื่อยๆ ตราบใดที่ยังโดนสั่งให้ Surround และยังอยู่ใน Alert
         while (Alert_CurrentBehavior == AlertBehave.surround && enemy_script.currentState == enemy_stage.EnemyState.Alert)
         {
-            // 1. เช็กสลับทิศทาง (เดินสับขาหลอกผู้เล่น)
+
+            // 1. เพิ่มโค้ดบล็อกนี้: ให้คอยชะเง้อมองหาตั๋วว่างทุกครั้งที่กำลังจะก้าวเดิน 🚨
+            if (Enemy_combatManager.Instance.RequestAttackToken(this.gameObject))
+            {
+                Debug.Log($"{gameObject.name} เห็นเพื่อนตาย ตั๋วว่างแล้ว! พุ่งเข้าไปเสียบแทน!");
+
+                // สั่งรีเซ็ต OnRanDom เพื่อให้ฟังก์ชัน Update() ไปเรียก randomBehavior() สุ่มท่าบุกใหม่ (Push/Flank)
+                OnRanDom = false;
+                break; // เตะตัวเองออกจากลูปเดินล้อมวง (Surround) ทันที
+            }
+
             stepCount++;
             if (stepCount >= stepsToChangeDir)
             {
-                dir *= -1f; // โยกกลับทิศ
+                dir *= -1f;
                 stepCount = 0;
-                stepsToChangeDir = Random.Range(5, 10); // สุ่มจำนวนก้าวรอบใหม่
+                stepsToChangeDir = Random.Range(5, 10);
             }
 
-            // 2. คำนวณพิกัดทีละ 20 องศา (เพื่อให้เดินเลาะขอบเนียนๆ)
             Vector3 playerPos = enemy_script.playerTransform.position;
             Vector3 startDirection = (transform.position - playerPos).normalized;
 
             float angleToStep = 20f * dir;
             Vector3 nextDir = Quaternion.Euler(0, angleToStep, 0) * startDirection;
-            Vector3 nextWaypoint = playerPos + (nextDir * currentRadius);
 
-            // 3. สั่งเดินบน NavMesh
-            if (NavMesh.SamplePosition(nextWaypoint, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+            //  แก้ไขการหาจุดหมายที่เหมาะสม 
+            // 1. ลองยิงเรดาร์ (Raycast ของ NavMesh) จากตัวผู้เล่น ไปตามทิศที่จะให้ศัตรูยืน (ระยะไกลสุด 40m)
+            NavMeshHit hit;
+            Vector3 targetPosition;
+
+            if (NavMesh.Raycast(playerPos, playerPos + (nextDir * currentRadius), out hit, NavMesh.AllAreas))
             {
-                agent.SetDestination(hit.position);
+                // ถ้าเรดาร์ไปชน "ขอบเขตที่เดินไม่ได้" (เช่น กำแพง หรือสุดขอบพื้นที่สีฟ้า)
+                // ให้ใช้จุดที่ชนนั้นแหละ เป็นจุดหมาย (มันจะถอยไปชิดกำแพงที่สุดเท่าที่ทำได้)
+                targetPosition = hit.position;
+            }
+            else
+            {
+                // ถ้าไม่ชนอะไรเลย (พื้นที่โล่งกว้างมาก) ก็ใช้ระยะ 40 เมตรตามปกติ
+                targetPosition = playerPos + (nextDir * currentRadius);
             }
 
-            // 4. ลืมตารอ: รอจนกว่าจะก้าวเกือบถึงจุดหมาย 
-            // หรือ โดนเตะออกจากสถานะกลางอากาศ (เช่น ได้คิวเข้า Push)
+            // สั่งเดินไปที่เป้าหมายที่คำนวณได้
+            agent.SetDestination(targetPosition);
+
             yield return new WaitUntil(() =>
                 (!agent.pathPending && agent.remainingDistance <= 1.5f) ||
                 Alert_CurrentBehavior != AlertBehave.surround ||
@@ -403,8 +426,6 @@ public class Enemy_Alert : MonoBehaviour
             );
         }
 
-        // พอหลุดจากลูป while (เช่น ได้ตั๋ว Push แล้ว หรือ AlertTimer หมด) 
-        // ก็ปลดล็อกสวิตช์ เพื่อให้ระบบอื่นทำงานต่อได้ทันที
         isSurrounding = false;
     }
 
@@ -466,31 +487,34 @@ public class Enemy_Alert : MonoBehaviour
 
     public void HandleNoiseAlert(Vector3 P_Position) ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     {
+       
+        // เงื่อนไขป้องกันการขัดจังหวะ
         if (shootCoroutine != null) return;
-
-        Debug.Log("HandleNoiseAlert");
-        print(isDistracted);
-
         if (isDistracted) return;
+        if (enemy_Raycast.foundPlayer) return;
 
-        if (enemy_Raycast.foundPlayer)
-        {
-            return; // ตัดจบฟังก์ชัน ไม่ต้องไปอัปเดตเป้าหมายหรือหันหน้าตามเสียง
-        }
-
-        //Reset_AlerTimer();
-
-        // 1. หันขวับไปทางจุดที่เกิดเสียง
+        // 2. หันหน้าไปหาเสียง และอัปเดตจุดศูนย์กลางวงล้อม
         Vector3 lookPos = new Vector3(P_Position.x, transform.position.y, P_Position.z);
         transform.LookAt(lookPos);
 
-        // 2. อัปเดตเข็มทิศเป้าหมายหลัก
         currentTargetPos = P_Position;
         timeLostSight = Time.time;
         hintTimer = 0f;
 
-        isDistracted = true; // เปิดสวิตช์
+        // 3. ระบบ "คัดกรองสิทธิ์": ใครกันแน่ที่จะได้เดินเข้าไปหาเสียง?
+        if (enemy_script.currentState == enemy_stage.EnemyState.Alert)
+        {
+            // ถ้า AI อยู่ในโหมด Alert ให้เช็กก่อนว่ามีตั๋วบุกไหม?
+            if (!Enemy_combatManager.Instance.HasToken(this.gameObject))
+            {
+                // ถ้า "ไม่มีตั๋ว" ให้อัปเดตแค่ currentTargetPos แล้วจบการทำงานเลย
+                // AI ตัวนี้จะกลับไปรักษาวงล้อม (Surround) ตามปกติในฟังก์ชัน Update
+                return;
+            }
+        }
 
+        // 4. ถ้ามีตั๋ว (หรือยังอยู่ในสเตตัส Investigate/ค้นหา) ให้เดินพุ่งไปที่จุดเกิดเสียง
+        isDistracted = true;
         agent.SetDestination(currentTargetPos);
     }
 
@@ -514,26 +538,58 @@ public class Enemy_Alert : MonoBehaviour
     {
         if (Alert_CurrentBehavior == AlertBehave.trail)
         {
-            // 1. หันหน้าไปทางคำใบ้ล่าสุด
-            transform.LookAt(new Vector3(currentTargetPos.x, transform.position.y, currentTargetPos.z));
-
-            // 2. เดินรักษาระยะห่าง 8 เมตรจากคำใบ้
-            Vector3 dirFromTarget = (transform.position - currentTargetPos).normalized;
-            Vector3 keepDistPos = currentTargetPos + (dirFromTarget * 8f);
-
-            NavMeshHit hit;
-            if (NavMesh.SamplePosition(keepDistPos, out hit, 3f, NavMesh.AllAreas)) // ทำเงื่อนไขการทิ้งระยะห่าง เช่น surround อยู่ไกลplayer ตัวที่ได้เข้าโจมตีจะตามอยู่ไกล้player
-            {
-                //if()
-                agent.SetDestination(currentTargetPos);
-            }
-
-            // 3. ถ้ามองเห็นผู้เล่นอีกครั้ง ให้กลับไป Push ทันที!
+            // 1. ถ้ามองเห็นผู้เล่นอีกครั้ง ให้กลับไปรุม (Push) ทันที!
             if (enemy_Raycast.foundPlayer)
             {
-                if (Enemy_combatManager.Instance.RequestAttackToken(this.gameObject)) Alert_CurrentBehavior = Alert_PreviouslyBehavior;
+                if (Enemy_combatManager.Instance.RequestAttackToken(this.gameObject))
+                {
+                    StopAllAlertCoroutinesSafely(); // สั่งหยุดเดินค้นหาทันที
+                    Alert_CurrentBehavior = Alert_PreviouslyBehavior;
+                    return; // ตัดจบฟังก์ชัน
+                }
+            }
+
+            // 2. ถ้ายังไม่ได้เริ่มเดินค้นหา ให้เริ่ม Routine
+            if (!isTrailing)
+            {
+                trailCoroutine = StartCoroutine(TrailSearchRoutine());
             }
         }
+    }
+
+    private IEnumerator TrailSearchRoutine()
+    {
+        isTrailing = true;
+
+        // สเตปที่ 1: เดินไปที่จุดคำใบ้ (แต่สุ่มกระจายนิดนึง 0-3 เมตร AI 3 ตัวจะได้ไม่เดินไปซ้อนทับกันตรงกลางพอดีเป๊ะ)
+        Vector3 spreadCenter = GetRing_RandomPoint(currentTargetPos, 0f, 3f);
+        agent.SetDestination(spreadCenter);
+
+        // รอจนกว่าจะเดินถึงศูนย์กลาง
+        yield return new WaitUntil(() => (!agent.pathPending && agent.remainingDistance <= 1.5f) || Alert_CurrentBehavior != AlertBehave.trail);
+        if (Alert_CurrentBehavior != AlertBehave.trail) { isTrailing = false; yield break; }
+
+        // สเตปที่ 2: เริ่มลอจิก "สุ่มเดินตรวจ 3 จุด"
+        int maxSearchPoints = 3;
+        for (int i = 0; i < maxSearchPoints; i++)
+        {
+            // สุ่มพิกัดรอบๆ จุดเกิดเหตุ ในรัศมี 3 ถึง 12 เมตร
+            Vector3 randomSearchPoint = GetRing_RandomPoint(currentTargetPos, 3f, 12f);
+            agent.SetDestination(randomSearchPoint);
+
+            // รอจนกว่าจะเดินถึงจุดสุ่มนั้น
+            yield return new WaitUntil(() => (!agent.pathPending && agent.remainingDistance <= 1.5f) || Alert_CurrentBehavior != AlertBehave.trail);
+            if (Alert_CurrentBehavior != AlertBehave.trail) { isTrailing = false; yield break; }
+
+            // พอถึงจุดแล้ว ให้หยุดยืนมองซ้ายขวา สังเกตการณ์สัก 1.5 - 3 วินาที ค่อยเดินไปจุดต่อไป
+            yield return new WaitForSeconds(3f);
+        }
+
+        // สเตปที่ 3: เดินค้นหาครบ 3 จุดแล้ว
+        isTrailing = false;
+
+        // แอบโกงเวลาให้ ManageTargeting ดึงคำใบ้ใหม่ในเฟรมถัดไปทันที
+        hintTimer = hintInterval;
     }
 
     void ManageTargeting()
@@ -550,7 +606,7 @@ public class Enemy_Alert : MonoBehaviour
         {
             if (!isDistracted)
             {
-                if (Time.time - timeLostSight > memoryDuration && Alert_CurrentBehavior != AlertBehave.trail)
+                if (Time.time - timeLostSight > memoryDuration && Enemy_combatManager.Instance.HasToken(this.gameObject))
                 {
                     Alert_CurrentBehavior = AlertBehave.trail;
                     isDistracted = false;
@@ -573,11 +629,15 @@ public class Enemy_Alert : MonoBehaviour
             {
                 if (Alert_CurrentBehavior == AlertBehave.trail)
                 {
-                    hintTimer += Time.deltaTime;
-                    if (hintTimer >= hintInterval)
+                    // เพิ่มเงื่อนไข !isTrailing: จะให้คำใบ้ใหม่ ก็ต่อเมื่อค้นหา 3 จุดเสร็จแล้วเท่านั้น! 🚨
+                    if (!isTrailing)
                     {
-                        currentTargetPos = enemy_script.playerTransform.position;
-                        hintTimer = 0f;
+                        hintTimer += Time.deltaTime;
+                        if (hintTimer >= hintInterval)
+                        {
+                            currentTargetPos = enemy_script.playerTransform.position;
+                            hintTimer = 0f;
+                        }
                     }
                 }
                 else
@@ -702,5 +762,12 @@ public class Enemy_Alert : MonoBehaviour
             StopCoroutine(shootCoroutine);
             shootCoroutine = null;
         }
+
+        if (trailCoroutine != null)
+        {
+            StopCoroutine(trailCoroutine);
+            trailCoroutine = null;
+        }
+        isTrailing = false;
     }
 }

@@ -36,6 +36,8 @@ public class Player : MonoBehaviour
     public LightDetect player_Light_Detect;
     public Player_Inventory player_Inventory;
 
+    public bool Immortal = false;
+
     private void Awake()
     {
         Instance = this;
@@ -58,6 +60,8 @@ public class Player : MonoBehaviour
 
     public void Player_TakeDamage(float incomingDamage)
     {
+        if(Immortal) return;
+
         if (currentArmorProfile != null && currentArmorDurability > 0)
         {
             float damageToArmor = incomingDamage;

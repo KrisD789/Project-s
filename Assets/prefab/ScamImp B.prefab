@@ -50,7 +50,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1809919424905224780, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_Name
-      value: enemy version 5 Variant
+      value: ScamImp B
+      objectReference: {fileID: 0}
+    - target: {fileID: 7534751774643736078, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
+      propertyPath: m_StoppingDistance
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

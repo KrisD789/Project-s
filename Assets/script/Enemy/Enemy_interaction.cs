@@ -11,6 +11,10 @@ public class EnemyInteraction : MonoBehaviour
     EnemyRaycast enemy_raycast_script;
     Door Door_Obj;
 
+    [Header("Hearing Settings")]
+    public float hearingCooldown = 1.5f; // หน่วงเวลาหูหนวกชั่วคราว
+    private float lastHeardTime = -10f;
+
     void Awake()
     {
         if (!TryGetComponent(out enemy_main)) Debug.LogWarning("ไม่พบ enemy_stage");
@@ -121,6 +125,12 @@ public class EnemyInteraction : MonoBehaviour
         if (col.CompareTag("Noi"))
         {
             //enemy_Alert_Script.Reset_AlerTimer();
+
+            if (Time.time - lastHeardTime < hearingCooldown) //หน่วงการได้ยินเสียง
+            {
+                return; // ถ้ายังไม่หมดคูลดาวน์ ให้เมินเสียงนี้ไปเลย
+            }
+            lastHeardTime = Time.time; // อัปเดตเวลาล่าสุดที่ได้ยินเสียง
 
             switch (enemy_main.currentState)
             {

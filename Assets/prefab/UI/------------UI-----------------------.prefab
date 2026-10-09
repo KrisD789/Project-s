@@ -447,6 +447,7 @@ RectTransform:
   m_Children:
   - {fileID: 7867776941445069191}
   - {fileID: 8487101988410449361}
+  - {fileID: 3686912235560597626}
   - {fileID: 8260921217928680553}
   - {fileID: 5197804501897106585}
   - {fileID: 1226647349285012024}
@@ -456,7 +457,6 @@ RectTransform:
   - {fileID: 707516983237080702}
   - {fileID: 6086608616526574961}
   - {fileID: 4137357136725965958}
-  - {fileID: 3686912235560597626}
   - {fileID: 9128421144509405355}
   m_Father: {fileID: 2735387663849866644}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -12388,6 +12388,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2662943769727714423, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnClick_DeleteSaveButton
+      objectReference: {fileID: 0}
     - target: {fileID: 3036448326877204092, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -12498,7 +12502,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3511770005088414580, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
       propertyPath: m_Value
-      value: 1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3639075802098889249, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3639075802098889249, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
+      propertyPath: m_Color.g
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4720280221641480222, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
       propertyPath: m_AnchorMax.y
@@ -12522,7 +12534,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5259138522018713834, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5480477462471832828, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
       propertyPath: m_AnchorMax.x
@@ -12566,6 +12578,24 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6758281102223208187, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
       propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7262960483700636477, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
+      propertyPath: m_Value
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7539534831043531366, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
+      propertyPath: m_text
+      value: 'Delete
+
+'
+      objectReference: {fileID: 0}
+    - target: {fileID: 7790520471874258543, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
+      propertyPath: m_Color.b
+      value: 0.04225135
+      objectReference: {fileID: 0}
+    - target: {fileID: 7790520471874258543, guid: 1ec3d16e2f47de0419561893e920f040, type: 3}
+      propertyPath: m_Color.r
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
