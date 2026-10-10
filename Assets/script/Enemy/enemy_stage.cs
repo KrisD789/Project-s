@@ -65,33 +65,42 @@ public class enemy_stage : MonoBehaviour
                 agent.speed = E_waklSpeed;
                 headRenderer.material.color = Color.white;
                 break;
+
             case EnemyState.Investigate:
                 Investigate();
                 agent.speed = E_waklSpeed;
                 headRenderer.material.color = Color.yellow;
                 break;
+
             case EnemyState.Alert:
                 Alert();
                 baseState = EnemyState.alertSearching;
                 headRenderer.material.color = Color.red;
                 break;
+
             case EnemyState.faint:
             case EnemyState.dead:
                 headRenderer.material.color = Color.black;
+                DisableAllHitboxes();
                 break;
+
             case EnemyState.awake:
                 WakeUp();
                 break;
+
             case EnemyState.alertSearching:
                 headRenderer.material.color = Color.gray;
                 agent.speed = E_waklSpeed;
                 break;
+
             case EnemyState.Dummy:
                 headRenderer.material.color = Color.blue;
                 break;
+
             case EnemyState.OnGrab:
                 headRenderer.material.color = Color.black;
                 break;
+
             case EnemyState.idle:
                 break;
         }
@@ -277,6 +286,18 @@ public class enemy_stage : MonoBehaviour
             currentState = EnemyState.report;
             target_enemy_Script.currentState = enemy_stage.EnemyState.awake;
             target_enemy_Script = null;
+        }
+    }
+
+    public void DisableAllHitboxes()
+    {
+        Enemy_Hitbox[] allHitboxes = GetComponentsInChildren<Enemy_Hitbox>();
+        foreach (var hitbox in allHitboxes)
+        {
+            if (hitbox.TryGetComponent<Collider>(out Collider col))
+            {
+                col.enabled = false;
+            }
         }
     }
 }

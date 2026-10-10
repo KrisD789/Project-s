@@ -211,9 +211,19 @@ public class Player_Action : MonoBehaviour
         carriedBody.transform.SetParent(null);
         carriedBody.GetComponent<Rigidbody>().isKinematic = true;
 
+        // สแกนเปิด Collider อย่างระมัดระวัง 
         foreach (Collider col in carriedBody.GetComponentsInChildren<Collider>())
         {
-            col.enabled = true;
+            // ถ้าเป็น Hitbox (เช่น หัว, ตัว) ให้ปิดตายไว้ (false) 
+            // แต่ถ้าไม่ใช่ Hitbox (เช่น Collider ทรงกลมเอาไว้กด Interaction ของตัวแม่) ให้เปิด (true)
+            if (col.GetComponent<Enemy_Hitbox>() != null)
+            {
+                col.enabled = false; // ปิดศพกันกระสุน
+            }
+            else
+            {
+                col.enabled = true;  // เปิด Trigger ให้ผู้เล่นกด 'E' อุ้มใหม่ได้
+            }
         }
 
         carriedBody = null;
@@ -377,7 +387,15 @@ public class Player_Action : MonoBehaviour
 
         foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
         {
-            col.enabled = true;
+            // 🚨 เหมือนเดิมครับ เช็กก่อนเปิด
+            if (col.GetComponent<Enemy_Hitbox>() != null)
+            {
+                col.enabled = false;
+            }
+            else
+            {
+                col.enabled = true;
+            }
         }
 
         NearbyBody = grabbedEnemy;

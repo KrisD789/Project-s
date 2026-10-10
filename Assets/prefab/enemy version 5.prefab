@@ -640,7 +640,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainEnemyScript: {fileID: 0}
   EnemyStateScript: {fileID: 0}
-  damageMultiplier: 2
+  damageMultiplier: 50
   stealthMultiplier: 100
   isHeadshot: 1
 --- !u!1 &2944009037385632331
@@ -907,7 +907,7 @@ MonoBehaviour:
   mainEnemyScript: {fileID: 0}
   EnemyStateScript: {fileID: 0}
   damageMultiplier: 1
-  stealthMultiplier: 1.5
+  stealthMultiplier: 20
   isHeadshot: 0
 --- !u!136 &8978311206444155598
 CapsuleCollider:

@@ -26,7 +26,8 @@ public class SavePopupController : MonoBehaviour
     public void OnClick_ConfirmSave()
     {
         // 1. ย้ายการเช็กสถานะมาไว้ตรงจังหวะกดปุ่ม Save
-        if (Player.Instance != null && Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
+        if (Player.Instance != null && Player.Instance.currentState == Player.PlayerState.GrabbingEnemy ||
+            Player.Instance != null && Player.Instance.currentState == Player.PlayerState.CarryingBody)
         {
             // โชว์ป้ายเตือน
             if (saveWarningPopup != null)

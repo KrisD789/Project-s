@@ -562,7 +562,13 @@ public class Enemy_Alert : MonoBehaviour
 
     public void HandleNoiseAlert(Vector3 P_Position) ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     {
-       
+        //  ดักไว้ก่อนเลย ถ้าเป็น Dummy ไม่ต้องสนใจเสียงใดๆ 
+        if (enemy_script != null && enemy_script.currentState == enemy_stage.EnemyState.Dummy)
+        {
+            return;
+        }
+
+
         // เงื่อนไขป้องกันการขัดจังหวะ
         if (shootCoroutine != null) return;
         if (isDistracted) return;
@@ -767,7 +773,8 @@ public class Enemy_Alert : MonoBehaviour
                     // เพิ่มเงื่อนไขดักไว้ตรงนี้: ต้องไม่ใช่ศพ (dead) และไม่ได้สลบอยู่ (faint)
                     if (friendStage.currentState != enemy_stage.EnemyState.Alert &&
                         friendStage.currentState != enemy_stage.EnemyState.dead &&
-                        friendStage.currentState != enemy_stage.EnemyState.faint)
+                        friendStage.currentState != enemy_stage.EnemyState.faint &&
+                        friendStage.currentState != enemy_stage.EnemyState.Dummy)
                     {
                         // 1. ปลุกเพื่อนให้ตื่นตัว
                         friendStage.currentState = enemy_stage.EnemyState.Alert;

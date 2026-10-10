@@ -186,7 +186,7 @@ public class Enemy_SaveData : MonoBehaviour, Isaveable
         {
             Enemy_patro_System.index = dataBox.currentPatrolIndex;
         }
-
+        
         if (Enemy_Investigate_System != null)
         {
             Enemy_Investigate_System.currentSearchCount = dataBox.currentSearchCount;
@@ -200,6 +200,9 @@ public class Enemy_SaveData : MonoBehaviour, Isaveable
     {
         UnityEngine.AI.NavMeshAgent agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
         Rigidbody rb = GetComponent<Rigidbody>();
+
+        // ดึง Hitbox ทั้งหมดที่อยู่ในตัวลูก (Child)
+        Enemy_Hitbox[] allHitboxes = GetComponentsInChildren<Enemy_Hitbox>();
 
         if (dataBox.EnemyCurrentState == (int)enemy_stage.EnemyState.dead ||
             dataBox.EnemyCurrentState == (int)enemy_stage.EnemyState.faint)
@@ -218,6 +221,21 @@ public class Enemy_SaveData : MonoBehaviour, Isaveable
             {
                 rb.isKinematic = true; // สต๊าฟร่าง
             }
+
+            // ปิด Collider ของ Hitbox ทั้งหมด (ศพจะได้ไม่กันกระสุน)
+            foreach (var hitbox in allHitboxes)
+            {
+                if (hitbox.TryGetComponent<Collider>(out Collider col))
+                {
+                    col.enabled = false;
+                }
+            }
+
+            // แต่เปิด Collider ตัวแม่เอาไว้ (ที่เป็น Trigger) เพื่อให้ผู้เล่นเดินไปกด 'E' อุ้มศพได้
+            if (TryGetComponent<Collider>(out Collider mainCol))
+            {
+                mainCol.enabled = true;
+            }
         }
         else
         {
@@ -232,7 +250,16 @@ public class Enemy_SaveData : MonoBehaviour, Isaveable
 
             if (rb != null)
             {
-                rb.isKinematic = false; // คืนค่าฟิสิกส์
+                rb.isKinematic = true; // คืนค่าฟิสิกส์
+            }
+
+            // เปิด Collider ของ Hitbox กลับมาใช้งานตามปกติ
+            foreach (var hitbox in allHitboxes)
+            {
+                if (hitbox.TryGetComponent<Collider>(out Collider col))
+                {
+                    col.enabled = true;
+                }
             }
         }
     }
