@@ -322,6 +322,7 @@ MonoBehaviour:
   FriendNeraByMask:
     serializedVersion: 2
     m_Bits: 0
+  holdDistance: 30
 --- !u!114 &749774836795764469
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -396,6 +397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 003606a776003f1439e5eef47222e2f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hearingCooldown: 1.5
 --- !u!114 &6342435728769226632
 MonoBehaviour:
   m_ObjectHideFlags: 0

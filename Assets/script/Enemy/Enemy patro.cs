@@ -116,4 +116,12 @@ public class Enemypatro : MonoBehaviour
         float finalAngle = baseAngle + offset; 
         transform.rotation = quaternion.Euler(0, finalAngle, 0); 
     }
+
+    public void ForceReset()
+    {
+        isWaiting = false;
+        Timer = 0;
+        if (agent != null) agent.updateRotation = true; // คืนสิทธิ์หันหน้าเผื่อติดสถานะรอ
+        StopAllCoroutines();
+    }
 }

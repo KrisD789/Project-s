@@ -349,4 +349,12 @@ public class Enemy_AlertSearching : MonoBehaviour
 
         return center; // ถ้าหาไม่ได้จริงๆ ให้ส่งจุดศูนย์กลางบ้านกลับไปแทนเพื่อความปลอดภัย
     }
+
+    public void ForceReset()
+    {
+        isAlertRoutineRunning = false;
+        StopAllCoroutines(); // หยุดลูปการหาบ้านและเดินคุมพื้นที่
+        buildingsToSearch.Clear();
+        if (agent != null) agent.areaMask = NavMesh.AllAreas; // ปลดล็อคกำแพงเผื่อค้างอยู่ในบ้าน
+    }
 }

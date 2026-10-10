@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2501785694866802904}
   - component: {fileID: 8225178663890339342}
   - component: {fileID: 1770898965613494968}
+  - component: {fileID: -6992688756382563198}
   m_Layer: 6
   m_Name: light_Zone New
   m_TagString: Light
@@ -126,6 +127,19 @@ MonoBehaviour:
   masterSwitch: {fileID: 0}
   lightRadius: 0
   visualRadiusMultiplier: 0.5
+--- !u!114 &-6992688756382563198
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2829455776606978623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c2e7e2d5aee72c429266f0d644b3347, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uniqueID: 
 --- !u!1 &6748257534635795445
 GameObject:
   m_ObjectHideFlags: 0

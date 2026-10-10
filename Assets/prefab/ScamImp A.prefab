@@ -60,9 +60,17 @@ PrefabInstance:
       propertyPath: wayPoint.Array.size
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 4325512298831636465, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
+      propertyPath: stealthMultiplier
+      value: 20
+      objectReference: {fileID: 0}
     - target: {fileID: 5286651923100494433, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: damageMultiplier
-      value: 20
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 6365028129150315230, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
+      propertyPath: holdDistance
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 7534751774643736078, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_StoppingDistance

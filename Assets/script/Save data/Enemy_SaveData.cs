@@ -127,35 +127,68 @@ public class Enemy_SaveData : MonoBehaviour, Isaveable
     // ==========================================
     private void RestoreEnemyState(EnemyDataBox dataBox)
     {
-        // ดึง Agent มาปิดชั่วคราวก่อนย้ายพิกัด เพื่อป้องกันบั๊กกระตุกหรือดีดตัว
+        // 1. ปิด Agent ชั่วคราวก่อนวาร์ป
         UnityEngine.AI.NavMeshAgent agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
         if (agent != null) agent.enabled = false;
 
-        // คืนค่าพิกัด และ หมุนตัว
+        // 2. สั่งล้างสมองและหยุดการทำงานที่ค้างอยู่ของทุกระบบ
+        if (Enemy_Investigate_System != null) Enemy_Investigate_System.ForceReset();
+        
+        if (Enemy_Task_System != null)
+        {
+            Enemy_Task_System.ClearAllTasks();
+            Enemy_Task_System.StopAllCoroutines();
+        }
+
+        if (Enemy_patro_System != null) Enemy_patro_System.ForceReset();
+        
+        if (TryGetComponent<Enemy_AlertSearching>(out Enemy_AlertSearching alertSearchSystem))
+        {
+            alertSearchSystem.ForceReset();
+        }
+
+        if (TryGetComponent<Enemy_Report>(out Enemy_Report reportSystem))
+        {
+            reportSystem.ForceReset();
+        }
+        
+        if (TryGetComponent<Enemy_Alert>(out Enemy_Alert alertSystem))
+        {
+            alertSystem.StopAllAlertCoroutinesSafely();
+        }
+
+        // 3. คืนค่าพิกัด หมุนตัว เลือด State ฯลฯ ของเดิมอยู่ด้านล่างนี้
         transform.position = dataBox.position;
         transform.eulerAngles = dataBox.rotation;
 
-        if (dataBox.isHoldingAttackToken)
+        // 4. คืนตั๋วการโจมตี (ถ้ามันเคยถืออยู่)
+        if (dataBox.isHoldingAttackToken && Enemy_combatManager.Instance != null)
         {
             Enemy_combatManager.Instance.RestoreToken(this.gameObject);
         }
 
+        // 5. คืนค่าเลือด
         if (enemy_script != null)
         {
             enemy_script.Enemy_Health = dataBox.EnemyHp;
         }
 
-        // คืนค่าสถานะ State และประวัติการสลบ
+        // 6. คืนค่าสถานะ State และประวัติการสลบ
         if (enemy_stage_System != null)
         {
             enemy_stage_System.currentState = (enemy_stage.EnemyState)dataBox.EnemyCurrentState;
+            enemy_stage_System.baseState = (enemy_stage.EnemyState)dataBox.EnemyBaseState; // เพิ่ม baseState ด้วย
             enemy_stage_System.wasFaint = dataBox.enemy_WasFaint;
         }
 
-        // คืนค่า Index การเดินลาดตระเวน
-        if (Enemy_patro_System != null && Enemy_Investigate_System != null)
+        // 7. คืนค่า Index การเดินลาดตระเวน และรอบการค้นหา
+        if (Enemy_patro_System != null)
         {
             Enemy_patro_System.index = dataBox.currentPatrolIndex;
+        }
+
+        if (Enemy_Investigate_System != null)
+        {
             Enemy_Investigate_System.currentSearchCount = dataBox.currentSearchCount;
         }
     }

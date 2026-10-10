@@ -23,7 +23,7 @@ public class Enemy_Alert : MonoBehaviour
     public enum FlankDirection { Left, Right, Direct }
     public FlankDirection moveStyle = FlankDirection.Direct; // ตั้งค่าใน Inspector ของศัตรูแต่ละตัว
 
-    public enum AlertBehave { flank, cover, push, surround, chasePlayer_keepDist, trail };
+    public enum AlertBehave { flank, cover, push, surround, chasePlayer_keepDist, trail, holdPosition };
     public AlertBehave Alert_CurrentBehavior = AlertBehave.surround;
     public AlertBehave Alert_PreviouslyBehavior;
 
@@ -86,6 +86,10 @@ public class Enemy_Alert : MonoBehaviour
     [Header("Trail Search Settings")]
     private bool isTrailing = false; // เช็กว่ากำลังเดินค้นหา 3 จุดอยู่ไหม
     private Coroutine trailCoroutine;
+
+    [Header("SurroundPlayer & Hold Settings")]
+    //public float keepDist = 10;
+    public float holdDistance = 15f;
 
 
 
@@ -151,7 +155,7 @@ public class Enemy_Alert : MonoBehaviour
                         else if (Alert_CurrentBehavior == AlertBehave.surround) { surrondPlayer(); }
                         else if (Alert_CurrentBehavior == AlertBehave.chasePlayer_keepDist) { chasePlayer_keepDist(); }
                         else if (Alert_CurrentBehavior == AlertBehave.trail) { trail(); }
-
+                        else if (Alert_CurrentBehavior == AlertBehave.holdPosition) { HoldPosition(); }
                         actionTimer = 0f;
                     }
                 }
@@ -326,30 +330,38 @@ public class Enemy_Alert : MonoBehaviour
 
     void push()
     {
-        // ใช้ตัวแปร pushEngageDistance แทนตัวเลข 10f
-        //if (TrySideStepForLineOfSight(pushEngageDistance))
-        //{
-        //return;
-        //}
-
         Vector3 playerPos = currentTargetPos;
 
         // หาเวกเตอร์ทิศทางจากผู้เล่นชี้มายังตัวศัตรู
         Vector3 dirFromPlayerToEnemy = (transform.position - playerPos).normalized;
 
-        // กำหนดจุดหมายให้อยู่ห่างจากผู้เล่นตามระยะ pushStopDistance
+        // กำหนดจุดหมายให้อยู่ห่างจากผู้เล่นตามระยะ pushStopDistance (เช่น 2 เมตร)
         Vector3 targetPos = playerPos + (dirFromPlayerToEnemy * pushStopDistance);
 
         // ตรวจสอบพิกัดบน NavMesh ก่อนสั่งเดิน
         NavMeshHit hit;
-        if (NavMesh.SamplePosition(targetPos, out hit, 3f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(targetPos, out hit, 4f, NavMesh.AllAreas))
         {
             agent.SetDestination(hit.position);
         }
         else
         {
-            // กรณีจุดที่เว้นระยะตกขอบ NavMesh ให้เดินเข้าหาผู้เล่นตรงๆ เป็น Backup
-            agent.SetDestination(playerPos);
+            // แก้ไขจุดนี้: ถ้าหาจุดบน NavMesh ไม่เจอ (เช่น ติดกำแพง)
+            // ให้เช็กระยะก่อน ถ้าอยู่ไกลค่อยเดินเข้าหา แต่ถ้าใกล้กว่าระยะ Push แล้ว ให้ "เหยียบเบรก" ทันที!
+            float currentDist = Vector3.Distance(transform.position, playerPos);
+
+            if (currentDist > pushStopDistance)
+            {
+                agent.SetDestination(playerPos);
+            }
+            else
+            {
+                agent.ResetPath(); // เบรก! ไม่เดินชนผู้เล่น
+
+                // หันหน้าเล็งปืนใส่ผู้เล่น
+                Vector3 lookPos = new Vector3(playerPos.x, transform.position.y, playerPos.z);
+                transform.LookAt(lookPos);
+            }
         }
     }
 
@@ -372,17 +384,25 @@ public class Enemy_Alert : MonoBehaviour
         int stepCount = 0;
         int stepsToChangeDir = Random.Range(5, 10);
 
+        //  สร้างตัวนับเวลาคูลดาวน์ขอตั๋ว
+        float requestTokenCooldown = 0f;
+
         while (Alert_CurrentBehavior == AlertBehave.surround && enemy_script.currentState == enemy_stage.EnemyState.Alert)
         {
 
-            // 1. เพิ่มโค้ดบล็อกนี้: ให้คอยชะเง้อมองหาตั๋วว่างทุกครั้งที่กำลังจะก้าวเดิน 🚨
-            if (Enemy_combatManager.Instance.RequestAttackToken(this.gameObject))
-            {
-                Debug.Log($"{gameObject.name} เห็นเพื่อนตาย ตั๋วว่างแล้ว! พุ่งเข้าไปเสียบแทน!");
+            // ให้แต่ละตัวสุ่มเวลาขอตั๋วไม่พร้อมกัน (เช่น ทุกๆ 1-3 วินาที ค่อยชะเง้อดู)
+            requestTokenCooldown -= Time.deltaTime;
 
-                // สั่งรีเซ็ต OnRanDom เพื่อให้ฟังก์ชัน Update() ไปเรียก randomBehavior() สุ่มท่าบุกใหม่ (Push/Flank)
-                OnRanDom = false;
-                break; // เตะตัวเองออกจากลูปเดินล้อมวง (Surround) ทันที
+            if (requestTokenCooldown <= 0f)
+            {
+                if (Enemy_combatManager.Instance.RequestAttackToken(this.gameObject))
+                {
+                    Debug.Log($"{gameObject.name} เห็นตั๋วว่าง! เสียบแทน!");
+                    OnRanDom = false;
+                    break;
+                }
+                // ถ้าขอไม่ได้ ให้สุ่มรอรอบหน้า
+                requestTokenCooldown = Random.Range(1f, 3f);
             }
 
             stepCount++;
@@ -429,42 +449,97 @@ public class Enemy_Alert : MonoBehaviour
         isSurrounding = false;
     }
 
+    void HoldPosition()
+    {
+        if (!isSurrounding) // ยืมตัวแปร isSurrounding มาใช้ล็อค Coroutine ได้เลย
+        {
+            isSurrounding = true;
+            surroundCoroutine = StartCoroutine(HoldPositionRoutine());
+        }
+    }
+
+    IEnumerator HoldPositionRoutine()
+    {
+        float requestTokenCooldown = 0f;
+
+        while (Alert_CurrentBehavior == AlertBehave.holdPosition && enemy_script.currentState == enemy_stage.EnemyState.Alert)
+        {
+            // 1. ระบบรอคิวขอตั๋ว
+            requestTokenCooldown -= Time.deltaTime;
+            if (requestTokenCooldown <= 0f)
+            {
+                if (Enemy_combatManager.Instance.RequestAttackToken(this.gameObject))
+                {
+                    Debug.Log($"{gameObject.name} ได้ตั๋วแล้ว! พุ่งเข้าทำ!");
+                    OnRanDom = false; // บังคับให้มันสุ่มท่าโจมตีใหม่ในรอบหน้า
+                    break;
+                }
+                requestTokenCooldown = Random.Range(1f, 3f);
+            }
+
+            // 2. ลอจิกรักษาระยะ (ถอยหลังหนี / ยืนเล็ง)
+            Vector3 playerPos = enemy_script.playerTransform.position;
+            float currentDist = Vector3.Distance(transform.position, playerPos);
+
+            if (currentDist < holdDistance - 2f)
+            {
+                // ผู้เล่นเข้ามาใกล้เกินไป -> ถอยหลัง
+                Vector3 dirAway = (transform.position - playerPos).normalized;
+                NavMeshHit hit;
+                if (NavMesh.SamplePosition(transform.position + (dirAway * 3f), out hit, 4f, NavMesh.AllAreas))
+                {
+                    agent.SetDestination(hit.position);
+                }
+            }
+            else if (currentDist > holdDistance + 3f)
+            {
+                // ผู้เล่นหนีไกลเกินไป -> เดินตาม
+                agent.SetDestination(playerPos);
+            }
+            else
+            {
+                // ระยะพอดี -> ยืนคุมเชิง
+                agent.ResetPath();
+                Vector3 lookPos = new Vector3(playerPos.x, transform.position.y, playerPos.z);
+                transform.LookAt(lookPos);
+            }
+
+            yield return new WaitForSeconds(0.2f);
+        }
+
+        isSurrounding = false;
+    }
+
+
     void randomBehavior()
     {
         // 1. สุ่มตัวเลขระหว่าง 0 ถึง 100
         float chance = Random.Range(0f, 100f);
         if (Enemy_combatManager.Instance.RequestAttackToken(this.gameObject))
         {
-            // 2. ใช้เงื่อนไขแบ่งเปอร์เซ็นต์ (เช่น ค้นบ้าน 70% / คุมพื้นที่ 30%)
-            if (chance <= 40f)
-            {
-                //โอกาส 70%: ไปค้นตามซอกตึกหรือในบ้าน
-                Debug.Log("AI flank");
-                Alert_CurrentBehavior = AlertBehave.flank;
-            }
-            //else if (chance <= 60f)
-            //{
-
-                //Debug.Log("AI cover");
-                //Alert_CurrentBehavior = AlertBehave.cover;
-            //}
-            else if (chance <= 80)
+            // โอกาส 50% (0-50): บุกแบบรักษาระยะไกล
+            if (chance <= 50f)
             {
                 Debug.Log("AI chasePlayer_keepDist");
                 Alert_CurrentBehavior = AlertBehave.chasePlayer_keepDist;
             }
-
+            // โอกาส 40% (51-90): บุกแบบประชิด (Push)
+            else if (chance <= 90f)
+            {
+                Debug.Log("AI push");
+                Alert_CurrentBehavior = AlertBehave.push;
+            }
+            // โอกาส 10% (91-100): ตีโอบ (นานๆ ทำที)
             else
             {
-                Alert_CurrentBehavior = AlertBehave.push;
-                Debug.Log("AI push");
+                Debug.Log("AI flank");
+                Alert_CurrentBehavior = AlertBehave.flank;
             }
         }
-
         else
         {
-            Alert_CurrentBehavior = AlertBehave.surround;
-            Debug.Log("AI Surrond Player");
+            Alert_CurrentBehavior = AlertBehave.holdPosition;
+            Debug.Log("AI HoldPosition Player");
         }
 
         Alert_PreviouslyBehavior = Alert_CurrentBehavior;
@@ -749,7 +824,7 @@ public class Enemy_Alert : MonoBehaviour
         isDistracted = false; // คืนสวิตช์! ให้ AI กลับมาทำพฤติกรรมหลัก
         shootCoroutine = null;
     }
-    void StopAllAlertCoroutinesSafely()
+    public void StopAllAlertCoroutinesSafely()
     {
         if (surroundCoroutine != null)
         {

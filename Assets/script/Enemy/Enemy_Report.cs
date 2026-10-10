@@ -186,4 +186,15 @@ public class Enemy_Report : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, shoutRadius);
     }
 
+
+    public void ForceReset()
+    {
+        if (ReportSequence_coroutine != null)
+        {
+            StopCoroutine(ReportSequence_coroutine);
+            ReportSequence_coroutine = null;
+        }
+        StopAllCoroutines(); // กันเหนียว
+        if (agent != null) agent.updateRotation = true; // คืนสิทธิ์การหันหน้า (เผื่อเซฟตอนมันกำลังผงะถอยหลัง)
+    }
 }

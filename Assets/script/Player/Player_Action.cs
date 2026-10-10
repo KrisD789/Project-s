@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.VisualScripting;
+using UnityEngine;
 
 public class Player_Action : MonoBehaviour
 {
@@ -197,53 +198,116 @@ public class Player_Action : MonoBehaviour
         carriedBody = null;
     }
 
+
+    public GameObject GetGrabbedEnemy()
+    {
+        return grabbedEnemy;
+    }
+
     void GrabEnemy()
     {
-        //  ระบบใหม่: currentState คือการกระทำหลัก ถ้าเป็น Idle คือ "มือว่าง" 
-        // ซึ่งครอบคลุมทั้งตอนที่ผู้เล่นกำลัง 'ยืน' และ 'นั่งยอง' ครับ
         if (Player.Instance.currentState == Player.PlayerState.Idle)
         {
-            float angleCheck = Vector3.Dot(transform.forward, targetAliveEnemy.transform.forward);
+            Vector3 dirToEnemy = (targetAliveEnemy.transform.position - transform.position).normalized;
+            float playerFacingDot = Vector3.Dot(transform.forward, dirToEnemy);
 
-            if (angleCheck > 0.5f) ///////////*****
+            if (playerFacingDot > 0.5f) 
             {
-                Player.Instance.currentState = Player.PlayerState.GrabbingEnemy;
-                grabbedEnemy = targetAliveEnemy;
-                targetAliveEnemy = null;
+                float enemyFacingDot = Vector3.Dot(transform.forward, targetAliveEnemy.transform.forward);
 
-                if (grabbedEnemy.TryGetComponent<enemy_stage>(out enemy_stage Target_grabbedEnemy))
-                {
-                    Target_grabbedEnemy.currentState = enemy_stage.EnemyState.OnGrab;
-                }
+                bool isFrontal = enemyFacingDot < -0.5f; 
+                bool isStealth = enemyFacingDot > 0.5f;  
 
-                if (grabbedEnemy.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
+                if (isStealth || isFrontal)
                 {
-                    if (missionTrigger.Mission_Data.type == MissionType.InteractObject && !missionTrigger.Mission_Data.isCompleted)
+                    Player.Instance.currentState = Player.PlayerState.GrabbingEnemy;
+                    grabbedEnemy = targetAliveEnemy;
+                    targetAliveEnemy = null;
+
+                    // 1. หยุดศัตรู และเคลียร์เควส (เหมือนเดิม)
+                    if (grabbedEnemy.TryGetComponent<enemy_stage>(out enemy_stage Target_grabbedEnemy))
                     {
-                        missionTrigger.OnInteractionQuest();
-                        Debug.Log("ล็อคคอเป้าหมาย! ภารกิจจับกุมสำเร็จทันที");
+                        Target_grabbedEnemy.currentState = enemy_stage.EnemyState.OnGrab;
+                        
+                        if(grabbedEnemy.TryGetComponent<UnityEngine.AI.NavMeshAgent>(out var agent))
+                        {
+                            agent.isStopped = true;
+                            agent.velocity = Vector3.zero;
+                        }
+                    }
+
+                    if (grabbedEnemy.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
+                    {
+                        if (missionTrigger.Mission_Data.type == MissionType.InteractObject && !missionTrigger.Mission_Data.isCompleted)
+                        {
+                            missionTrigger.OnInteractionQuest();
+                            Debug.Log("ล็อคคอเป้าหมาย! ภารกิจจับกุมสำเร็จทันที");
+                        }
+                    }
+
+                    // 2. จัดตำแหน่งศัตรู
+                    foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
+                    {
+                        col.enabled = false;
+                    }
+                    grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
+                    grabbedEnemy.GetComponent<Collider>().enabled = false;
+                    
+                    grabbedEnemy.transform.SetParent(grabPosition);
+                    grabbedEnemy.transform.localPosition = Vector3.zero;
+                    grabbedEnemy.transform.localRotation = isFrontal ? Quaternion.Euler(0, 180, 0) : Quaternion.identity;
+
+                    StartCoroutine(TestTakedownDelay());
+
+                    return;
+                    // 🚨 3. สั่งเล่นแอนิเมชันผ่านตัวกลาง 🚨
+                    // สมมติว่ามีตัวแปร PlayerAnimator อยู่ในคลาสนี้ หรือเรียกผ่าน GetComponent ก็ได้
+                    PlayerAnimator playerAnim = GetComponent<PlayerAnimator>();
+                    if(playerAnim != null)
+                    {
+                        if(isFrontal) playerAnim.PlayFrontTakedown();
+                        else playerAnim.PlayStealthTakedown();
                     }
                 }
-
-                foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
-                {
-                    col.enabled = false;
-                }
-
-                grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
-                grabbedEnemy.GetComponent<Collider>().enabled = false;
-                grabbedEnemy.transform.SetParent(grabPosition);
-                grabbedEnemy.transform.localPosition = Vector3.zero;
-                grabbedEnemy.transform.localRotation = Quaternion.identity;
-            }
-            else
-            {
-                Debug.Log("ล็อคคอไม่ได้! คุณต้องอยู่ข้างหลังมัน");
             }
         }
-        else
+    }
+
+    // ฟังก์ชันจำลองสำหรับเทสต์
+    private System.Collections.IEnumerator TestTakedownDelay()
+    {
+        Debug.Log("เริ่มจำลองเวลาแอนิเมชัน 2 วินาที...");
+        yield return new WaitForSeconds(2.0f);
+
+        if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
         {
-            Debug.Log("ผู้เล่นไม่ได้อยู่ในสถานะมือว่าง (Idle)");
+            Debug.Log("แอนิเมชันจำลองจบแล้ว! รอรับคำสั่ง ChooseToKill หรือ ChooseToKnockout");
+            // ถ้ามีระบบโชว์ UI ให้ผู้เล่นกดเลือก ก็สามารถแทรกคำสั่งเปิด UI ตรงนี้ได้เลยครับ
+        }
+    }
+
+    public void CancelTakedown(GameObject enemyToRelease)
+    {
+        if (enemyToRelease == null) return;
+
+        // คืนสถานะผู้เล่น
+        if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
+        {
+            Player.Instance.currentState = Player.PlayerState.Idle;
+        }
+
+        // ปล่อยมือจากศัตรู
+        enemyToRelease.transform.SetParent(null);
+        enemyToRelease.GetComponent<Rigidbody>().isKinematic = false;
+
+        foreach (Collider col in enemyToRelease.GetComponentsInChildren<Collider>())
+        {
+            col.enabled = true;
+        }
+
+        if (grabbedEnemy == enemyToRelease)
+        {
+            grabbedEnemy = null;
         }
     }
 

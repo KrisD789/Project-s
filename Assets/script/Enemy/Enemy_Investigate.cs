@@ -192,6 +192,16 @@ public class Enemy_Investigate : MonoBehaviour
         }
     }
 
+    public void ForceReset()
+    {
+        isSearching = false;
+        hearSound = false;
+        isDoingTask = false;
+        currentSearchCount = 0;
+        timer = 0;
+        StopAllCoroutines(); // หยุดการหน่วงเวลาทั้งหมด
+    }
+
     ////////////////////////////////////////////////////////////////////////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//////////////////////////////////////////////////////////////////////////////////
 
 }
