@@ -194,43 +194,50 @@ public class Weapon_system : MonoBehaviour
         }
 
         CurrentAmmo--;
-        //nextTimeToFire = Time.time + currentWeapon.FireRate;
 
-        if (cameraControlScript != null) //สั่ง camera controll ให้ตัวRecoilทำงาน
+        if (cameraControlScript != null)
         {
             cameraControlScript.ApplyRecoil(recoilUp, recoilSide);
         }
 
+        // 1. ยิง Raycast ออกจากกึ่งกลางหน้าจอ (กล้อง)
         Ray cameraRay = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        Vector3 targetPoint;
         LayerMask CombineMask = Target_mask | Obtacle_mask;
 
+        // 2. เช็กว่าเป้ากลางจอ เล็งโดนอะไรไหมในระยะปืน
         if (Physics.Raycast(cameraRay, out RaycastHit cameraHit, currentWeapon.weaponRange, CombineMask))
         {
-            targetPoint = cameraHit.point;
-        }
-        else
-        {
-            targetPoint = cameraRay.GetPoint(currentWeapon.weaponRange);
-        }
+            // ถ้าเป้าเล็งโดนอะไรบางอย่าง
+            Debug.Log($"ยิงโดน: {cameraHit.collider.name}");
 
-        Vector3 bulletDirection = targetPoint - currentFirePoint.position;
-
-        if (Physics.Raycast(currentFirePoint.position, bulletDirection.normalized, out RaycastHit weaponHit, currentWeapon.weaponRange, CombineMask))
-        {
-            Debug.DrawLine(currentFirePoint.position, weaponHit.point, Color.red, 2f);
-            CreateGunshotNoise();
-
-            if (weaponHit.collider.TryGetComponent<Enemy_Hitbox>(out Enemy_Hitbox enemy))
+            // วาดเส้น Debug จากปลายปืน ไปหาจุดที่กล้องเล็งโดน (เพื่อความสวยงามเวลามอง)
+            if (currentFirePoint != null)
             {
-                DoDamage(weaponHit);
+                Debug.DrawLine(currentFirePoint.position, cameraHit.point, Color.red, 2f);
+            }
+
+            // ทำดาเมจถ้าจุดที่เป้าเล็งชี้ไป เป็นศัตรู
+            if (cameraHit.collider.TryGetComponent<Enemy_Hitbox>(out Enemy_Hitbox enemyHitbox))
+            {
+                DoDamage(cameraHit);
+            }
+            else if (cameraHit.collider.TryGetComponent<Enemy>(out Enemy targetEnemy))
+            {
+                DoDamage(cameraHit); // รองรับศัตรูแบบไม่มี Hitbox
             }
         }
         else
         {
-            Debug.DrawRay(currentFirePoint.position, bulletDirection.normalized * currentWeapon.weaponRange, Color.yellow, 2f);
-            CreateGunshotNoise();
+            // ถ้าเป้าเล็งไม่โดนอะไรเลย (ยิงขึ้นฟ้า หรือยิงไกลกว่าระยะปืน)
+            Vector3 farPoint = cameraRay.GetPoint(currentWeapon.weaponRange);
+
+            if (currentFirePoint != null)
+            {
+                Debug.DrawLine(currentFirePoint.position, farPoint, Color.yellow, 2f);
+            }
         }
+
+        CreateGunshotNoise();
     }
 
     public void EquipPrimary()

@@ -119,7 +119,28 @@ public class Player_Action : MonoBehaviour
         if (bestAliveEnemy != null)
         {
             targetAliveEnemy = bestAliveEnemy;
-            GrabEnemy();
+
+            // เช็กองศาว่าควรทุ่มหน้า หรือ ล็อคหลัง!
+            Vector3 dirToEnemy = (targetAliveEnemy.transform.position - transform.position).normalized;
+            float playerFacingDot = Vector3.Dot(transform.forward, dirToEnemy);
+
+            if (playerFacingDot > 0.5f) // ผู้เล่นมองไปที่ศัตรู
+            {
+                float enemyFacingDot = Vector3.Dot(transform.forward, targetAliveEnemy.transform.forward);
+
+                if (enemyFacingDot > 0.5f)
+                {
+                    GrabEnemy(); // 🟢 หันหลังให้ = เรียกล็อคคอ
+                }
+                else if (enemyFacingDot < -0.5f)
+                {
+                    FrontalTakedown(); // 🔴 หันหน้าชนกัน = เรียกทุ่มด้านหน้า
+                }
+                else
+                {
+                    Debug.Log("เข้าผิดเหลี่ยม! ต้องเข้าหน้าตรง หรือหลังตรงเท่านั้น");
+                }
+            }
             return;
         }
 
@@ -208,68 +229,77 @@ public class Player_Action : MonoBehaviour
     {
         if (Player.Instance.currentState == Player.PlayerState.Idle)
         {
-            Vector3 dirToEnemy = (targetAliveEnemy.transform.position - transform.position).normalized;
-            float playerFacingDot = Vector3.Dot(transform.forward, dirToEnemy);
+            Player.Instance.currentState = Player.PlayerState.GrabbingEnemy;
+            grabbedEnemy = targetAliveEnemy;
+            targetAliveEnemy = null;
 
-            if (playerFacingDot > 0.5f) 
+            if (grabbedEnemy.TryGetComponent<enemy_stage>(out enemy_stage Target_grabbedEnemy))
             {
-                float enemyFacingDot = Vector3.Dot(transform.forward, targetAliveEnemy.transform.forward);
+                Target_grabbedEnemy.currentState = enemy_stage.EnemyState.OnGrab;
+            }
 
-                bool isFrontal = enemyFacingDot < -0.5f; 
-                bool isStealth = enemyFacingDot > 0.5f;  
-
-                if (isStealth || isFrontal)
+            if (grabbedEnemy.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
+            {
+                if (missionTrigger.Mission_Data.type == MissionType.InteractObject && !missionTrigger.Mission_Data.isCompleted)
                 {
-                    Player.Instance.currentState = Player.PlayerState.GrabbingEnemy;
-                    grabbedEnemy = targetAliveEnemy;
-                    targetAliveEnemy = null;
-
-                    // 1. หยุดศัตรู และเคลียร์เควส (เหมือนเดิม)
-                    if (grabbedEnemy.TryGetComponent<enemy_stage>(out enemy_stage Target_grabbedEnemy))
-                    {
-                        Target_grabbedEnemy.currentState = enemy_stage.EnemyState.OnGrab;
-                        
-                        if(grabbedEnemy.TryGetComponent<UnityEngine.AI.NavMeshAgent>(out var agent))
-                        {
-                            agent.isStopped = true;
-                            agent.velocity = Vector3.zero;
-                        }
-                    }
-
-                    if (grabbedEnemy.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
-                    {
-                        if (missionTrigger.Mission_Data.type == MissionType.InteractObject && !missionTrigger.Mission_Data.isCompleted)
-                        {
-                            missionTrigger.OnInteractionQuest();
-                            Debug.Log("ล็อคคอเป้าหมาย! ภารกิจจับกุมสำเร็จทันที");
-                        }
-                    }
-
-                    // 2. จัดตำแหน่งศัตรู
-                    foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
-                    {
-                        col.enabled = false;
-                    }
-                    grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
-                    grabbedEnemy.GetComponent<Collider>().enabled = false;
-                    
-                    grabbedEnemy.transform.SetParent(grabPosition);
-                    grabbedEnemy.transform.localPosition = Vector3.zero;
-                    grabbedEnemy.transform.localRotation = isFrontal ? Quaternion.Euler(0, 180, 0) : Quaternion.identity;
-
-                    StartCoroutine(TestTakedownDelay());
-
-                    return;
-                    // 🚨 3. สั่งเล่นแอนิเมชันผ่านตัวกลาง 🚨
-                    // สมมติว่ามีตัวแปร PlayerAnimator อยู่ในคลาสนี้ หรือเรียกผ่าน GetComponent ก็ได้
-                    PlayerAnimator playerAnim = GetComponent<PlayerAnimator>();
-                    if(playerAnim != null)
-                    {
-                        if(isFrontal) playerAnim.PlayFrontTakedown();
-                        else playerAnim.PlayStealthTakedown();
-                    }
+                    missionTrigger.OnInteractionQuest();
+                    Debug.Log("ล็อคคอเป้าหมาย! ภารกิจจับกุมสำเร็จทันที");
                 }
             }
+
+            foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
+            {
+                col.enabled = false;
+            }
+
+            grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
+            grabbedEnemy.GetComponent<Collider>().enabled = false;
+
+            grabbedEnemy.transform.SetParent(grabPosition);
+            grabbedEnemy.transform.localPosition = Vector3.zero;
+            grabbedEnemy.transform.localRotation = Quaternion.identity;
+
+            Debug.Log("ล็อคคอสำเร็จ รอคำสั่ง (Kill/Knockout)");
+        }
+    }
+
+    void FrontalTakedown()
+    {
+        if (Player.Instance.currentState == Player.PlayerState.Idle)
+        {
+            // ใช้กระบวนการล็อคตัวคล้ายกัน เพื่อไม่ให้มันหนี
+            Player.Instance.currentState = Player.PlayerState.GrabbingEnemy;
+            grabbedEnemy = targetAliveEnemy;
+            targetAliveEnemy = null;
+
+            if (grabbedEnemy.TryGetComponent<enemy_stage>(out enemy_stage Target_grabbedEnemy))
+            {
+                Target_grabbedEnemy.currentState = enemy_stage.EnemyState.OnGrab;
+                // สั่งเบรกไม่ให้มันเดินไหล
+                if (grabbedEnemy.TryGetComponent<UnityEngine.AI.NavMeshAgent>(out var agent))
+                {
+                    agent.isStopped = true;
+                    agent.velocity = Vector3.zero;
+                }
+            }
+
+            foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
+            {
+                col.enabled = false;
+            }
+
+            grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
+            grabbedEnemy.GetComponent<Collider>().enabled = false;
+
+            // แปะมือ และหมุนหน้าเข้าหากัน (180 องศา)
+            grabbedEnemy.transform.SetParent(grabPosition);
+            grabbedEnemy.transform.localPosition = Vector3.zero;
+            grabbedEnemy.transform.localRotation = Quaternion.Euler(0, 180, 0);
+
+            Debug.Log("CQC ด้านหน้า! บังคับศัตรูสลบทันที!");
+
+            // *** เมื่อเรายังไม่มีแอนิเมชัน ก็สั่งให้มันสลบทันทีโดยเรียกฟังก์ชันที่คุณมีอยู่แล้วได้เลย ***
+            ChooseToKnockout();
         }
     }
 
