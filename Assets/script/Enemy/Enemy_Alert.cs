@@ -122,7 +122,7 @@ public class Enemy_Alert : MonoBehaviour
     {
         //print(player_LightDetect.light_meter);
         //print(timeLostSight);
-        //print(AlertTimer);
+        print(AlertTimer);
         if (agent != null && enemy_script != null)
         {
             if (enemy_script.currentState == enemy_stage.EnemyState.Alert)
@@ -679,6 +679,8 @@ public class Enemy_Alert : MonoBehaviour
 
         if (canSeePlayer)
         {
+            Reset_AlerTimer();
+
             timeLostSight = Time.time;
             currentTargetPos = enemy_script.playerTransform.position;
             isDistracted = false;

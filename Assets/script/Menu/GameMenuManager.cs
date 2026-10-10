@@ -8,7 +8,11 @@ public class GameMenuManager : MonoBehaviour
     public GameObject Load_Menu;
     public GameObject deathMenuUI;
 
-    private bool isMenuOpen = false; 
+    private bool isMenuOpen = false;
+    
+    // เพิ่มบรรทัดนี้ ให้สคริปต์อื่นเช็กได้ง่ายๆ
+    public static bool IsMenuActive { get; private set; }
+
 
     void Start()
     {
@@ -52,7 +56,10 @@ public class GameMenuManager : MonoBehaviour
 
     public void ToggleMenu()
     {
-        isMenuOpen = !isMenuOpen; 
+        isMenuOpen = !isMenuOpen;
+
+        IsMenuActive = isMenuOpen; // อัปเดตค่าให้สคริปต์อื่นรู้ด้วย
+
         pauseMenu.SetActive(isMenuOpen);
         
         // หากปิดเมนูหลัก ให้บังคับปิดหน้าต่าง Popup และ Load Menu ไปด้วย
@@ -93,6 +100,7 @@ public class GameMenuManager : MonoBehaviour
     public void ForceResumeGame()
     {
         isMenuOpen = false;
+        IsMenuActive = false;
 
         // ปิด UI เมนูให้เกลี้ยง
         if (pauseMenu != null) pauseMenu.SetActive(false);

@@ -118,6 +118,9 @@ public class Player_InputHanler : MonoBehaviour
         //  ดักไว้ตรงนี้: ถ้าตายแล้ว ห้ามทำอะไรเลยทั้งสิ้น!
         if (Player.Instance.isDead) return;
 
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         // แยกการรับค่า 2 แบบ: การยิง
         // .IsPressed() = เป็น True ตลอดเวลาที่เอานิ้วกดเมาส์ค้างไว้
         bool isHoldingFire = FireAction.action.IsPressed();
@@ -150,6 +153,9 @@ public class Player_InputHanler : MonoBehaviour
         // ดักเดินและหมุนตัว
         if (Player.Instance.isDead) return;
 
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         Vector2 moveInput = moveAction.action.ReadValue<Vector2>();
         bool isAiming = aimAction.action.IsPressed();
 
@@ -158,6 +164,9 @@ public class Player_InputHanler : MonoBehaviour
 
     public void OnFire(bool isHolding, bool isClicking)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         // เปลี่ยนจาก player_action.currentState เป็น Player.Instance.currentState
         if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
         {
@@ -174,6 +183,9 @@ public class Player_InputHanler : MonoBehaviour
 
     public void OnInteract(InputAction.CallbackContext context)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         if (Player.Instance.isDead) return;
         Debug.Log("interaction!");
         player_action.Interaction();
@@ -181,11 +193,17 @@ public class Player_InputHanler : MonoBehaviour
 
     public void move()
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         Debug.Log("เคลื่อนที่!");
     }
 
     public void HandleScrollInput(InputAction.CallbackContext context)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         if (Player.Instance.isDead) return;
         float scrollY = scrollAction.action.ReadValue<Vector2>().y;
         player_MoveMent.SpeedControll(scrollY); 
@@ -193,6 +211,9 @@ public class Player_InputHanler : MonoBehaviour
 
     public void TakeAim(bool HoldAim, bool clickAim)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         if (Player.Instance.isDead) return;
         // เปลี่ยนจาก player_action.currentState เป็น Player.Instance.currentState
         if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
@@ -210,6 +231,9 @@ public class Player_InputHanler : MonoBehaviour
 
     public void Activate_Primary_Weapon(InputAction.CallbackContext context)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         if (Player.Instance.isDead) return;
         Debug.Log("เปลี่ยนไปใช้ปืนหลัก!!!!");
         weapon_system.EquipPrimary();
@@ -217,6 +241,9 @@ public class Player_InputHanler : MonoBehaviour
 
     public void Activate_Secondary_Weapon(InputAction.CallbackContext context)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         if (Player.Instance.isDead) return;
         Debug.Log("เปลี่ยนไปใช้ปืนรอง!!!!");
         weapon_system.EquipSecondary();
@@ -224,36 +251,55 @@ public class Player_InputHanler : MonoBehaviour
 
     public void SwitchFireMode(InputAction.CallbackContext context)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         if (Player.Instance.isDead) return;
         weapon_system.Switch_FireMode();
     }
 
     public void Reload(InputAction.CallbackContext context)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         if (Player.Instance.isDead) return;
         weapon_system.Start_Reload();
     }
 
     public void ToggleCrouch(InputAction.CallbackContext context)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
+
         if (Player.Instance.isDead) return;
         player_action.HandleCrouch();
     }
 
     public void ToggleCameraSwitch(InputAction.CallbackContext context)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         if (Player.Instance.isDead) return;
         camera_control.SwapShoulder();
     }
 
     public void ToggleUseConsume_Item_1(InputAction.CallbackContext context)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         if (Player.Instance.isDead) return;
         Player_Inventory.Instance.EquipConsumeItem1();
     }
 
     public void ToggleUseConsume_Item_2(InputAction.CallbackContext context)
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         if (Player.Instance.isDead) return;
         Player_Inventory.Instance.EquipConsumeItem2();
     }

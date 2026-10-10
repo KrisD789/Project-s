@@ -28,6 +28,9 @@ public class scanner : MonoBehaviour
 
     void Update()
     {
+        // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
+        if (GameMenuManager.IsMenuActive) return;
+
         if (Input.GetKeyDown(KeyCode.V))
         {
             isScanning = !isScanning;

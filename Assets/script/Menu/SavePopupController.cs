@@ -26,22 +26,25 @@ public class SavePopupController : MonoBehaviour
     public void OnClick_ConfirmSave()
     {
         // 1. ย้ายการเช็กสถานะมาไว้ตรงจังหวะกดปุ่ม Save
-        if (Player.Instance != null && Player.Instance.currentState == Player.PlayerState.GrabbingEnemy ||
-            Player.Instance != null && Player.Instance.currentState == Player.PlayerState.CarryingBody)
+        if (Player.Instance != null)
         {
-            // โชว์ป้ายเตือน
-            if (saveWarningPopup != null)
+            if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy || 
+            Player.Instance.currentState == Player.PlayerState.CarryingBody)
             {
-                saveWarningPopup.SetActive(true);
+                // โชว์ป้ายเตือน
+                if (saveWarningPopup != null)
+                {
+                    saveWarningPopup.SetActive(true);
 
-                // หยุด Coroutine เก่าก่อนเผื่อผู้เล่นกดปุ่ม Save รัวๆ
-                StopAllCoroutines();
-                // สั่งให้นับเวลาถอยหลัง 2.5 วินาทีแล้วซ่อนป้ายเตือน
-                StartCoroutine(HideWarningAfterDelay(2.5f));
-            }
+                    // หยุด Coroutine เก่าก่อนเผื่อผู้เล่นกดปุ่ม Save รัวๆ
+                    StopAllCoroutines();
+                    // สั่งให้นับเวลาถอยหลัง 2.5 วินาทีแล้วซ่อนป้ายเตือน
+                    StartCoroutine(HideWarningAfterDelay(2.5f));
+                }
 
-            Debug.LogWarning("ระบบปฏิเสธการเซฟ: ผู้เล่นกำลังล็อคคอศัตรู!");
-            return; //  เตะออก ไม่ให้คำสั่งเซฟด้านล่างทำงาน
+                Debug.LogWarning("ระบบปฏิเสธการเซฟ: ผู้เล่นกำลังล็อคคอ หรือ แบกศพ!");
+                return; //  เตะออก ไม่ให้คำสั่งเซฟด้านล่างทำงาน
+            }        
         }
 
         // 2. ถ้าสถานะปลอดภัย (ไม่ได้ล็อคคอ) ค่อยทำการเซฟตามปกติ
