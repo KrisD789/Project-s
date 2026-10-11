@@ -600,6 +600,8 @@ MonoBehaviour:
   secondary_ReserveAmmo: 0
   recoilUp: 0
   recoilSide: 0
+  primary_FireMode: 0
+  secondary_FireMode: 0
   cameraControlScript: {fileID: 0}
   weaponMount: {fileID: 2463124950360380145}
   currentFirePoint: {fileID: 0}
@@ -662,6 +664,7 @@ MonoBehaviour:
   cameraControl: {fileID: 0}
   player_Light_Detect: {fileID: 0}
   player_Inventory: {fileID: 0}
+  Immortal: 0
 --- !u!114 &7763679272181727026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -707,6 +710,7 @@ MonoBehaviour:
   allWeaponsDatabase:
   - {fileID: 11400000, guid: 4556d9d34907d6646bdf1ebd6306efd2, type: 2}
   - {fileID: 11400000, guid: 9856607bf0d6f0843941e5bee11203ec, type: 2}
+  - {fileID: 11400000, guid: 90d05d57ad4eb254dae2f776323ef5b3, type: 2}
   allArmorsDatabase:
   - {fileID: 11400000, guid: 2046923ca1cec304fbc4cec51456b1a4, type: 2}
   - {fileID: 11400000, guid: 7a60e54b38bea154a8579c6f22adbdb5, type: 2}

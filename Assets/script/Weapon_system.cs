@@ -22,6 +22,10 @@ public class Weapon_system : MonoBehaviour
     public float recoilUp;
     public float recoilSide;
 
+    [Header("Fire Mode Tracking (จำโหมดการยิงแยกกระบอก)")]
+    public CurrentFireMode primary_FireMode;
+    public CurrentFireMode secondary_FireMode;
+
     public CameraControl cameraControlScript;
 
     // Property สำหรับจัดการกระสุนในแม็กกาซีน
@@ -86,38 +90,41 @@ public class Weapon_system : MonoBehaviour
 
     void Start()
     {
-        //LoadoutManager = Load_out_manager.Instance;
-        if(!TryGetComponent(out cameraControlScript))
+        if (!TryGetComponent(out cameraControlScript))
         {
-            Debug.LogWarning("Weapond_System Notfound cameraControlScript ");
+            Debug.LogWarning("Weapon_System Notfound cameraControlScript");
         }
 
         Player_Primary_weapon = Load_out_manager.Instance.selectedPrimaryWeapon;
         Player_Secondary_weapon = Load_out_manager.Instance.selectedSecondaryWeapon;
 
-        
-
-        if (Player_Primary_weapon != null && Player_Secondary_weapon != null)
+        // --- แยกเช็กปืนหลัก ---
+        if (Player_Primary_weapon != null)
         {
-            
-
-            currentWeapon = Player_Primary_weapon;
-
-            // ดึงกระสุนจากสเปคปืนมาเก็บไว้ตอนเริ่มเกม ทั้งในแม็กและกระสุนสำรอง
             primary_CurrentAmmo = Player_Primary_weapon.Max_Ammo;
             primary_ReserveAmmo = Player_Primary_weapon.Max_Reserve_Ammo;
+            primary_FireMode = (Player_Primary_weapon.fireMode == Weapon_Item.FireMode.Select_Fire_Weapon) ? CurrentFireMode.full_Auto : CurrentFireMode.Semi_Auto;
 
+            // ให้ปืนหลักเป็นอาวุธเริ่มต้นไว้ก่อน (ถ้ามี)
+            currentWeapon = Player_Primary_weapon;
+        }
+
+        // --- แยกเช็กปืนรอง ---
+        if (Player_Secondary_weapon != null)
+        {
             secondary_CurrentAmmo = Player_Secondary_weapon.Max_Ammo;
             secondary_ReserveAmmo = Player_Secondary_weapon.Max_Reserve_Ammo;
+            secondary_FireMode = (Player_Secondary_weapon.fireMode == Weapon_Item.FireMode.Select_Fire_Weapon) ? CurrentFireMode.full_Auto : CurrentFireMode.Semi_Auto;
 
-        }
-        else
-        {
-            Player_Primary_weapon = null;
-            Player_Secondary_weapon = null;
+            // ถ้าเกิดไม่มีปืนหลัก ให้เอาปืนรองมาถือแทน
+            if (currentWeapon == null) currentWeapon = Player_Secondary_weapon;
         }
 
-        EquipPrimary();
+        // ถ้ามีปืนหลักให้ควักปืนหลักก่อน ถ้าไม่มีให้ไปควักปืนรอง (กันบั๊กกรณีพกปืนกระบอกเดียว)
+        if (Player_Primary_weapon != null)
+            EquipPrimary();
+        else if (Player_Secondary_weapon != null)
+            EquipSecondary();
     }
 
     private void Update()
@@ -137,10 +144,12 @@ public class Weapon_system : MonoBehaviour
             return; // เตะออกจากฟังก์ชัน Update ทันที โค้ดยิง/เล็ง ด้านล่างจะไม่ทำงาน
         }
 
-        if (currentWeapon.fireMode == Weapon_Item.FireMode.Semi)
-        {
-            current_Weapon_FireMode = CurrentFireMode.Semi_Auto;
-        }
+        //if (currentWeapon.fireMode == Weapon_Item.FireMode.Semi)
+        //{
+        //current_Weapon_FireMode = CurrentFireMode.Semi_Auto;
+        //}
+
+        if (currentWeapon == null) return;
 
         recoilUp = currentWeapon.RecoilUp;
         recoilSide = currentWeapon.RecoilSide;
@@ -150,6 +159,8 @@ public class Weapon_system : MonoBehaviour
 
     public void HandleShooting(bool isHolding, bool isClicking)
     {
+        if (currentWeapon == null) return;
+
         if (Player.Instance.currentState != Player.PlayerState.Aim)
         {
             return;
@@ -247,6 +258,9 @@ public class Weapon_system : MonoBehaviour
         if (Player_Primary_weapon != null)
         {
             currentWeapon = Player_Primary_weapon;
+
+            current_Weapon_FireMode = primary_FireMode;
+
             SpawnWeaponModel(currentWeapon.itemPrefab);
         }
     }
@@ -258,6 +272,9 @@ public class Weapon_system : MonoBehaviour
         if (Player_Secondary_weapon != null)
         {
             currentWeapon = Player_Secondary_weapon;
+
+            current_Weapon_FireMode = secondary_FireMode;
+
             SpawnWeaponModel(currentWeapon.itemPrefab);
         }
     }
@@ -312,10 +329,16 @@ public class Weapon_system : MonoBehaviour
             {
                 current_Weapon_FireMode = CurrentFireMode.Semi_Auto;
             }
+
+            //  เพิ่มการจำค่าลงในปืนกระบอกที่กำลังถืออยู่ 
+            if (currentWeapon == Player_Primary_weapon)
+                primary_FireMode = current_Weapon_FireMode;
+            else if (currentWeapon == Player_Secondary_weapon)
+                secondary_FireMode = current_Weapon_FireMode;
         }
         else
         {
-            current_Weapon_FireMode = CurrentFireMode.Semi_Auto;
+            current_Weapon_FireMode = CurrentFireMode.Semi_Auto; // ปืนทั่วไปบังคับ Semi
         }
     }
 

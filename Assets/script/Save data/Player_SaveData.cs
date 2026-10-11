@@ -156,66 +156,97 @@ public class Player_SaveData : MonoBehaviour, Isaveable
         // 2. คืนค่าผู้เล่นและเกราะ
         if (Player_script != null)
         {
-            Player_script.currentHP = dataBox.currentHP; 
-            Player_script.MaxHP = dataBox.MaxHP; 
-            Player_script.isDead = dataBox.isDead; 
-            Player_script.currentState = (Player.PlayerState)dataBox.PlayerState; 
+            Player_script.currentHP = dataBox.currentHP;
+            Player_script.MaxHP = dataBox.MaxHP;
+            Player_script.isDead = dataBox.isDead;
+            Player_script.currentState = (Player.PlayerState)dataBox.PlayerState;
 
-            // ค้นหาเกราะจากคลังแสง
+            // --- ส่วนที่ 1: จัดการเกราะ (Armor) ---
             if (!string.IsNullOrEmpty(dataBox.Armor_ID))
             {
                 foreach (Armor_Item armor in allArmorsDatabase)
                 {
                     if (armor.name == dataBox.Armor_ID)
                     {
-                        Player_script.EquipArmor(armor); // สวมใส่เกราะ (ฟังก์ชันนี้จะเซ็ตความทนทานเป็นค่า Max เสมอ)
+                        Player_script.EquipArmor(armor);
+
+                        // อัปเดตบอก Load_out_manager ให้ตรงกัน
+                        if (Load_out_manager.Instance != null)
+                            Load_out_manager.Instance.selectedArmor = armor;
+
                         break;
                     }
                 }
             }
 
-            //  ต้องเอาความทนทานที่เซฟไว้ มาเขียนทับเป็นลำดับสุดท้าย ป้องกันเกราะกลับมาเต็ม 100
-            Player_script.currentArmorDurability = dataBox.currentArmorDurability; 
+            // เขียนทับความทนทานเกราะเป็นลำดับสุดท้าย ป้องกันเกราะเด้งกลับมาเต็ม 100
+            Player_script.currentArmorDurability = dataBox.currentArmorDurability;
         }
 
         // 3. คืนค่ากระสุนและอาวุธ
         if (weapon != null)
         {
-            // ดึงปืนหลัก
+            // --- ส่วนที่ 2: จัดการอาวุธหลัก (Primary) ---
             if (!string.IsNullOrEmpty(dataBox.weaponStats.Primary_Weapon_ID))
             {
                 foreach (Weapon_Item w in allWeaponsDatabase)
                 {
-                    if (w.name == dataBox.weaponStats.Primary_Weapon_ID) { weapon.Player_Primary_weapon = w; break; }
+                    if (w.name == dataBox.weaponStats.Primary_Weapon_ID)
+                    {
+                        weapon.Player_Primary_weapon = w;
+
+                        // อัปเดตบอก Load_out_manager
+                        if (Load_out_manager.Instance != null)
+                            Load_out_manager.Instance.selectedPrimaryWeapon = w;
+
+                        break;
+                    }
                 }
             }
 
-            // ดึงปืนรอง
+            // --- ส่วนที่ 3: จัดการอาวุธรอง (Secondary) ---
             if (!string.IsNullOrEmpty(dataBox.weaponStats.Secondary_Weapon_ID))
             {
                 foreach (Weapon_Item w in allWeaponsDatabase)
                 {
-                    if (w.name == dataBox.weaponStats.Secondary_Weapon_ID) { weapon.Player_Secondary_weapon = w; break; }
+                    if (w.name == dataBox.weaponStats.Secondary_Weapon_ID)
+                    {
+                        weapon.Player_Secondary_weapon = w;
+
+                        // อัปเดตบอก Load_out_manager
+                        if (Load_out_manager.Instance != null)
+                            Load_out_manager.Instance.selectedSecondaryWeapon = w;
+
+                        break;
+                    }
                 }
             }
 
-            // คืนค่ากระสุน
+            // คืนค่ากระสุนเข้ากระเป๋า
             weapon.primary_CurrentAmmo = dataBox.weaponStats.Primary_CurrentAmmo;
             weapon.primary_ReserveAmmo = dataBox.weaponStats.Primary_ReserveAmmo;
             weapon.secondary_CurrentAmmo = dataBox.weaponStats.Secondary_CurrentAmmo;
             weapon.secondary_ReserveAmmo = dataBox.weaponStats.Secondary_ReserveAmmo;
 
-            // สวมใส่ปืนที่กำลังถือล่าสุด
+            // บังคับสวมใส่ปืน และเขียนทับกระสุนกันเหนียว
             if (dataBox.weaponStats.Current_Weapon_ID == dataBox.weaponStats.Primary_Weapon_ID)
+            {
                 weapon.EquipPrimary();
+                //  เขียนทับอีกครั้ง กันฟังก์ชัน Equip แอบรีโหลดกระสุนเต็ม
+                weapon.primary_CurrentAmmo = dataBox.weaponStats.Primary_CurrentAmmo;
+            }
             else if (dataBox.weaponStats.Current_Weapon_ID == dataBox.weaponStats.Secondary_Weapon_ID)
+            {
                 weapon.EquipSecondary();
+                //  เขียนทับอีกครั้ง กันฟังก์ชัน Equip แอบรีโหลดกระสุนเต็ม
+                weapon.secondary_CurrentAmmo = dataBox.weaponStats.Secondary_CurrentAmmo;
+            }
         }
 
-        // 6. โหลดข้อมูลยากลับคืนมา
+        // 4. โหลดข้อมูลยากลับคืนมา (Consumables)
         if (inventory != null)
         {
-            // ค้นหาและคืนค่ายาช่องที่ 1
+            // ---  ส่วนที่ 4: จัดการยาช่องที่ 1 ---
             if (!string.IsNullOrEmpty(dataBox.consumableStats.Item1_ID))
             {
                 foreach (Consumable_Item c in allConsumablesDatabase)
@@ -223,13 +254,19 @@ public class Player_SaveData : MonoBehaviour, Isaveable
                     if (c.name == dataBox.consumableStats.Item1_ID)
                     {
                         inventory.Item1 = c;
+
+                        // อัปเดตบอก Load_out_manager
+                        if (Load_out_manager.Instance != null)
+                            Load_out_manager.Instance.selectedConsumable_1 = c;
+
+                        // คืนค่าจำนวนยาที่เหลือ
                         inventory.Item1.CurrentAmount = dataBox.consumableStats.Item1_Amount;
                         break;
                     }
                 }
             }
 
-            // ค้นหาและคืนค่ายาช่องที่ 2
+            // ---  ส่วนที่ 5: จัดการยาช่องที่ 2 ---
             if (!string.IsNullOrEmpty(dataBox.consumableStats.Item2_ID))
             {
                 foreach (Consumable_Item c in allConsumablesDatabase)
@@ -237,6 +274,12 @@ public class Player_SaveData : MonoBehaviour, Isaveable
                     if (c.name == dataBox.consumableStats.Item2_ID)
                     {
                         inventory.Item2 = c;
+
+                        // อัปเดตบอก Load_out_manager
+                        if (Load_out_manager.Instance != null)
+                            Load_out_manager.Instance.selectedConsumable_2 = c;
+
+                        // คืนค่าจำนวนยาที่เหลือ
                         inventory.Item2.CurrentAmount = dataBox.consumableStats.Item2_Amount;
                         break;
                     }
