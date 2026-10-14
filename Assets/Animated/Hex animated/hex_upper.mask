@@ -22,9 +22,9 @@ AvatarMask:
   - m_Path: rig_deform/DEF-NVG_Bone
     m_Weight: 1
   - m_Path: rig_deform/DEF-pelvis.L
-    m_Weight: 1
+    m_Weight: 0
   - m_Path: rig_deform/DEF-pelvis.R
-    m_Weight: 1
+    m_Weight: 0
   - m_Path: rig_deform/DEF-shoulder.L
     m_Weight: 1
   - m_Path: rig_deform/DEF-shoulder.R
