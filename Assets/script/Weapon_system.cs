@@ -28,6 +28,8 @@ public class Weapon_system : MonoBehaviour
 
     public CameraControl cameraControlScript;
 
+    private PlayerAnimator playerAnimator;
+
     // Property สำหรับจัดการกระสุนในแม็กกาซีน
     public int CurrentAmmo
     {
@@ -95,6 +97,12 @@ public class Weapon_system : MonoBehaviour
             Debug.LogWarning("Weapon_System Notfound cameraControlScript");
         }
 
+        //if (Player.Instance != null)
+        //{
+            // ถ้า PlayerAnimator อยู่ที่โมเดลลูก (Child) ให้ใช้ GetComponentInChildren
+            //playerAnimator = Player.Instance.GetComponentInChildren<PlayerAnimator>();
+        //}
+
         Player_Primary_weapon = Load_out_manager.Instance.selectedPrimaryWeapon;
         Player_Secondary_weapon = Load_out_manager.Instance.selectedSecondaryWeapon;
 
@@ -125,6 +133,13 @@ public class Weapon_system : MonoBehaviour
             EquipPrimary();
         else if (Player_Secondary_weapon != null)
             EquipSecondary();
+
+        // ++ เติมบรรทัดนี้เข้าไปท้ายสุดของฟังก์ชัน Start ++
+        // บังคับเสกปืนเข้ามือตั้งแต่ตอนเริ่มเกม (เพราะยังไม่มี Animation Event มาสั่ง)
+        if (currentWeapon != null)
+        {
+            SpawnWeaponModel(currentWeapon.itemPrefab);
+        }
     }
 
     private void Update()
@@ -163,6 +178,9 @@ public class Weapon_system : MonoBehaviour
 
         if (Player.Instance.currentState != Player.PlayerState.Aim)
         {
+            // ++ 3. ปิดการยิงที่ Animator เมื่อผู้เล่นเลิกเล็ง ++
+            if (PlayerAnimator.Instance != null) PlayerAnimator.Instance.SetFiring(false);
+            
             return;
         }
 
@@ -175,6 +193,19 @@ public class Weapon_system : MonoBehaviour
             else
             {
                 return;
+            }
+        }
+
+        if (PlayerAnimator.Instance != null)
+        {
+            if (current_Weapon_FireMode == CurrentFireMode.full_Auto)
+            {
+                PlayerAnimator.Instance.SetFiring(isHolding); // Auto: กดค้าง=ยิง, ปล่อย=หยุด
+            }
+            else if (current_Weapon_FireMode == CurrentFireMode.Semi_Auto)
+            {
+                if (isClicking) PlayerAnimator.Instance.SetFiring(true); // Single: คลิก 1 ครั้ง=ยิง
+                else PlayerAnimator.Instance.SetFiring(false);           // บังคับปิดในเฟรมถัดไป
             }
         }
 
@@ -261,6 +292,10 @@ public class Weapon_system : MonoBehaviour
 
             current_Weapon_FireMode = primary_FireMode;
 
+            // ++ 5. บอก Animator ว่าถือปืนหลัก (WeaponType = 1) ++
+            if (PlayerAnimator.Instance != null) PlayerAnimator.Instance.SetWeaponType(1);
+            UpdateAnimatorFireMode();
+
             SpawnWeaponModel(currentWeapon.itemPrefab);
         }
     }
@@ -274,6 +309,10 @@ public class Weapon_system : MonoBehaviour
             currentWeapon = Player_Secondary_weapon;
 
             current_Weapon_FireMode = secondary_FireMode;
+
+            // ++ 6. บอก Animator ว่าถือปืนรอง (WeaponType = 2) ++
+            if (PlayerAnimator.Instance != null) PlayerAnimator.Instance.SetWeaponType(2);
+            UpdateAnimatorFireMode();
 
             SpawnWeaponModel(currentWeapon.itemPrefab);
         }
@@ -306,7 +345,7 @@ public class Weapon_system : MonoBehaviour
         if (prefabToSpawn != null)
         {
             currentWeaponModel = Instantiate(prefabToSpawn, weaponMount.position, weaponMount.rotation, weaponMount);
-            currentWeaponModel.transform.localScale = new Vector3(5f, 5f, 5f);
+            currentWeaponModel.transform.localScale = new Vector3(1f, 1f, 1f);
 
             Transform foundFirePoint = currentWeaponModel.transform.Find("FirePoint");
 
@@ -340,6 +379,9 @@ public class Weapon_system : MonoBehaviour
         {
             current_Weapon_FireMode = CurrentFireMode.Semi_Auto; // ปืนทั่วไปบังคับ Semi
         }
+
+        // ++ 7. อัปเดตโหมดการยิงที่ Animator ++
+        UpdateAnimatorFireMode();
     }
 
     public void Start_Reload()
@@ -351,6 +393,10 @@ public class Weapon_system : MonoBehaviour
             {
                 current_Weapon_Status = Weapon_Status.reload;
                 nextTimeToReload = Time.time + currentWeapon.ReloadTime;
+
+                // ++ 8. สั่ง Animator เล่นท่ารีโหลด ++
+                if (PlayerAnimator.Instance != null) PlayerAnimator.Instance.TriggerReload();
+
                 Debug.Log($"กำลังรีโหลด... (กระสุนสำรองเหลือ: {CurrentReserveAmmo})");
             }
             else if (CurrentReserveAmmo <= 0 && CurrentAmmo < currentWeapon.Max_Ammo)
@@ -459,6 +505,35 @@ public class Weapon_system : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+
+    // ++ 9. ฟังก์ชันเสริมสำหรับอัปเดตโหมดปืนไปที่ Animator ++
+    private void UpdateAnimatorFireMode()
+    {
+        if (PlayerAnimator.Instance != null)
+        {
+            bool isAuto = (current_Weapon_FireMode == CurrentFireMode.full_Auto);
+            PlayerAnimator.Instance.SetFireMode(isAuto);
+        }
+    }
+
+    // ++ 10. ฟังก์ชันให้ Animation Event เรียกตอนมือหยิบปืน ++
+    public void AnimEvent_SpawnCurrentWeapon()
+    {
+        if (currentWeapon != null)
+        {
+            SpawnWeaponModel(currentWeapon.itemPrefab);
+        }
+    }
+
+    // ++ 11. ฟังก์ชันให้ Animation Event เรียกตอนเก็บปืนเสร็จ ++
+    public void AnimEvent_DestroyCurrentWeapon()
+    {
+        if (currentWeaponModel != null)
+        {
+            Destroy(currentWeaponModel);
+            currentWeaponModel = null;
         }
     }
 }

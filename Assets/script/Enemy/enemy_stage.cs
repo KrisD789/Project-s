@@ -143,28 +143,6 @@ public class enemy_stage : MonoBehaviour
         }
     }
 
-
-    // ---  Ë«π∑’Ë»—µ√Ÿ®—¥°“√µ—«‡ÕßµÕπ‚¥π®—∫ ---
-    public void EnterGrabState(Transform playerGrabPos)
-    {
-        currentState = EnemyState.OnGrab;
-        Enemy_Anime_Controller enemyAnim = GetComponent<Enemy_Anime_Controller>();
-        Rigidbody rb = GetComponent<Rigidbody>();
-        Collider col = GetComponent<Collider>();
-
-        if (agent.isActiveAndEnabled) agent.isStopped = true;
-        agent.enabled = false;
-
-        if (rb != null) rb.isKinematic = true;
-        if (col != null) col.enabled = false;
-
-        transform.SetParent(playerGrabPos);
-        transform.localPosition = Vector3.zero;
-        transform.localRotation = Quaternion.identity;
-
-        if (enemyAnim != null) enemyAnim.PlayGrabbed();
-    }
-
     public void ChangeState(EnemyState newState)
     {
         if (currentState == newState) return;
@@ -194,7 +172,7 @@ public class enemy_stage : MonoBehaviour
                     rb.isKinematic = true; // ≈ÁÕ°ø‘ ‘° Ï‰«È »æ®–‰¥È‰¡Ë‰∂≈
                 }
 
-                if (enemyAnim != null) enemyAnim.PlayDie();
+                //if (enemyAnim != null) enemyAnim.PlayKill();
                 OnDown();
                 break;
 

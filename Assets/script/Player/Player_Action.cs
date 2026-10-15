@@ -379,7 +379,7 @@ public class Player_Action : MonoBehaviour
         }
     }
 
-    void FinishTakedown()
+    public void FinishTakedown()
     {
         Player.Instance.currentState = Player.PlayerState.Idle;
         grabbedEnemy.transform.SetParent(null);

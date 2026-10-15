@@ -128,7 +128,7 @@ public class Player_InputHanler : MonoBehaviour
         // .WasPressedThisFrame() = เป็น True แค่เฟรมเดียวตอนที่คลิกเมาส์ลงไป (เหมาะกับ Semi-Auto)
         bool isClickingFire = FireAction.action.WasPressedThisFrame();
 
-        if (FireAction != null && FireAction.action.IsPressed())
+        if (FireAction != null ) //********************************************************************************************************
         {
             OnFire(isHoldingFire, isClickingFire);
         }
