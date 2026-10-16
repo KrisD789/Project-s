@@ -43,6 +43,12 @@ public class enemy_stage : MonoBehaviour
     public float E_lightMeter = 0;
     float brightness = 0;
 
+    [Header("X-Ray Settings")]
+    public Material normalMaterial;   // Material ปกติของศัตรู
+    public Material xrayMaterial;     // Material X-Ray (ที่ตั้งค่า ZTest Always หรือเรืองแสงทะลุกำแพง)
+
+    private SkinnedMeshRenderer[] skinRenderers;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -52,6 +58,9 @@ public class enemy_stage : MonoBehaviour
         agent.speed = E_waklSpeed;
         player_Obj = GameObject.FindGameObjectWithTag("Player");
         playerTransform = player_Obj.transform;
+
+        // ดึงคอมโพเนนต์ Renderer ทั้งหมดของศัตรู
+        skinRenderers = GetComponentsInChildren<SkinnedMeshRenderer>();
     }
 
     void Update()
@@ -276,6 +285,34 @@ public class enemy_stage : MonoBehaviour
             if (hitbox.TryGetComponent<Collider>(out Collider col))
             {
                 col.enabled = false;
+            }
+        }
+    }
+
+    // ฟังก์ชันนี้จะถูกเรียกจาก scanner.cs ทันทีที่กดปุ่ม V
+    public void SetHighlight(bool active)
+    {
+        foreach (var renderer in skinRenderers)
+        {
+            if (active)
+            {
+                // ถ้าเปิดสแกน: เปลี่ยน Material ทุกชิ้นเป็นแบบ X-Ray ทะลุกำแพง
+                Material[] newMats = new Material[renderer.materials.Length];
+                for (int i = 0; i < newMats.Length; i++)
+                {
+                    newMats[i] = xrayMaterial;
+                }
+                renderer.materials = newMats;
+            }
+            else
+            {
+                // ถ้าปิดสแกน: เปลี่ยนกลับเป็น Material ปกติ
+                Material[] oldMats = new Material[renderer.materials.Length];
+                for (int i = 0; i < oldMats.Length; i++)
+                {
+                    oldMats[i] = normalMaterial;
+                }
+                renderer.materials = oldMats;
             }
         }
     }

@@ -150,7 +150,7 @@ public class Player_moveMent : MonoBehaviour
         // เพิ่ม: ถ้ากำลังลากศัตรู ให้บังคับเดินช้ามากๆ (โหมดย่อง State -2)
         if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
         {
-            maxState = -1;
+            maxState = -2; // แก้เป็น -2 ให้ตรงกับคอมเมนต์ของคุณเพื่อให้เดินช้าสุดตอนลากศัตรู
         }
 
         // เอา GrabbingEnemy ออกจากตรงนี้
@@ -160,6 +160,19 @@ public class Player_moveMent : MonoBehaviour
         {
             maxState = 0; // เดินความเร็วปกติ (0)
         }
+
+        // 1. บังคับไม่ให้ playerState เกินขีดจำกัด (เช่น วิ่งอยู่แล้วก้มลงนั่ง State จะโดนดรอปลงมาที่ 0 อัตโนมัติ)
+        if (playerState > maxState)
+        {
+            playerState = maxState;
+        }
+
+        // 2. แปลงค่า playerState เป็นความเร็ว (speed) จริงๆ ของตัวละคร
+        if (playerState == 0) speed = 4f;
+        else if (playerState == 1) speed = 6f;
+        else if (playerState == 2) speed = 8f;
+        else if (playerState == -1) speed = 3f;
+        else if (playerState == -2) speed = 2f;
     }
 
     void setCollider()

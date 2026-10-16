@@ -55,8 +55,7 @@ public class scanner : MonoBehaviour
             {
                 if (enemy != null)
                 {
-                    // ตรงนี้สามารถเรียกใช้ฟังก์ชันเปิด/ปิด Material ไฮไลท์ของศัตรูได้ครับ
-                    // เช่น enemy.SetHighlight(active);
+                     enemy.SetHighlight(active);
                 }
             }
         }

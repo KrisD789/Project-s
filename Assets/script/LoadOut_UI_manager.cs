@@ -1,63 +1,63 @@
-using NUnit.Framework.Interfaces;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UI; // สำคัญมาก: ต้องมีเพื่อเรียกใช้งานคอมโพเนนต์ Image
 
 public class LoadOut_UI_manager : MonoBehaviour
 {
-    [Header("ฐานข้อมูลอาวุธทั้งหมด")]
+    [Header("ฐานข้อมูลไอเทมทั้งหมด")]
     public Base_Item[] all_item;
 
-    [Header("โซนไอคอนฝั่งซ้าย")]
+    [Header("โซนปุ่มเลือกไอเทม (ฝั่งซ้าย)")]
     public GameObject iconButtonPrefab;
     public Transform gridContentPanel;
 
-    // --- เพิ่มตัวแปรนี้เข้ามาใหม่ ---
-    [Header("หน้าต่างฝั่งขวา (เอาไว้สั่งเปิด/ปิด)")]
-    public GameObject detailPanelObject; // ลากกล่อง Panel ฝั่งขวามาใส่ช่องนี้
-
-    [Header("ข้อมูลตัวหนังสือฝั่งขวา")]
-    //public Image weaponIcon;
+    [Header("หน้าต่างรายละเอียด (ตรงกลาง)")]
+    public GameObject detailPanelObject; // กล่อง Panel ที่จะเปิด/ปิด
     public TextMeshProUGUI weaponNameText;
     public TextMeshProUGUI WeaponDamage;
     public TextMeshProUGUI Ammo;
     public TextMeshProUGUI descriptionText;
     public TextMeshProUGUI noiseText;
 
-    private Base_Item currentSelect;
+    // --- ส่วนที่เพิ่มเข้ามาใหม่สำหรับโชว์รูปฝั่งขวา ---
+    [Header("ช่องแสดงรูปไอเทมที่สวมใส่ (ฝั่งขวา)")]
+    public Image equippedPrimaryIcon;
+    public Image equippedSecondaryIcon;
+    public Image equippedArmorIcon;
+    public Image equippedConsumable1Icon;
+    public Image equippedConsumable2Icon;
 
+    private Base_Item currentSelect;
 
     void Start()
     {
-        // 1. สั่งปิดหน้าต่างฝั่งขวาทิ้งไปเลยตั้งแต่ตอนเริ่ม
         if (detailPanelObject != null)
         {
-            detailPanelObject.SetActive(false);
+            detailPanelObject.SetActive(false); // ซ่อนหน้ารายละเอียดไว้ก่อนตอนเริ่ม
         }
 
-        // 2. วนลูปเสกแค่ปุ่มฝั่งซ้ายตามปกติ
-        //foreach (item weapon in allWeapons)
-        //{
-            //GameObject newBtn = Instantiate(iconButtonPrefab, gridContentPanel, false);
-            //newBtn.GetComponent<WeaponInfo_prefab>().Setup(weapon, this);
-        //}
-
-        // ลบโค้ดที่เคยสั่ง ShowDetail(allWeapons[0]) ออกไปเลยครับ
+        UpdateEquippedUI(); // อัปเดตรูปภาพฝั่งขวาทันทีที่เปิดหน้าต่าง
     }
 
     private void OnEnable()
     {
-        //วนลูปเสกแค่ปุ่มฝั่งซ้ายตามปกติ
+        // ล้างปุ่มเก่าทิ้งก่อน (กันปุ่มเบิ้ลเวลาเปิด/ปิดหน้าต่างหลายรอบ)
+        foreach (Transform child in gridContentPanel)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // สร้างปุ่มไอเทมฝั่งซ้าย
         foreach (Base_Item weapon in all_item)
         {
             GameObject newBtn = Instantiate(iconButtonPrefab, gridContentPanel, false);
             newBtn.GetComponent<WeaponInfo_prefab>().Setup(weapon, this);
         }
 
-        // ลบโค้ดที่เคยสั่ง ShowDetail(allWeapons[0]) ออกไปเลยครับ
+        UpdateEquippedUI();
     }
 
-    // ฟังก์ชันนี้จะทำงานก็ต่อเมื่อผู้เล่นคลิกปุ่มฝั่งซ้ายแล้วเท่านั้น
+    // ฟังก์ชันสำหรับกดดูรายละเอียดไอเทม (โชว์ Stat ตรงกลาง)
     public void ShowDetail(Base_Item itemData)
     {
         currentSelect = itemData;
@@ -65,83 +65,101 @@ public class LoadOut_UI_manager : MonoBehaviour
         if (detailPanelObject != null)
             detailPanelObject.SetActive(true);
 
-        // ดึงข้อมูลพื้นฐานที่มีในไอเทมทุกชิ้นมาโชว์ก่อน
         weaponNameText.text = itemData.itemName;
         descriptionText.text = itemData.description;
 
-        // ตรวจสอบว่าไอเทมชิ้นนี้คือ "ปืน" (WeaponItem) ใช่หรือไม่?
         if (itemData is Weapon_Item weapon)
         {
-            // ถ้าใช่ ตัวแปร weapon จะดึงค่ากระสุนและดาเมจมาใช้ได้ทันที
             WeaponDamage.text = "Damage: " + weapon.weaponDamage.ToString();
             Ammo.text = "Ammo: " + weapon.Max_Ammo.ToString();
             noiseText.text = "Noise: " + weapon.noiseLevel.ToString() + " dB";
         }
-        // ตรวจสอบว่าไอเทมชิ้นนี้คือ "เกราะ" (ArmorItem) ใช่หรือไม่?
         else if (itemData is Armor_Item armor)
         {
-            // ดึงค่าของเกราะมาโชว์แทน (เช่น แปลงค่าลดดาเมจเป็นเปอร์เซ็นต์)
-            weaponNameText.text = armor.name;
+            weaponNameText.text = armor.itemName;
             WeaponDamage.text = "Damage Resist: " + (armor.Armor_Block_Percentage * 100).ToString() + "%";
             descriptionText.text = "Armor Durability: " + armor.Max_Armor_Durability.ToString();
             Ammo.text = "Speed: " + armor.Movement_Speed_Multiplier.ToString() + "x";
             noiseText.text = "Noise Multiplier: " + armor.Noise_Multiplier.ToString() + "x";
         }
-
         else if (itemData is Consumable_Item ConSumeItem)
         {
-            // ดึงค่าของเกราะมาโชว์แทน (เช่น แปลงค่าลดดาเมจเป็นเปอร์เซ็นต์)
-            weaponNameText.text = ConSumeItem.name;
+            weaponNameText.text = ConSumeItem.itemName;
             WeaponDamage.text = "";
-            descriptionText.text = $"Hp ++ : {ConSumeItem.healAmount} // MaxHp ++ : {ConSumeItem.MaxHP_Recover}" ;
+            descriptionText.text = $"Hp ++ : {ConSumeItem.healAmount} // MaxHp ++ : {ConSumeItem.MaxHP_Recover}";
             Ammo.text = "";
             noiseText.text = "";
         }
-
         else
         {
-            // ถ้าเป็นของทั่วไปอื่นๆ ก็ล้างตัวหนังสือทิ้งไปไม่ให้มันรก
             WeaponDamage.text = "";
             Ammo.text = "";
             noiseText.text = "";
         }
     }
 
+    // ฟังก์ชันสวมใส่ไอเทม (ผูกกับปุ่ม Select)
     public void selectItem()
     {
-        // 4. ก่อนจะบันทึก ต้องเช็คก่อนว่ามันคืออะไร จะได้ยัดใส่ช่องใน Load_out_manager ถูก
         if (currentSelect is Weapon_Item weapon)
         {
-            if (Load_out_manager.Instance.selectedPrimaryWeapon == null)
-            {
+            if (weapon.type == Weapon_Item.WeaponType.Primary)
                 Load_out_manager.Instance.selectedPrimaryWeapon = weapon;
-                Debug.Log("สวมใส่: ปืนหลัก");
-            }
             else
-            {
                 Load_out_manager.Instance.selectedSecondaryWeapon = weapon;
-                Debug.Log("สวมใส่: ปืนรอง");
-            }
         }
         else if (currentSelect is Armor_Item armor)
         {
-            // สมมติว่าคุณเพิ่ม public ArmorItem selectedArmor; ใน Load_out_manager แล้ว
-            Load_out_manager.Instance.selectedArmor = armor; 
-            Debug.Log("สวมใส่: ชุดเกราะ");
+            Load_out_manager.Instance.selectedArmor = armor;
         }
-
         else if (currentSelect is Consumable_Item SelectConsumeItem)
         {
-            if(Load_out_manager.Instance.selectedConsumable_1 == null)
-            {
+            if (Load_out_manager.Instance.selectedConsumable_1 == null)
                 Load_out_manager.Instance.selectedConsumable_1 = SelectConsumeItem;
-            }
-
-            else 
-            {
+            else
                 Load_out_manager.Instance.selectedConsumable_2 = SelectConsumeItem;
-            }
+        }
 
+        // ใส่ของเสร็จปุ๊บ สั่งอัปเดตรูปภาพฝั่งขวาทันที!
+        UpdateEquippedUI();
+    }
+
+    // ฟังก์ชันสำหรับดึงรูปภาพไอเทมมาโชว์บนช่อง UI ฝั่งขวา
+    public void UpdateEquippedUI()
+    {
+        if (Load_out_manager.Instance == null) return;
+
+        // 1. ปืนหลัก
+        UpdateIcon(equippedPrimaryIcon, Load_out_manager.Instance.selectedPrimaryWeapon);
+
+        // 2. ปืนรอง
+        UpdateIcon(equippedSecondaryIcon, Load_out_manager.Instance.selectedSecondaryWeapon);
+
+        // 3. ชุดเกราะ
+        UpdateIcon(equippedArmorIcon, Load_out_manager.Instance.selectedArmor);
+
+        // 4. ยาช่องที่ 1
+        UpdateIcon(equippedConsumable1Icon, Load_out_manager.Instance.selectedConsumable_1);
+
+        // 5. ยาช่องที่ 2
+        UpdateIcon(equippedConsumable2Icon, Load_out_manager.Instance.selectedConsumable_2);
+    }
+
+    // ฟังก์ชันย่อยสำหรับจัดการเปลี่ยนรูปภาพและสีแบบอัตโนมัติ (เขียนแยกไว้จะได้ไม่เปลืองบรรทัด)
+    private void UpdateIcon(Image slotIcon, Base_Item item)
+    {
+        if (slotIcon != null)
+        {
+            if (item != null && item.itemIcon != null)
+            {
+                slotIcon.sprite = item.itemIcon; // เอารูปจากไอเทมมาใส่
+                slotIcon.color = Color.white;    // ปรับสีให้สว่างเต็มที่ 100%
+            }
+            else
+            {
+                slotIcon.sprite = null;          // ถ้าไม่มีของ ให้ล้างรูปทิ้ง
+                slotIcon.color = new Color(1, 1, 1, 0.2f); // ปรับสีจางๆ (โปร่งใส 20%) ให้ดูรู้ว่าเป็นช่องว่าง
+            }
         }
     }
 

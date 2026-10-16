@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5694ceffab758fa49ab9e356039b279c, type: 3}
   m_Name: SurgeanPack
   m_EditorClassIdentifier: 
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: 21300000, guid: 316616c6d801ed9449c69aa61b75f8fb, type: 3}
   itemName: Surgean Pack
-  description: 
+  description: restore MaxHp +50 point
   itemPrefab: {fileID: 0}
   healAmount: 0
   MaxHP_Recover: 50

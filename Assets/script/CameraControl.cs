@@ -11,11 +11,15 @@ public class CameraControl : MonoBehaviour
 
     private CinemachinePanTilt aimPanTilt;
     private CinemachineThirdPersonFollow aimFollow;
-    //private CinemachinePanTilt Left_aimPanTilt;
     private CinemachineOrbitalFollow mainOrbitalFollow;
 
     public Transform aimCameraMount; // ลาก GameObject ที่กล้องเกาะอยู่มาใส่
     private bool isRightShoulder = true;
+
+    [Header("Aim Camera Height Adjustments")]
+    public float standingAimHeight = -0.3f; // ความสูงของกล้องเล็งตอนยืน (ปรับให้เข้ากับไหล่ตอนยืน)
+    public float crouchingAimHeight = -1f; // ความสูงของกล้องเล็งตอนนั่ง (ปรับให้ต่ำลงมาที่ไหล่ตอนนั่ง)
+    public float heightTransitionSpeed = 10f; // ความเร็วในการเลื่อนกล้องขึ้น/ลง
 
     // ต้องใส่ฟังก์ชันนี้ เพื่อเปิดการรับค่าเมาส์ตอนสคริปต์ทำงาน
     private void OnEnable()
@@ -42,6 +46,15 @@ public class CameraControl : MonoBehaviour
             // ดึง Component Pan Tilt ของกล้องเล็งมารอไว้
             aimPanTilt = aimCamera.GetComponent<CinemachinePanTilt>();
             aimFollow = aimCamera.GetComponent<CinemachineThirdPersonFollow>();
+
+            // ตั้งค่าความสูงเริ่มต้นให้เป็นท่ายืน
+            if (aimFollow != null)
+            {
+                Vector3 startOffset = aimFollow.ShoulderOffset;
+                startOffset.y = standingAimHeight;
+                aimFollow.ShoulderOffset = startOffset;
+            }
+
             aimCamera.SetActive(false);
         }
 
@@ -54,7 +67,27 @@ public class CameraControl : MonoBehaviour
 
     void Update()
     {
-        
+        // เรียกฟังก์ชันจัดการความสูงของกล้องเล็งตลอดเวลา (แต่จะทำงานจริงจังแค่ตอนกล้องเปิด)
+        HandleAimCameraHeight();
+    }
+
+    // ฟังก์ชันสำหรับปรับความสูงเฉพาะกล้องเล็ง
+    private void HandleAimCameraHeight()
+    {
+        // ทำงานเฉพาะตอนที่กล้องเล็งเปิดอยู่เท่านั้น
+        if (aimFollow == null || !aimCamera.activeSelf) return;
+
+        // กำหนดความสูงเป้าหมาย โดยดูจากว่าตัวละครนั่งอยู่หรือไม่
+        float targetYOffset = (Player.Instance.currentMovementState == Player.MovementState.Crouch) ? crouchingAimHeight : standingAimHeight;
+
+        // ดึงค่า Offset ปัจจุบันมา
+        Vector3 currentOffset = aimFollow.ShoulderOffset;
+
+        // ค่อยๆ เปลี่ยนความสูงในแกน Y
+        currentOffset.y = Mathf.Lerp(currentOffset.y, targetYOffset, Time.deltaTime * heightTransitionSpeed);
+
+        // ใส่ค่ากลับคืนไปให้ Cinemachine
+        aimFollow.ShoulderOffset = currentOffset;
     }
 
     public void HandleAim(bool HoldPress)
@@ -139,7 +172,8 @@ public class CameraControl : MonoBehaviour
             Vector3 currentOffset = aimFollow.ShoulderOffset;
 
             // ถ้าเป็นไหล่ขวา ให้ค่า X เป็นบวก, ถ้าซ้ายให้เป็นลบ (สมมติระยะห่างคือ 0.5f)
-            currentOffset.x = isRightShoulder ? 1f : -1f;
+            // (เราจะไม่ยุ่งกับแกน Y ที่นี่ เพื่อไม่ให้ตีกับระบบความสูงตอนนั่ง)
+            currentOffset.x = isRightShoulder ? 0.6f : -0.6f;
 
             // ใส่ค่ากลับคืนไป
             aimFollow.ShoulderOffset = currentOffset;

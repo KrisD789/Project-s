@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fdcec219e247cbb48883d4a02ce037b2, type: 3}
-  m_Name: new WP2
+  m_Name: Pistol
   m_EditorClassIdentifier: 
-  itemIcon: {fileID: 21300000, guid: ed404916ab6a27542ba73b5513da711f, type: 3}
+  itemIcon: {fileID: 21300000, guid: 90e68947dd047e641b7defb50944ecf4, type: 3}
   itemName: Pistol
   description: semi-Auto Pistol
   itemPrefab: {fileID: 919132149155446097, guid: 4701709ca5fd89e448e1a2ee0b77af48, type: 3}
-  weaponDamage: 10
+  weaponDamage: 30
   Max_Ammo: 12
   Current_Ammo: 12
   Max_Reserve_Ammo: 36
   weaponRange: 30
-  ReloadTime: 0.5
+  ReloadTime: 2
   FireRate: 0.2
-  RecoilUp: 1
-  RecoilSide: 0.5
+  RecoilUp: 2
+  RecoilSide: 0
   type: 1
   fireMode: 0
   isSuppressed: 0

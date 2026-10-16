@@ -134,11 +134,11 @@ public class Player_Action : MonoBehaviour
 
                 if (enemyFacingDot > 0.5f)
                 {
-                    GrabEnemy(); // 🟢 หันหลังให้ = เรียกล็อคคอ
+                    GrabEnemy(); // หันหลังให้ = เรียกล็อคคอ
                 }
                 else if (enemyFacingDot < -0.5f)
                 {
-                    FrontalTakedown(); // 🔴 หันหน้าชนกัน = เรียกทุ่มด้านหน้า
+                    FrontalTakedown(); // หันหน้าชนกัน = เรียกทุ่มด้านหน้า
                 }
                 else
                 {

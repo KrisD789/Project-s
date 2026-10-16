@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5694ceffab758fa49ab9e356039b279c, type: 3}
   m_Name: Bandage
   m_EditorClassIdentifier: 
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: 21300000, guid: a7e57f1a56dc78646818869261129283, type: 3}
   itemName: Bandage
-  description: restore Hp 20 point
+  description: restore Hp +20 point
   itemPrefab: {fileID: 0}
   healAmount: 20
   MaxHP_Recover: 0

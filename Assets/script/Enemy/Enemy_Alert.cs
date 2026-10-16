@@ -743,6 +743,7 @@ public class Enemy_Alert : MonoBehaviour
         Debug.Log("หมดเวลา Alert! ยอมแพ้และคืนตั๋ว");
 
         StopAllAlertCoroutinesSafely();
+        Reset_AlerTimer();
 
         Enemy_combatManager.Instance.ReleaseToken(this.gameObject);
         enemy_script.currentState = enemy_stage.EnemyState.alertSearching;

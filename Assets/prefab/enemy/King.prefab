@@ -452,6 +452,14 @@ PrefabInstance:
       propertyPath: currentState
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 7571786209374755954, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
+      propertyPath: xrayMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: 1a2838bf5a391eb4395bde1ba53c6d0f, type: 2}
+    - target: {fileID: 7571786209374755954, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
+      propertyPath: normalMaterial
+      value: 
+      objectReference: {fileID: -5265988109326455897, guid: b0bc3905645bcdf4da7288bf11b59e25, type: 3}
     - target: {fileID: 8719490752034511295, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_Enabled
       value: 0

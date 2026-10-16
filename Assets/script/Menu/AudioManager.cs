@@ -6,42 +6,74 @@ public class AudioManager : MonoBehaviour
     public static AudioManager Instance { get; private set; }
 
     [Header("Audio Mixer")]
-    public AudioMixer mainMixer; // ลาก Audio Mixer มาใส่ตรงนี้
+    public AudioMixer mainMixer;
 
     [Header("Audio Sources")]
-    public AudioSource bgmSource; // ลำโพงสำหรับเล่นเพลงพื้นหลัง
-    public AudioSource sfxSource; // ลำโพงกลางสำหรับเล่นเสียง UI หรือเสียงทั่วไป
+    public AudioSource bgmSource;
+    public AudioSource sfxSource;
+    public AudioSource playerSource; // ลำโพงใหม่ สำหรับเล่นเสียงผู้เล่นโดยเฉพาะ
+
+    [Header("BGM Tracks")]
+    public AudioClip patrolMusic;
+    public AudioClip alertMusic;
+
+    [Header("Player SFX Clips")]
+    public AudioClip[] footstepClips; // เสียงเดิน (ใส่หลายๆ ไฟล์ได้เพื่อสุ่ม)
+    public AudioClip shootClip;       // เสียงยิงปืน
+    public AudioClip reloadClip;      // เสียงรีโหลด
+    public AudioClip healClip;        // เสียงปั๊มยา
+
+    private bool isPlayingAlertMusic = false;
 
     private void Awake()
     {
-        // จัดการ Singleton ให้มี AudioManager แค่ตัวเดียวในเกม
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject); // (ใส่หรือไม่ใส่ก็ได้) ทำให้เสียงไม่ขาดตอนเวลาเปลี่ยน Scene
+        DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
     {
-        // โหลดค่าความดังเสียงที่ผู้เล่นเคยตั้งไว้ตอนเข้าเกม (ถ้าไม่เคยตั้ง ค่าเริ่มต้นคือ 1f)
         LoadSettings();
+        PlayBGM(patrolMusic);
+        isPlayingAlertMusic = false;
+    }
+
+    private void Update()
+    {
+        // ระบบเปลี่ยนเพลงตามการ Alert
+        if (Enemy_Alert.AlertTimer > 0 && Enemy_Alert.AlertTimer <= Enemy_Alert.MaxAlertTimer)
+        {
+            if (!isPlayingAlertMusic)
+            {
+                PlayBGM(alertMusic);
+                isPlayingAlertMusic = true;
+                Debug.Log("?? AudioManager: ตรวจพบการ Alert, เปลี่ยนเป็นเพลงต่อสู้!");
+            }
+        }
+        else
+        {
+            if (isPlayingAlertMusic)
+            {
+                PlayBGM(patrolMusic);
+                isPlayingAlertMusic = false;
+                Debug.Log("?? AudioManager: ปลอดภัยแล้ว, เปลี่ยนเป็นเพลง Patrol");
+            }
+        }
     }
 
     // ==========================================
-    // ส่วนที่ 1: ระบบควบคุมความดัง (สำหรับหน้า Settings UI)
+    // ส่วนควบคุมความดัง (Settings)
     // ==========================================
-
-    // ข้อควรระวัง: Slider ใน UI ต้องตั้งค่า Min Value = 0.0001 (ห้ามเป็น 0 เด็ดขาด ไม่งั้นสมการ Log10 จะพัง) และ Max Value = 1
-
     public void SetMasterVolume(float sliderValue)
     {
-        // แปลงค่าจาก 0-1 เป็นหน่วยเดซิเบล (dB) ของ AudioMixer
         float dbValue = Mathf.Log10(sliderValue) * 20f;
         mainMixer.SetFloat("MasterVol", dbValue);
-        PlayerPrefs.SetFloat("Saved_MasterVol", sliderValue); // บันทึกค่าลงเครื่อง
+        PlayerPrefs.SetFloat("Saved_MasterVol", sliderValue);
     }
 
     public void SetBGMVolume(float sliderValue)
@@ -70,12 +102,12 @@ public class AudioManager : MonoBehaviour
     }
 
     // ==========================================
-    // ส่วนที่ 2: ระบบสั่งเล่นเสียง (ให้สคริปต์อื่นเรียกใช้)
+    // ฟังก์ชันเล่นเสียง BGM / SFX ทั่วไป
     // ==========================================
-
     public void PlayBGM(AudioClip clip)
     {
-        if (bgmSource.clip == clip) return; // ถ้าเล่นเพลงเดิมอยู่แล้วก็ไม่ต้องเปลี่ยน
+        if (clip == null || bgmSource.clip == clip) return;
+
         bgmSource.clip = clip;
         bgmSource.Play();
     }
@@ -84,7 +116,51 @@ public class AudioManager : MonoBehaviour
     {
         if (clip != null)
         {
-            sfxSource.PlayOneShot(clip); // เล่นเสียงทับซ้อนกันได้ (เหมาะกับเสียงปืน/UI)
+            sfxSource.PlayOneShot(clip);
+        }
+    }
+
+    // ==========================================
+    // ฟังก์ชันเล่นเสียงของผู้เล่นโดยเฉพาะ (Player Actions)
+    // ==========================================
+    public void PlayFootstep()
+    {
+        if (footstepClips != null && footstepClips.Length > 0 && playerSource != null)
+        {
+            // สุ่มเลือกเสียงเดินจาก Array
+            int randomIndex = Random.Range(0, footstepClips.Length);
+
+            // สุ่มความทุ้มแหลม (Pitch) นิดหน่อย เพื่อให้เสียงก้าวเท้าฟังดูเป็นธรรมชาติ ไม่แข็งเหมือนหุ่นยนต์
+            playerSource.pitch = Random.Range(0.9f, 1.1f);
+
+            playerSource.PlayOneShot(footstepClips[randomIndex]);
+        }
+    }
+
+    public void PlayShoot()
+    {
+        if (shootClip != null && playerSource != null)
+        {
+            playerSource.pitch = 1f; // คืนค่า Pitch เป็นปกติกันเหนียว (เผื่อติดมาจากการเดิน)
+            playerSource.PlayOneShot(shootClip);
+        }
+    }
+
+    public void PlayReload()
+    {
+        if (reloadClip != null && playerSource != null)
+        {
+            playerSource.pitch = 1f;
+            playerSource.PlayOneShot(reloadClip);
+        }
+    }
+
+    public void PlayHeal()
+    {
+        if (healClip != null && playerSource != null)
+        {
+            playerSource.pitch = 1f;
+            playerSource.PlayOneShot(healClip);
         }
     }
 }
