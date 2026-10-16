@@ -156,6 +156,9 @@ public class Player_InputHanler : MonoBehaviour
         // ถ้าเมนูเปิดอยู่ ห้ามรับ Input ใดๆ ที่เกี่ยวกับการต่อสู้หรือเดิน!
         if (GameMenuManager.IsMenuActive) return;
 
+        // เพิ่มบรรทัดนี้: ถ้ากำลังล็อกคอศัตรูอยู่ ห้ามรับคำสั่งเดินจากคีย์บอร์ดเด็ดขาด!
+        //if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy) return;
+
         Vector2 moveInput = moveAction.action.ReadValue<Vector2>();
         bool isAiming = aimAction.action.IsPressed();
 

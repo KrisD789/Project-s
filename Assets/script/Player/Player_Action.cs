@@ -15,6 +15,10 @@ public class Player_Action : MonoBehaviour
     public Transform grabPosition;
     private GameObject grabbedEnemy = null;
     private GameObject targetAliveEnemy = null;
+    // เพิ่มตัวนี้เข้าไปเพื่อกันผู้เล่นกดเมาส์รัวๆ ตอนแอนิเมชันกำลังเล่น
+    private bool isExecutingFinish = false;
+
+    private enemy_stage.EnemyState pendingEnemyState;
 
     [Header("Crouch Settings")]
     public float standingHeight;
@@ -191,6 +195,23 @@ public class Player_Action : MonoBehaviour
     void PickUpBody()
     {
         Player.Instance.currentState = Player.PlayerState.CarryingBody;
+
+        // 1. บังคับให้ผู้เล่น "ลุกขึ้นยืน" ทันที เพื่อให้ AI ศัตรูมองเห็นตัวเราได้เต็มๆ
+        Player.Instance.currentMovementState = Player.MovementState.Standing;
+        isCrouching = false; // ซิงค์ตัวแปรภายในให้ตรงกันด้วย
+
+        // 2. สั่งเล่นแอนิเมชันก้มเก็บศพ
+        if (PlayerAnimator.Instance != null)
+        {
+            PlayerAnimator.Instance.PlayPickUpBody();
+        }
+
+        Enemy_Anime_Controller enemyAnim = NearbyBody.GetComponentInChildren<Enemy_Anime_Controller>(true);
+        if (enemyAnim != null)
+        {
+            enemyAnim.SetCarriedState(true); // บอกศัตรูให้เล่นท่า "โดนแบก"
+        }
+
         carriedBody = NearbyBody;
         NearbyBody = null;
 
@@ -203,27 +224,40 @@ public class Player_Action : MonoBehaviour
 
         carriedBody.transform.SetParent(carryPosition);
         carriedBody.transform.localPosition = Vector3.zero;
+
+        Debug.Log("เก็บศพขึ้นบ่า บังคับลุกขึ้นยืนแล้ว!");
     }
 
     void DropBody()
     {
         Player.Instance.currentState = Player.PlayerState.Idle;
+
+        // สั่งเล่นแอนิเมชันทิ้งศพ
+        if (PlayerAnimator.Instance != null)
+        {
+            PlayerAnimator.Instance.PlayDropBody();
+        }
+
         carriedBody.transform.SetParent(null);
         carriedBody.GetComponent<Rigidbody>().isKinematic = true;
 
         // สแกนเปิด Collider อย่างระมัดระวัง 
         foreach (Collider col in carriedBody.GetComponentsInChildren<Collider>())
         {
-            // ถ้าเป็น Hitbox (เช่น หัว, ตัว) ให้ปิดตายไว้ (false) 
-            // แต่ถ้าไม่ใช่ Hitbox (เช่น Collider ทรงกลมเอาไว้กด Interaction ของตัวแม่) ให้เปิด (true)
             if (col.GetComponent<Enemy_Hitbox>() != null)
             {
-                col.enabled = false; // ปิดศพกันกระสุน
+                col.enabled = false;
             }
             else
             {
-                col.enabled = true;  // เปิด Trigger ให้ผู้เล่นกด 'E' อุ้มใหม่ได้
+                col.enabled = true;
             }
+        }
+
+        Enemy_Anime_Controller enemyAnim = carriedBody.GetComponentInChildren<Enemy_Anime_Controller>(true);
+        if (enemyAnim != null)
+        {
+            enemyAnim.SetCarriedState(false); // บอกศัตรูว่า "ปล่อยแล้ว กลับไปนอนซะ"
         }
 
         carriedBody = null;
@@ -239,15 +273,21 @@ public class Player_Action : MonoBehaviour
     {
         if (Player.Instance.currentState == Player.PlayerState.Idle)
         {
+            // 1. เปลี่ยนสถานะและล็อกขาผู้เล่น (ยืนนิ่งเล่นท่าตะปบ)
             Player.Instance.currentState = Player.PlayerState.GrabbingEnemy;
+            Player.Instance.movement.SetMovementLock(true);
+            isExecutingFinish = false;
+
             grabbedEnemy = targetAliveEnemy;
             targetAliveEnemy = null;
 
+            // 2. บอกศัตรูว่าโดนจับแล้วนะ
             if (grabbedEnemy.TryGetComponent<enemy_stage>(out enemy_stage Target_grabbedEnemy))
             {
                 Target_grabbedEnemy.currentState = enemy_stage.EnemyState.OnGrab;
             }
 
+            // 3. ดักจับเควส (ถ้ามี)
             if (grabbedEnemy.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
             {
                 if (missionTrigger.Mission_Data.type == MissionType.InteractObject && !missionTrigger.Mission_Data.isCompleted)
@@ -257,17 +297,42 @@ public class Player_Action : MonoBehaviour
                 }
             }
 
+            // 4. ปิดสมอเรือ (AI เดิน) เพื่อไม่ให้มันดึงผู้เล่นไว้ตอนลาก
+            if (grabbedEnemy.TryGetComponent<UnityEngine.AI.NavMeshAgent>(out var agent))
+            {
+                agent.enabled = false;
+            }
+
+            // 5. ปิดการชน (Collider) ทั้งหมดของศัตรู! (โค้ดดั้งเดิมที่หายไป)
             foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
             {
                 col.enabled = false;
             }
 
+            // 6. ปิด CharacterController เผื่อไว้ (กันเหนียว)
+            if (grabbedEnemy.TryGetComponent<CharacterController>(out var charController))
+            {
+                charController.enabled = false;
+            }
+
+            // 7. ล็อกฟิสิกส์ให้อยู่นิ่งๆ
             grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
             grabbedEnemy.GetComponent<Collider>().enabled = false;
 
+            // 8. ดึงศัตรูมาไว้ในมือ (เปลี่ยน Parent) และจัดท่าให้ตรง
             grabbedEnemy.transform.SetParent(grabPosition);
             grabbedEnemy.transform.localPosition = Vector3.zero;
             grabbedEnemy.transform.localRotation = Quaternion.identity;
+
+            // 9. สั่งเล่นแอนิเมชัน ทั้งผู้เล่นและศัตรู
+            PlayerAnimator.Instance.PlayBehideTakedown();
+
+            Enemy_Anime_Controller enemyAnim = grabbedEnemy.GetComponentInChildren<Enemy_Anime_Controller>();
+            if (enemyAnim != null)
+            {
+                Debug.Log("เล่น Animtion ขแง enemy");
+                enemyAnim.PlayBehindTakedown();
+            }
 
             Debug.Log("ล็อคคอสำเร็จ รอคำสั่ง (Kill/Knockout)");
         }
@@ -277,15 +342,16 @@ public class Player_Action : MonoBehaviour
     {
         if (Player.Instance.currentState == Player.PlayerState.Idle)
         {
-            // ใช้กระบวนการล็อคตัวคล้ายกัน เพื่อไม่ให้มันหนี
             Player.Instance.currentState = Player.PlayerState.GrabbingEnemy;
+            Player.Instance.movement.SetMovementLock(true); //  ล็อกขา
+            isExecutingFinish = true; // ล็อกปุ่มกด เพราะเราจะบังคับให้มันทุ่มแล้วจบเลย
+
             grabbedEnemy = targetAliveEnemy;
             targetAliveEnemy = null;
 
             if (grabbedEnemy.TryGetComponent<enemy_stage>(out enemy_stage Target_grabbedEnemy))
             {
                 Target_grabbedEnemy.currentState = enemy_stage.EnemyState.OnGrab;
-                // สั่งเบรกไม่ให้มันเดินไหล
                 if (grabbedEnemy.TryGetComponent<UnityEngine.AI.NavMeshAgent>(out var agent))
                 {
                     agent.isStopped = true;
@@ -294,22 +360,34 @@ public class Player_Action : MonoBehaviour
             }
 
             foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
-            {
                 col.enabled = false;
+
+            //  เพิ่มการปิด CharacterController (เผื่อไว้ถ้าในอนาคตใช้)
+            if (grabbedEnemy.TryGetComponent<CharacterController>(out var charController))
+            {
+                charController.enabled = false;
             }
 
             grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
             grabbedEnemy.GetComponent<Collider>().enabled = false;
 
-            // แปะมือ และหมุนหน้าเข้าหากัน (180 องศา)
             grabbedEnemy.transform.SetParent(grabPosition);
             grabbedEnemy.transform.localPosition = Vector3.zero;
             grabbedEnemy.transform.localRotation = Quaternion.Euler(0, 180, 0);
 
-            Debug.Log("CQC ด้านหน้า! บังคับศัตรูสลบทันที!");
+            // สั่งเล่นแอนิเมชัน
+            PlayerAnimator.Instance.PlayFrontTakedown();
+            
+            // แก้ไข: ใช้ GetComponentInChildren เพื่อล้วงลงไปหาในโมเดลลูก
+            Enemy_Anime_Controller enemyAnim = grabbedEnemy.GetComponentInChildren<Enemy_Anime_Controller>();
+            if (enemyAnim != null)
+            {
+                Debug.Log("เล่น Animtion ขแง enemy");
+                enemyAnim.PlayFrontTakedown();
+            }
 
-            // *** เมื่อเรายังไม่มีแอนิเมชัน ก็สั่งให้มันสลบทันทีโดยเรียกฟังก์ชันที่คุณมีอยู่แล้วได้เลย ***
-            ChooseToKnockout();
+            pendingEnemyState = enemy_stage.EnemyState.faint;
+            Debug.Log("CQC ด้านหน้า! บังคับศัตรูสลบทันที!");
         }
     }
 
@@ -353,49 +431,73 @@ public class Player_Action : MonoBehaviour
 
     public void ChooseToKill()
     {
-        if (grabbedEnemy != null)
+        if (grabbedEnemy != null && !isExecutingFinish)
         {
             if (grabbedEnemy.CompareTag("ScamCommander"))
             {
-                Debug.Log("เป้าหมายสำคัญ (ScamCommander)! ระบบไม่อนุญาตให้ฆ่า บังคับทำให้สลบแทน");
-                NotificationManager.Instance.ShowNotification("<color=red>คำเตือน</color> เป้าหมายสำคัญ (ScamCommander)ไม่อนุญาตให้ฆ่า บังคับทำให้สลบแทน ");
+                NotificationManager.Instance.ShowNotification("<color=red>คำเตือน</color> เป้าหมายสำคัญไม่อนุญาตให้ฆ่า");
                 return;
             }
-            else
-            {
-                grabbedEnemy.GetComponent<enemy_stage>().ChangeState(enemy_stage.EnemyState.dead);
-            }
 
-            FinishTakedown();
+            isExecutingFinish = true;
+            pendingEnemyState = enemy_stage.EnemyState.dead;
+
+            //  ล็อกขาผู้เล่นทันทีที่กดปุ่ม เพื่อยืนนิ่งๆ เล่นท่าปาดคอ
+            Player.Instance.movement.SetMovementLock(true);
+
+            PlayerAnimator.Instance.PlayKill();
+
+            Enemy_Anime_Controller enemyAnim = grabbedEnemy.GetComponentInChildren<Enemy_Anime_Controller>();
+            if (enemyAnim != null)
+            {
+                Debug.Log("เล่น Animtion ขแง enemy");
+                enemyAnim.PlayKill();
+            }
         }
     }
 
     public void ChooseToKnockout()
     {
-        if (grabbedEnemy != null)
+        if (grabbedEnemy != null && !isExecutingFinish)
         {
-            grabbedEnemy.GetComponent<enemy_stage>().ChangeState(enemy_stage.EnemyState.faint);
-            FinishTakedown();
+            isExecutingFinish = true;
+            pendingEnemyState = enemy_stage.EnemyState.faint;
+
+            //  ล็อกขาผู้เล่นทันทีที่กดปุ่ม เพื่อยืนนิ่งๆ เล่นท่ารัดคอ
+            Player.Instance.movement.SetMovementLock(true);
+
+            PlayerAnimator.Instance.PlayKnockOut();
+
+
+            Enemy_Anime_Controller enemyAnim = grabbedEnemy.GetComponentInChildren<Enemy_Anime_Controller>();
+            if (enemyAnim != null)
+            {
+                Debug.Log("เล่น Animtion ขแง enemy");
+                enemyAnim.PlayKnockOut();
+            }
         }
     }
 
     public void FinishTakedown()
     {
+        // เปลี่ยนสถานะศัตรูให้ลงไปนอน
+        if (grabbedEnemy != null)
+        {
+            grabbedEnemy.GetComponent<enemy_stage>().ChangeState(pendingEnemyState);
+        }
+
+        //  ปลดล็อกทุกอย่าง คืนการควบคุมให้ผู้เล่นเดินได้ปกติ
         Player.Instance.currentState = Player.PlayerState.Idle;
+        Player.Instance.movement.SetMovementLock(false); //  ปลดล็อกขากลับมาเดินปกติ
+        isExecutingFinish = false; //  รีเซ็ตตัวแปรปุ่มกด
+
         grabbedEnemy.transform.SetParent(null);
         grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
 
         foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
         {
-            // 🚨 เหมือนเดิมครับ เช็กก่อนเปิด
-            if (col.GetComponent<Enemy_Hitbox>() != null)
-            {
-                col.enabled = false;
-            }
-            else
-            {
-                col.enabled = true;
-            }
+            if (col.GetComponent<Enemy_Hitbox>() != null) col.enabled = false;
+            else col.enabled = true;
         }
 
         NearbyBody = grabbedEnemy;
@@ -404,13 +506,32 @@ public class Player_Action : MonoBehaviour
 
     public void HandleCrouch()
     {
+        // 3. ดักไว้เลย! ถ้ากำลังแบกศพอยู่ ไม่อนุญาตให้นั่งยองเด็ดขาด
+        if (Player.Instance.currentState == Player.PlayerState.CarryingBody)
+        {
+            Debug.Log("กำลังแบกศพอยู่ นั่งยองไม่ได้!");
+            return; // เตะออกเลย ไม่ยอมให้เปลี่ยนสถานะ
+        }
+
         isCrouching = !isCrouching;
         Debug.Log(isCrouching ? "ย่อตัวลง!" : "ลุกขึ้นยืน!");
 
-        //  ส่งค่าไปที่ MovementState แทน เพื่อไม่ให้ไปกวนกับการเล็ง/การกระทำอื่นๆ ของมือ
+        // ส่งค่าไปที่ MovementState แทน เพื่อไม่ให้ไปกวนกับการเล็ง/การกระทำอื่นๆ ของมือ
         if (isCrouching)
             Player.Instance.currentMovementState = Player.MovementState.Crouch;
         else
             Player.Instance.currentMovementState = Player.MovementState.Standing;
+    }
+
+
+    //  สร้างฟังก์ชันใหม่ เอาไว้ให้ StateMachineBehaviour เรียกตอนท่าจับด้านหลังเล่นจบ
+    public void OnGrabAnimationFinished()
+    {
+        // ถ้าอยู่ในสถานะกำลังจับศัตรูอยู่ ให้ปลดล็อกขา
+        if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
+        {
+            Player.Instance.movement.SetMovementLock(false); //  ปลดล็อกให้ลากศัตรูเดินได้
+            Debug.Log("แอนิเมชันจับเสร็จแล้ว เริ่มลากศัตรูได้!");
+        }
     }
 }

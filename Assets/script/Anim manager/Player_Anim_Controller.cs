@@ -148,5 +148,7 @@ public class PlayerAnimator : MonoBehaviour
         if (playerAction != null) playerAction.FinishTakedown();
     }
 
-   
+    public void PlayPickUpBody() { if (anim != null) anim.SetTrigger("PickUpBody"); }
+    public void PlayDropBody() { if (anim != null) anim.SetTrigger("DropBody"); }
+
 }

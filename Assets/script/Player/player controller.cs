@@ -145,38 +145,21 @@ public class Player_moveMent : MonoBehaviour
     void setSpeedPlayer()
     {
         int maxState = 2;
-        //  เพิ่มเงื่อนไขดักตอนฮีล ให้เดินช้ามากๆ (ล็อกเพดานไว้ที่โหมดย่อง State -1)
-        if (Player.Instance.currentState == Player.PlayerState.Healing)
+        if (Player.Instance.currentState == Player.PlayerState.Healing) maxState = -1;
+
+        // เพิ่ม: ถ้ากำลังลากศัตรู ให้บังคับเดินช้ามากๆ (โหมดย่อง State -2)
+        if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
         {
             maxState = -1;
         }
-        
+
+        // เอา GrabbingEnemy ออกจากตรงนี้
         if (Player.Instance.currentMovementState == Player.MovementState.Crouch ||
             Player.Instance.currentState == Player.PlayerState.CarryingBody ||
-            Player.Instance.currentState == Player.PlayerState.Aim ||
-            Player.Instance.currentState == Player.PlayerState.GrabbingEnemy)
+            Player.Instance.currentState == Player.PlayerState.Aim)
         {
-            maxState = 0;
+            maxState = 0; // เดินความเร็วปกติ (0)
         }
-
-        playerState = Mathf.Clamp(playerState, -2, maxState);
-
-        // คำนวณความเร็วตั้งต้น
-        float baseSpeed = 0f;
-        if (playerState == 0) baseSpeed = 5f;
-        else if (playerState == 1) baseSpeed = 6f;
-        else if (playerState == 2) baseSpeed = 10f;
-        else if (playerState == -1) baseSpeed = 4f;
-        else if (playerState == -2) baseSpeed = 2f;
-
-        // คำนวณผลกระทบของเกราะต่อความเร็วสูงสุด
-        float armorSpeedModifier = 1f;
-        if (Player.Instance != null && Player.Instance.currentArmorProfile != null)
-        {
-            armorSpeedModifier = Player.Instance.currentArmorProfile.Movement_Speed_Multiplier;
-        }
-
-        speed = baseSpeed * armorSpeedModifier;
     }
 
     void setCollider()

@@ -116,28 +116,22 @@ public class enemy_stage : MonoBehaviour
     // -------------------------------------------------------------
     private void SafetyCheckForSaveLoad()
     {
-        // เช็กเฉพาะสถานะที่ศัตรู "ยังมีชีวิต" และ "ต้องเดินได้อิสระ"
-        if (currentState == EnemyState.Patrol ||
-            currentState == EnemyState.Investigate ||
-            currentState == EnemyState.Alert ||
-            currentState == EnemyState.alertSearching ||
-            currentState == EnemyState.awake ||
-            currentState == EnemyState.idle)
-        {
-            // ก. ถ้าเผลอติดอยู่กับมือ/ไหล่ใคร ให้หลุดออกทันที
-            if (transform.parent != null)
-            {
-                transform.SetParent(null);
-            }
+        // เพิ่มตัวดักตัวใหญ่ที่สุด: ถ้าสถานะคือ OnGrab ห้ามทำ SafetyCheck เด็ดขาด!
+        if (currentState == EnemyState.OnGrab) return;
 
-            // ข. คืนค่าฟิสิกส์และการชน ให้กลับมาสมบูรณ์
+        // หรือถ้าศัตรูติดอยู่กับผู้เล่น (กลายเป็น Child) ก็ห้ามทำเช่นกัน!
+        if (transform.parent != null) return;
+
+        if (currentState == EnemyState.Patrol || currentState == EnemyState.Investigate ||
+            currentState == EnemyState.Alert || currentState == EnemyState.alertSearching ||
+            currentState == EnemyState.awake || currentState == EnemyState.idle)
+        {
             Rigidbody rb = GetComponent<Rigidbody>();
-            if (rb != null && rb.isKinematic) rb.isKinematic = true;
+            if (rb != null && rb.isKinematic) rb.isKinematic = false; // ปรับให้ถูกต้อง
 
             Collider col = GetComponent<Collider>();
             if (col != null && !col.enabled) col.enabled = true;
 
-            // ค. บังคับเปิด NavMeshAgent ให้เดินได้
             if (!agent.enabled) agent.enabled = true;
             if (agent.isActiveAndEnabled && agent.isStopped) agent.isStopped = false;
         }
@@ -145,6 +139,13 @@ public class enemy_stage : MonoBehaviour
 
     public void ChangeState(EnemyState newState)
     {
+        // เพิ่มท่าไม้ตาย: ถ้าโดนผู้เล่นล็อคคออยู่ ห้าม AI ตัวไหนมาเปลี่ยนสถานะเด็ดขาด!
+        if (currentState == EnemyState.OnGrab)
+        {
+            // อนุญาตให้เปลี่ยนได้แค่ตอนตายหรือสลบ (จากคำสั่ง FinishTakedown เท่านั้น)
+            if (newState != EnemyState.dead && newState != EnemyState.faint) return;
+        }
+
         if (currentState == newState) return;
         currentState = newState;
 
