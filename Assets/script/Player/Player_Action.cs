@@ -50,7 +50,7 @@ public class Player_Action : MonoBehaviour
         if (Player.Instance.currentState == Player.PlayerState.GrabbingEnemy && grabbedEnemy != null)
         {
             grabbedEnemy.transform.localPosition = Vector3.zero;
-            grabbedEnemy.transform.localRotation = Quaternion.identity;
+            //grabbedEnemy.transform.localRotation = Quaternion.identity;
         }
 
         if (Player.Instance.currentState == Player.PlayerState.CarryingBody && carriedBody != null)
@@ -124,21 +124,22 @@ public class Player_Action : MonoBehaviour
         {
             targetAliveEnemy = bestAliveEnemy;
 
-            // เช็กองศาว่าควรทุ่มหน้า หรือ ล็อคหลัง!
+            // เช็กองศาว่าควรทุ่มหน้า หรือ ล็อคหลัง! (กลับมาใช้โค้ดเดิมของคุณ)
             Vector3 dirToEnemy = (targetAliveEnemy.transform.position - transform.position).normalized;
             float playerFacingDot = Vector3.Dot(transform.forward, dirToEnemy);
 
             if (playerFacingDot > 0.5f) // ผู้เล่นมองไปที่ศัตรู
             {
+                // เทียบหน้าผู้เล่นกับหน้าศัตรูแบบเดิม
                 float enemyFacingDot = Vector3.Dot(transform.forward, targetAliveEnemy.transform.forward);
 
                 if (enemyFacingDot > 0.5f)
                 {
-                    GrabEnemy(); // หันหลังให้ = เรียกล็อคคอ
+                    GrabEnemy(); // 🟢 หันหลังให้ = เรียกล็อคคอ
                 }
                 else if (enemyFacingDot < -0.5f)
                 {
-                    FrontalTakedown(); // หันหน้าชนกัน = เรียกทุ่มด้านหน้า
+                    FrontalTakedown(); // 🔴 หันหน้าชนกัน = เรียกทุ่มด้านหน้า
                 }
                 else
                 {
@@ -343,9 +344,10 @@ public class Player_Action : MonoBehaviour
         if (Player.Instance.currentState == Player.PlayerState.Idle)
         {
             Player.Instance.currentState = Player.PlayerState.GrabbingEnemy;
-            Player.Instance.movement.SetMovementLock(true); //  ล็อกขา
-            isExecutingFinish = true; // ล็อกปุ่มกด เพราะเราจะบังคับให้มันทุ่มแล้วจบเลย
+            Player.Instance.movement.SetMovementLock(true);
+            isExecutingFinish = true;
 
+            // 1. ดึงเป้าหมายมาใส่ตัวแปร (ส่วนที่หายไป)
             grabbedEnemy = targetAliveEnemy;
             targetAliveEnemy = null;
 
@@ -362,7 +364,6 @@ public class Player_Action : MonoBehaviour
             foreach (Collider col in grabbedEnemy.GetComponentsInChildren<Collider>())
                 col.enabled = false;
 
-            //  เพิ่มการปิด CharacterController (เผื่อไว้ถ้าในอนาคตใช้)
             if (grabbedEnemy.TryGetComponent<CharacterController>(out var charController))
             {
                 charController.enabled = false;
@@ -371,22 +372,25 @@ public class Player_Action : MonoBehaviour
             grabbedEnemy.GetComponent<Rigidbody>().isKinematic = true;
             grabbedEnemy.GetComponent<Collider>().enabled = false;
 
+            // 2. จัดท่าให้อยู่ในมือ และหันหน้าชนกัน
             grabbedEnemy.transform.SetParent(grabPosition);
             grabbedEnemy.transform.localPosition = Vector3.zero;
             grabbedEnemy.transform.localRotation = Quaternion.Euler(0, 180, 0);
 
-            // สั่งเล่นแอนิเมชัน
+            // 3. สั่งเล่นแอนิเมชัน
             PlayerAnimator.Instance.PlayFrontTakedown();
-            
-            // แก้ไข: ใช้ GetComponentInChildren เพื่อล้วงลงไปหาในโมเดลลูก
+
             Enemy_Anime_Controller enemyAnim = grabbedEnemy.GetComponentInChildren<Enemy_Anime_Controller>();
             if (enemyAnim != null)
             {
-                Debug.Log("เล่น Animtion ขแง enemy");
                 enemyAnim.PlayFrontTakedown();
             }
 
             pendingEnemyState = enemy_stage.EnemyState.faint;
+
+            // 4. สั่งให้เรียกจบการทุ่มอัตโนมัติ (ปรับเวลา 2.5f ตามความยาวแอนิเมชันได้เลยครับ)
+            Invoke("FinishTakedown", 2.5f);
+
             Debug.Log("CQC ด้านหน้า! บังคับศัตรูสลบทันที!");
         }
     }
@@ -480,6 +484,8 @@ public class Player_Action : MonoBehaviour
 
     public void FinishTakedown()
     {
+        if (grabbedEnemy == null) return;
+
         // เปลี่ยนสถานะศัตรูให้ลงไปนอน
         if (grabbedEnemy != null)
         {

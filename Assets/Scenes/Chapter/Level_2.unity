@@ -156188,15 +156188,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 956701744599750508, guid: a32580bd612b7374d9594a2de68a6db1, type: 3}
       propertyPath: ShoulderOffset.x
-      value: 0.96
+      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: 956701744599750508, guid: a32580bd612b7374d9594a2de68a6db1, type: 3}
       propertyPath: ShoulderOffset.y
-      value: -0.85
+      value: -0.3
       objectReference: {fileID: 0}
     - target: {fileID: 956701744599750508, guid: a32580bd612b7374d9594a2de68a6db1, type: 3}
       propertyPath: ShoulderOffset.z
-      value: 2.25
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3141658653651348412, guid: a32580bd612b7374d9594a2de68a6db1, type: 3}
       propertyPath: field of view
@@ -156276,15 +156276,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4640926741980869031, guid: a32580bd612b7374d9594a2de68a6db1, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 45.423515
+      value: 46.173515
       objectReference: {fileID: 0}
     - target: {fileID: 4640926741980869031, guid: a32580bd612b7374d9594a2de68a6db1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 3.3719378
+      value: 3.9219375
       objectReference: {fileID: 0}
     - target: {fileID: 4640926741980869031, guid: a32580bd612b7374d9594a2de68a6db1, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -417.48657
+      value: -417.1266
       objectReference: {fileID: 0}
     - target: {fileID: 5151801004759294226, guid: a32580bd612b7374d9594a2de68a6db1, type: 3}
       propertyPath: m_LocalPosition.x
