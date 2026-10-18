@@ -221,6 +221,14 @@ public class EnemyInteraction : MonoBehaviour
 
             if (enemy_main.currentState != enemy_stage.EnemyState.Alert && enemy_main.currentState != enemy_stage.EnemyState.alertSearching)
             {
+                if (enemy_main.currentState != enemy_stage.EnemyState.Investigate)
+                {
+                    if (TryGetComponent<EnemyAudioController>(out EnemyAudioController audioCtrl))
+                    {
+                        audioCtrl.PlaySuspiciousSound();
+                    }
+                }
+
                 enemy_main.currentState = enemy_stage.EnemyState.Investigate;
                 investigate_script.searcingLastHearPosition(col.transform.position);
             }

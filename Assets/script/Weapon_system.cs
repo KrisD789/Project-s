@@ -237,6 +237,8 @@ public class Weapon_system : MonoBehaviour
 
         CurrentAmmo--;
 
+        PlayWeaponSound();
+
         if (cameraControlScript != null)
         {
             cameraControlScript.ApplyRecoil(recoilUp, recoilSide);
@@ -280,6 +282,8 @@ public class Weapon_system : MonoBehaviour
         }
 
         CreateGunshotNoise();
+
+        PlayWeaponSound();
     }
 
     public void EquipPrimary()
@@ -320,6 +324,11 @@ public class Weapon_system : MonoBehaviour
 
     public void DoDamage(RaycastHit targetHit)
     {
+        if (AudioManager.Instance != null)
+        {
+           AudioManager.Instance.PlayHitSound();
+        }
+
         // 1. เช็กก่อนว่ากระสุนชนกล่อง Hitbox (หัว/ตัว) ที่เราแยกชิ้นไว้หรือเปล่า
         if (targetHit.collider.TryGetComponent<Enemy_Hitbox>(out Enemy_Hitbox hitbox))
         {
@@ -394,6 +403,11 @@ public class Weapon_system : MonoBehaviour
                 current_Weapon_Status = Weapon_Status.reload;
                 nextTimeToReload = Time.time + currentWeapon.ReloadTime;
 
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayReload();
+                }
+
                 // ++ 8. สั่ง Animator เล่นท่ารีโหลด ++
                 if (PlayerAnimator.Instance != null) PlayerAnimator.Instance.TriggerReload();
 
@@ -408,6 +422,7 @@ public class Weapon_system : MonoBehaviour
 
     public void HandleReload()
     {
+        
         if (currentWeapon != null && current_Weapon_Status == Weapon_Status.reload)
         {
             if (Time.time >= nextTimeToReload)
@@ -534,6 +549,28 @@ public class Weapon_system : MonoBehaviour
         {
             Destroy(currentWeaponModel);
             currentWeaponModel = null;
+        }
+    }
+
+    // เพิ่มฟังก์ชันสำหรับแยกแยะประเภทปืนแล้วสั่งเล่นเสียง
+    public void PlayWeaponSound()
+    {
+        if (AudioManager.Instance == null || currentWeapon == null) return;
+
+        // 1. เช็กก่อนเลยว่า "ใส่ที่เก็บเสียงไหม?" (เราอิงจากค่า isSuppressed ที่คุณมีอยู่แล้วในสคริปต์)
+        if (currentWeapon.isSuppressed)
+        {
+            AudioManager.Instance.PlaySilencedPistol();
+        }
+        // 2. ถ้าไม่ได้เก็บเสียง ให้เช็กว่าเป็น "ปืนกล/ไรเฟิล" ไหม? (อิงจากโหมดการยิงว่าเป็นแบบรัวได้)
+        else if (currentWeapon.fireMode == Weapon_Item.FireMode.Select_Fire_Weapon)
+        {
+            AudioManager.Instance.PlayRifleShoot();
+        }
+        // 3. ถ้าไม่ใช่ปืนเก็บเสียง และไม่ใช่ปืนกล ก็ตีความว่าเป็น "ปืนพกเสียงดังปกติ"
+        else
+        {
+            AudioManager.Instance.PlayPistolShoot();
         }
     }
 }

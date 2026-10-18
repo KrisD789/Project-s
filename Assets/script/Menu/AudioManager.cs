@@ -3,155 +3,118 @@ using UnityEngine.Audio;
 
 public class AudioManager : MonoBehaviour
 {
-    public static AudioManager Instance { get; private set; }
+    // เปลี่ยนมาใช้ Instance (I พิมพ์ใหญ่) แบบที่คุณตั้งไว้
+    public static AudioManager Instance;
 
     [Header("Audio Mixer")]
-    public AudioMixer mainMixer;
+    public AudioMixer audioMixer;
 
     [Header("Audio Sources")]
     public AudioSource bgmSource;
-    public AudioSource sfxSource;
-    public AudioSource playerSource; // ลำโพงใหม่ สำหรับเล่นเสียงผู้เล่นโดยเฉพาะ
+    public AudioSource playerSource;
 
-    [Header("BGM Tracks")]
-    public AudioClip patrolMusic;
-    public AudioClip alertMusic;
+    // เพิ่ม Loadout เข้าไปในลิสต์
+    public enum MusicState { None, MainMenu, Loadout, Patrol, Investigate, Alert }
+    private MusicState currentMusicState = MusicState.None;
 
-    [Header("Player SFX Clips")]
-    public AudioClip[] footstepClips; // เสียงเดิน (ใส่หลายๆ ไฟล์ได้เพื่อสุ่ม)
-    public AudioClip shootClip;       // เสียงยิงปืน
-    public AudioClip reloadClip;      // เสียงรีโหลด
-    public AudioClip healClip;        // เสียงปั๊มยา
+    [Header("BGM Clips")]
+    public AudioClip mainMenuBGM;
+    public AudioClip loadoutBGM; // <-- เพิ่มช่องใส่เพลงหน้า Loadout
+    public AudioClip patrolBGM;
+    public AudioClip investigateBGM;
+    public AudioClip alertBGM;
 
-    private bool isPlayingAlertMusic = false;
+    [Header("Player SFX")]
+    public AudioClip healClip;
+    public AudioClip rifleClip;
+    public AudioClip pistolClip;
+    public AudioClip silencedPistolClip;
+    public AudioClip reloadClip;
+    public AudioClip hurtClip;     // เสียงตอนผู้เล่นโดนยิง
+    public AudioClip hitSoundClip; // เสียง "ติ๊ก!" ตอนเรายิงโดนศัตรู
 
-    private void Awake()
+    void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance == null)
         {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-    }
-
-    private void Start()
-    {
-        LoadSettings();
-        PlayBGM(patrolMusic);
-        isPlayingAlertMusic = false;
-    }
-
-    private void Update()
-    {
-        // ระบบเปลี่ยนเพลงตามการ Alert
-        if (Enemy_Alert.AlertTimer > 0 && Enemy_Alert.AlertTimer <= Enemy_Alert.MaxAlertTimer)
-        {
-            if (!isPlayingAlertMusic)
-            {
-                PlayBGM(alertMusic);
-                isPlayingAlertMusic = true;
-                Debug.Log("?? AudioManager: ตรวจพบการ Alert, เปลี่ยนเป็นเพลงต่อสู้!");
-            }
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
-            if (isPlayingAlertMusic)
-            {
-                PlayBGM(patrolMusic);
-                isPlayingAlertMusic = false;
-                Debug.Log("?? AudioManager: ปลอดภัยแล้ว, เปลี่ยนเป็นเพลง Patrol");
-            }
+            Destroy(gameObject);
+        }
+    }
+
+    void Start()
+    {
+        LoadSettings();
+        // เอาคำสั่งบังคับเล่น Patrol ออก เพื่อให้ Scene_Manager เป็นตัวสั่งแทน
+    }
+
+    // ==========================================
+    // ระบบเปิดเพลงพื้นหลัง (BGM)
+    // ==========================================
+    public void PlayBGM(MusicState newState)
+    {
+        if (currentMusicState == newState) return;
+
+        currentMusicState = newState;
+        bgmSource.Stop();
+
+        // เพิ่ม Case สำหรับ Loadout
+        switch (newState)
+        {
+            case MusicState.MainMenu:
+                bgmSource.clip = mainMenuBGM;
+                break;
+            case MusicState.Loadout:
+                bgmSource.clip = loadoutBGM;
+                break;
+            case MusicState.Patrol:
+                bgmSource.clip = patrolBGM;
+                break;
+            case MusicState.Investigate:
+                bgmSource.clip = investigateBGM;
+                break;
+            case MusicState.Alert:
+                bgmSource.clip = alertBGM;
+                break;
+        }
+
+        if (bgmSource.clip != null)
+        {
+            bgmSource.Play();
         }
     }
 
     // ==========================================
-    // ส่วนควบคุมความดัง (Settings)
+    // ระบบเสียงเอฟเฟกต์ผู้เล่น (Player SFX)
     // ==========================================
-    public void SetMasterVolume(float sliderValue)
+    public void PlayRifleShoot()
     {
-        float dbValue = Mathf.Log10(sliderValue) * 20f;
-        mainMixer.SetFloat("MasterVol", dbValue);
-        PlayerPrefs.SetFloat("Saved_MasterVol", sliderValue);
-    }
-
-    public void SetBGMVolume(float sliderValue)
-    {
-        float dbValue = Mathf.Log10(sliderValue) * 20f;
-        mainMixer.SetFloat("BGMVol", dbValue);
-        PlayerPrefs.SetFloat("Saved_BGMVol", sliderValue);
-    }
-
-    public void SetSFXVolume(float sliderValue)
-    {
-        float dbValue = Mathf.Log10(sliderValue) * 20f;
-        mainMixer.SetFloat("SFXVol", dbValue);
-        PlayerPrefs.SetFloat("Saved_SFXVol", sliderValue);
-    }
-
-    private void LoadSettings()
-    {
-        float masterVol = PlayerPrefs.GetFloat("Saved_MasterVol", 1f);
-        float bgmVol = PlayerPrefs.GetFloat("Saved_BGMVol", 1f);
-        float sfxVol = PlayerPrefs.GetFloat("Saved_SFXVol", 1f);
-
-        SetMasterVolume(masterVol);
-        SetBGMVolume(bgmVol);
-        SetSFXVolume(sfxVol);
-    }
-
-    // ==========================================
-    // ฟังก์ชันเล่นเสียง BGM / SFX ทั่วไป
-    // ==========================================
-    public void PlayBGM(AudioClip clip)
-    {
-        if (clip == null || bgmSource.clip == clip) return;
-
-        bgmSource.clip = clip;
-        bgmSource.Play();
-    }
-
-    public void PlaySFX(AudioClip clip)
-    {
-        if (clip != null)
+        if (rifleClip != null && playerSource != null)
         {
-            sfxSource.PlayOneShot(clip);
+            playerSource.pitch = Random.Range(0.95f, 1.05f);
+            playerSource.PlayOneShot(rifleClip);
         }
     }
 
-    // ==========================================
-    // ฟังก์ชันเล่นเสียงของผู้เล่นโดยเฉพาะ (Player Actions)
-    // ==========================================
-    public void PlayFootstep()
+    public void PlayPistolShoot()
     {
-        if (footstepClips != null && footstepClips.Length > 0 && playerSource != null)
+        if (pistolClip != null && playerSource != null)
         {
-            // สุ่มเลือกเสียงเดินจาก Array
-            int randomIndex = Random.Range(0, footstepClips.Length);
-
-            // สุ่มความทุ้มแหลม (Pitch) นิดหน่อย เพื่อให้เสียงก้าวเท้าฟังดูเป็นธรรมชาติ ไม่แข็งเหมือนหุ่นยนต์
-            playerSource.pitch = Random.Range(0.9f, 1.1f);
-
-            playerSource.PlayOneShot(footstepClips[randomIndex]);
+            playerSource.pitch = Random.Range(0.95f, 1.05f);
+            playerSource.PlayOneShot(pistolClip);
         }
     }
 
-    public void PlayShoot()
+    public void PlaySilencedPistol()
     {
-        if (shootClip != null && playerSource != null)
+        if (silencedPistolClip != null && playerSource != null)
         {
-            playerSource.pitch = 1f; // คืนค่า Pitch เป็นปกติกันเหนียว (เผื่อติดมาจากการเดิน)
-            playerSource.PlayOneShot(shootClip);
-        }
-    }
-
-    public void PlayReload()
-    {
-        if (reloadClip != null && playerSource != null)
-        {
-            playerSource.pitch = 1f;
-            playerSource.PlayOneShot(reloadClip);
+            playerSource.pitch = Random.Range(0.95f, 1.05f);
+            playerSource.PlayOneShot(silencedPistolClip);
         }
     }
 
@@ -163,4 +126,68 @@ public class AudioManager : MonoBehaviour
             playerSource.PlayOneShot(healClip);
         }
     }
+
+    public void PlayReload() // <-- เพิ่มบล็อกฟังก์ชันนี้
+    {
+        if (reloadClip != null && playerSource != null)
+        {
+            // รีโหลดไม่จำเป็นต้องสุ่มเสียงสูงต่ำ ให้ pitch เป็น 1 ปกติ
+            playerSource.pitch = 1f;
+            playerSource.PlayOneShot(reloadClip);
+        }
+    }
+
+    public void PlayHurtSound()
+    {
+        if (hurtClip != null && playerSource != null)
+        {
+            // สุ่มเสียงสูงต่ำเล็กน้อย จะได้ฟังดูไม่ซ้ำซากตอนโดนรัวยิง
+            playerSource.pitch = Random.Range(0.9f, 1.1f);
+            playerSource.PlayOneShot(hurtClip);
+        }
+    }
+
+    public void PlayHitSound()
+    {
+        if (hitSoundClip != null && playerSource != null)
+        {
+            // Hit Sound ควรจะเป๊ะๆ และหนักแน่น
+            playerSource.pitch = 1f;
+            playerSource.PlayOneShot(hitSoundClip);
+        }
+    }
+
+    // ==========================================
+    // ระบบตั้งค่าความดัง (Volume Control)
+    // ==========================================
+    public void SetMasterVolume(float volume)
+    {
+        audioMixer.SetFloat("MasterVol", Mathf.Log10(Mathf.Clamp(volume, 0.0001f, 1f)) * 20);
+        PlayerPrefs.SetFloat("MasterVol", volume);
+    }
+
+    public void SetBGMVolume(float volume)
+    {
+        audioMixer.SetFloat("BGMVol", Mathf.Log10(Mathf.Clamp(volume, 0.0001f, 1f)) * 20);
+        PlayerPrefs.SetFloat("BGMVol", volume);
+    }
+
+    public void SetSFXVolume(float volume)
+    {
+        audioMixer.SetFloat("SFXVol", Mathf.Log10(Mathf.Clamp(volume, 0.0001f, 1f)) * 20);
+        PlayerPrefs.SetFloat("SFXVol", volume);
+    }
+
+    public void LoadSettings()
+    {
+        float masterVol = PlayerPrefs.GetFloat("MasterVol", 1f);
+        float bgmVol = PlayerPrefs.GetFloat("BGMVol", 1f);
+        float sfxVol = PlayerPrefs.GetFloat("SFXVol", 1f);
+
+        SetMasterVolume(masterVol);
+        SetBGMVolume(bgmVol);
+        SetSFXVolume(sfxVol);
+    }
+
+
 }

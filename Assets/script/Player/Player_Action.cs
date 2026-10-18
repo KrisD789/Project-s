@@ -239,7 +239,28 @@ public class Player_Action : MonoBehaviour
             PlayerAnimator.Instance.PlayDropBody();
         }
 
-        carriedBody.transform.SetParent(null);
+        //  วิธีแก้ศพเด้งทะลุชั้น (เจาะจงแก้ปัญหา NavMeshAgent ดูดผิดชั้น)
+        if (carriedBody.TryGetComponent<UnityEngine.AI.NavMeshAgent>(out var agent))
+        {
+            // 1. ปิด NavMeshAgent ชั่วคราวก่อนปล่อยศพ เพื่อไม่ให้มันเผลอดูดขึ้นเพดาน
+            agent.enabled = false;
+
+            // 2. ปล่อยศพจากบ่า
+            carriedBody.transform.SetParent(null);
+
+            // 3. ดึงระดับความสูง (แกน Y) ของผู้เล่น มาใช้กับศพ (รับประกันว่าอยู่ชั้นเดียวกัน 100%)
+            Vector3 dropPosition = new Vector3(carriedBody.transform.position.x, transform.position.y, carriedBody.transform.position.z);
+            carriedBody.transform.position = dropPosition;
+
+            // 4. เปิด NavMesh กลับขึ้นมา มันจะเกาะพื้นชั้นที่เรายืนอยู่ทันที!
+            agent.enabled = true;
+        }
+        else
+        {
+            // เผื่อไว้กรณีศัตรูตัวนั้นไม่มี NavMesh
+            carriedBody.transform.SetParent(null);
+        }
+
         carriedBody.GetComponent<Rigidbody>().isKinematic = true;
 
         // สแกนเปิด Collider อย่างระมัดระวัง 
@@ -350,6 +371,16 @@ public class Player_Action : MonoBehaviour
             // 1. ดึงเป้าหมายมาใส่ตัวแปร (ส่วนที่หายไป)
             grabbedEnemy = targetAliveEnemy;
             targetAliveEnemy = null;
+
+            if (grabbedEnemy.TryGetComponent<MissionTrigger>(out MissionTrigger missionTrigger))
+            {
+                if ((missionTrigger.Mission_Data.type == MissionType.InteractObject || missionTrigger.Mission_Data.type == MissionType.CaptureTarget)
+                    && !missionTrigger.Mission_Data.isCompleted)
+                {
+                    missionTrigger.OnInteractionQuest();
+                    Debug.Log("CQC เป้าหมายด้านหน้า! ภารกิจจับกุมสำเร็จทันที");
+                }
+            }
 
             if (grabbedEnemy.TryGetComponent<enemy_stage>(out enemy_stage Target_grabbedEnemy))
             {

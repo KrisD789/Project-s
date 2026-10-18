@@ -3,13 +3,16 @@ using UnityEngine;
 public class GameMenuManager : MonoBehaviour
 {
     [Header("หน้าต่าง UI ที่ต้องการคุม")]
-    public GameObject pauseMenu; 
-    public GameObject savePopup; 
+    public GameObject pauseMenu;
+    public GameObject savePopup;
     public GameObject Load_Menu;
     public GameObject deathMenuUI;
 
+    // --- เพิ่มช่องสำหรับลาก UI หน้า Setting มาใส่ ---
+    public GameObject Setting_Menu;
+
     private bool isMenuOpen = false;
-    
+
     // เพิ่มบรรทัดนี้ ให้สคริปต์อื่นเช็กได้ง่ายๆ
     public static bool IsMenuActive { get; private set; }
 
@@ -24,9 +27,12 @@ public class GameMenuManager : MonoBehaviour
             SaveManager.Instance.OnGameLoaded += ForceResumeGame;
         }
 
-        if (pauseMenu != null) pauseMenu.SetActive(false); 
+        if (pauseMenu != null) pauseMenu.SetActive(false);
         if (savePopup != null) savePopup.SetActive(false);
         if (Load_Menu != null) Load_Menu.SetActive(false);
+
+        // --- ปิดหน้า Setting ไว้ก่อนตอนเริ่มเกม ---
+        if (Setting_Menu != null) Setting_Menu.SetActive(false);
     }
 
     private void OnDestroy()
@@ -61,27 +67,30 @@ public class GameMenuManager : MonoBehaviour
         IsMenuActive = isMenuOpen; // อัปเดตค่าให้สคริปต์อื่นรู้ด้วย
 
         pauseMenu.SetActive(isMenuOpen);
-        
-        // หากปิดเมนูหลัก ให้บังคับปิดหน้าต่าง Popup และ Load Menu ไปด้วย
-        if (!isMenuOpen && savePopup != null) savePopup.SetActive(false); 
-        if (!isMenuOpen && Load_Menu != null) Load_Menu.SetActive(false);
 
-        Time.timeScale = isMenuOpen ? 0f : 1f; 
-        Cursor.lockState = isMenuOpen ? CursorLockMode.None : CursorLockMode.Locked; 
+        // หากปิดเมนูหลัก ให้บังคับปิดหน้าต่าง Popup, Load Menu และ Setting ไปด้วย
+        if (!isMenuOpen)
+        {
+            if (savePopup != null) savePopup.SetActive(false);
+            if (Load_Menu != null) Load_Menu.SetActive(false);
+            if (Setting_Menu != null) Setting_Menu.SetActive(false); // --- เพิ่มการบังคับปิด Setting ---
+        }
+
+        Time.timeScale = isMenuOpen ? 0f : 1f;
+        Cursor.lockState = isMenuOpen ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = isMenuOpen;
     }
 
     public void ResumeGame()
     {
-        if (isMenuOpen) ToggleMenu(); 
+        if (isMenuOpen) ToggleMenu();
     }
 
     public void OpenSavePopup()
     {
-        if (savePopup != null) savePopup.SetActive(true); 
+        if (savePopup != null) savePopup.SetActive(true);
     }
 
-    // เพิ่มฟังก์ชันสำหรับปิดหน้าต่าง Popup (เอาไว้ผูกกับปุ่ม Cancel)
     public void CloseSavePopup()
     {
         if (savePopup != null) savePopup.SetActive(false);
@@ -97,6 +106,17 @@ public class GameMenuManager : MonoBehaviour
         if (Load_Menu != null) Load_Menu.SetActive(false);
     }
 
+    // --- เพิ่มฟังก์ชัน เปิด/ปิด หน้า Setting ---
+    public void OpenSetting_Menu()
+    {
+        if (Setting_Menu != null) Setting_Menu.SetActive(true);
+    }
+
+    public void CloseSetting_Menu()
+    {
+        if (Setting_Menu != null) Setting_Menu.SetActive(false);
+    }
+
     public void ForceResumeGame()
     {
         isMenuOpen = false;
@@ -106,6 +126,9 @@ public class GameMenuManager : MonoBehaviour
         if (pauseMenu != null) pauseMenu.SetActive(false);
         if (savePopup != null) savePopup.SetActive(false);
         if (Load_Menu != null) Load_Menu.SetActive(false);
+
+        // --- บังคับปิดหน้า Setting ให้เกลี้ยงด้วย ---
+        if (Setting_Menu != null) Setting_Menu.SetActive(false);
 
         // บังคับปิดหน้าmenuตายด้วย เผื่อกรณีที่ผู้เล่นกดโหลดเซฟจากหน้า Death Menu
         if (deathMenuUI != null) deathMenuUI.SetActive(false);

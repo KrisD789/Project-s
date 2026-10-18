@@ -27,6 +27,6 @@ MonoBehaviour:
   RecoilSide: 0.5
   type: 1
   fireMode: 0
-  isSuppressed: 1
+  isSuppressed: 0
   noiseLevel: 30
   lightConcealment: 0

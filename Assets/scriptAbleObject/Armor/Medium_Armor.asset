@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52e509992683bd94bb76e04d37d9c1c9, type: 3}
   m_Name: Medium_Armor
   m_EditorClassIdentifier: 
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: 21300000, guid: 7b75f0b6ae879de45a18095e644d4eb1, type: 3}
   itemName: Medium_Armor
   description: 
   itemPrefab: {fileID: 0}

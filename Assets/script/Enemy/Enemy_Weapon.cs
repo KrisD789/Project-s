@@ -70,6 +70,12 @@ public class Enemy_Weapon : MonoBehaviour
     {
         Debug.Log("ปัง! ศัตรูยิงผู้เล่น 1 นัด โดนดาเมจ: " + weaponDamage);
 
+        // --- สะกิดบอกศูนย์บัญชาการเสียงให้เล่นเสียงยิง ---
+        if (TryGetComponent<EnemyAudioController>(out EnemyAudioController audioCtrl))
+        {
+            audioCtrl.PlayShootSound(); // <-- เพิ่มบรรทัดนี้
+        }
+
         // TODO: ใส่ลูกเล่นเพิ่มตรงนี้ได้เลย
         // 1. เล่นเสียงปืน: AudioSource.PlayClipAtPoint(...)
         // 2. เล่นแสงปลายปืน: muzzleFlash.Play();

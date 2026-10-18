@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52e509992683bd94bb76e04d37d9c1c9, type: 3}
   m_Name: Heavy_Armor
   m_EditorClassIdentifier: 
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: 21300000, guid: f84ee101f32bf56429bcbdb41a9ea91c, type: 3}
   itemName: Heavy_Armor
   description: 
   itemPrefab: {fileID: 0}

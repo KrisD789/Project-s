@@ -222,6 +222,11 @@ public class EnemyRaycast : MonoBehaviour
                 {
                     if (P_Light_detect != null && P_Light_detect.light_meter >= 60)
                     {
+                        if (TryGetComponent<EnemyAudioController>(out EnemyAudioController audioCtrl))
+                        {
+                            audioCtrl.PlayAlertSound();
+                        }
+
                         enemt_alert_Script.Start_TriggerGroupAlert();
                         Enemy_script.currentState = enemy_stage.EnemyState.Alert;
                         foundPlayer = true;
@@ -247,6 +252,11 @@ public class EnemyRaycast : MonoBehaviour
                         // ถ้าไม่มีอะไรบังตอนหมอบ ก็มาเช็คแสงต่อ
                         if (P_Light_detect != null && P_Light_detect.light_meter >= 60)
                         {
+                            if (TryGetComponent<EnemyAudioController>(out EnemyAudioController audioCtrl))
+                            {
+                                audioCtrl.PlayAlertSound();
+                            }
+
                             enemt_alert_Script.Start_TriggerGroupAlert();
                             Enemy_script.currentState = enemy_stage.EnemyState.Alert;
                             foundPlayer = true;

@@ -22,7 +22,7 @@ MonoBehaviour:
   Max_Reserve_Ammo: 36
   weaponRange: 30
   ReloadTime: 2
-  FireRate: 1
+  FireRate: 0.2
   RecoilUp: 2
   RecoilSide: 0
   type: 1

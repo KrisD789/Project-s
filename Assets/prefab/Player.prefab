@@ -269,13 +269,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3914801127215653067}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.2300127, y: 0.78999996, z: -0.22000039}
+  m_LocalRotation: {x: -0.5208404, y: 0.4783548, z: 0.4785081, w: 0.52051127}
+  m_LocalPosition: {x: -0.28648567, y: 1.0903959, z: -0.13852315}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4137924081872667621}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 22.2}
 --- !u!1 &4311081831415081894
 GameObject:
   m_ObjectHideFlags: 0
@@ -321,11 +321,11 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5425786251768538626}
+  - {fileID: 9017335598441502791}
   - {fileID: 2652642565387650979}
   - {fileID: 2463124950360380145}
   - {fileID: 210510904508614258}
   - {fileID: 8707579581564356262}
-  - {fileID: 9017335598441502791}
   - {fileID: 4154252704752135030}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
@@ -550,6 +550,9 @@ MonoBehaviour:
   aimCamera: {fileID: 0}
   aimAction: {fileID: 5723915937985287874, guid: adfefd8a88e4836479309807f1331441, type: 3}
   aimCameraMount: {fileID: 0}
+  standingAimHeight: -0.3
+  crouchingAimHeight: -1
+  heightTransitionSpeed: 10
 --- !u!114 &614853632851053362
 MonoBehaviour:
   m_ObjectHideFlags: 0

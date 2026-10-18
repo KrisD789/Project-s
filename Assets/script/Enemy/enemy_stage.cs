@@ -19,6 +19,8 @@ public class enemy_stage : MonoBehaviour
     public float E_runSpeed = 7;
     public float E_waklSpeed = 3;
 
+
+
     public enum EnemyState
     {
         Patrol,
@@ -36,6 +38,10 @@ public class enemy_stage : MonoBehaviour
 
     public EnemyState baseState = EnemyState.Patrol;
     public EnemyState currentState = EnemyState.Patrol;
+
+    // --- เพิ่มบรรทัดนี้: ตัวแปรแอบจำสถานะก่อนหน้า ---
+    private EnemyState previousState = EnemyState.Patrol;
+
     private Vector3 lastHeardPosition;
     private Vector3 enemy_late_Position;
     public MeshRenderer headRenderer;
@@ -61,11 +67,31 @@ public class enemy_stage : MonoBehaviour
 
         // ดึงคอมโพเนนต์ Renderer ทั้งหมดของศัตรู
         skinRenderers = GetComponentsInChildren<SkinnedMeshRenderer>();
+
+        previousState = currentState;
     }
 
     void Update()
     {
         SafetyCheckForSaveLoad();
+
+        // ถ้าสถานะปัจจุบัน ไม่ตรงกับ ที่จำไว้ แปลว่ามีคนแอบเปลี่ยนค่า!
+        if (currentState != previousState)
+        {
+            // สั่งเปิดเพลงตามสถานะใหม่
+            if (AudioManager.Instance != null)
+            {
+                if (currentState == EnemyState.Alert || currentState == EnemyState.alertSearching)
+                    AudioManager.Instance.PlayBGM(AudioManager.MusicState.Alert);
+                else if (currentState == EnemyState.Investigate)
+                    AudioManager.Instance.PlayBGM(AudioManager.MusicState.Investigate);
+                else if (currentState == EnemyState.Patrol || currentState == EnemyState.idle)
+                    AudioManager.Instance.PlayBGM(AudioManager.MusicState.Patrol);
+            }
+
+            // อัปเดตความจำใหม่ จะได้ไม่สั่งเปิดเพลงซ้ำจนเสียงช็อต
+            previousState = currentState;
+        }
 
         switch (currentState)
         {
@@ -115,9 +141,21 @@ public class enemy_stage : MonoBehaviour
         }
     }
 
-    public void Alert() { agent.speed = E_runSpeed; }
-    public void Investigate() { agent.speed = E_waklSpeed; }
-    private void Patrol() { agent.speed = E_waklSpeed; }
+    public void Alert() 
+    { 
+        agent.speed = E_runSpeed;
+        //if (AudioManager.Instance != null) AudioManager.Instance.PlayBGM(AudioManager.MusicState.Alert);
+    }
+    public void Investigate() 
+    { 
+        agent.speed = E_waklSpeed;
+        //if (AudioManager.Instance != null) AudioManager.Instance.PlayBGM(AudioManager.MusicState.Investigate);
+    }
+    private void Patrol() 
+    { 
+        agent.speed = E_waklSpeed;
+        //if (AudioManager.Instance != null) AudioManager.Instance.PlayBGM(AudioManager.MusicState.Patrol);
+    }
 
 
     // -------------------------------------------------------------
@@ -143,6 +181,21 @@ public class enemy_stage : MonoBehaviour
 
             if (!agent.enabled) agent.enabled = true;
             if (agent.isActiveAndEnabled && agent.isStopped) agent.isStopped = false;
+ 
+            // ถ้ามีการโหลดเซฟกลับมา แล้วสถานะปัจจุบันมันต่างจากที่เคยจำไว้ 
+            // ให้บังคับอัปเดตเพลงตามสถานะที่ถูกโหลดกลับมาทันที
+            if (currentState != previousState && AudioManager.Instance != null)
+            {
+                if (currentState == EnemyState.Alert || currentState == EnemyState.alertSearching)
+                    AudioManager.Instance.PlayBGM(AudioManager.MusicState.Alert);
+                else if (currentState == EnemyState.Investigate)
+                    AudioManager.Instance.PlayBGM(AudioManager.MusicState.Investigate);
+                else if (currentState == EnemyState.Patrol || currentState == EnemyState.idle)
+                    AudioManager.Instance.PlayBGM(AudioManager.MusicState.Patrol);
+
+                // อย่าลืมอัปเดตความจำใหม่ด้วย
+                previousState = currentState;
+            }
         }
     }
 
@@ -160,6 +213,8 @@ public class enemy_stage : MonoBehaviour
 
         Enemy_Anime_Controller enemyAnim = GetComponent<Enemy_Anime_Controller>();
         Rigidbody rb = GetComponent<Rigidbody>();
+
+        
 
         switch (newState)
         {

@@ -56,6 +56,11 @@ public class Player : MonoBehaviour
         EquipArmor(currentArmorProfile);
         currentHP = MaxHP;
         currentMaxHP = MaxHP;
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBGM(AudioManager.MusicState.Patrol);
+        }
     }
 
     public void Player_TakeDamage(float incomingDamage)
@@ -82,6 +87,8 @@ public class Player : MonoBehaviour
                 currentHP -= (mitigatedHP + rawSpilloverHP);
                 Debug.Log("เกราะแตกกระจาย!");
             }
+
+           
         }
         else
         {
@@ -92,12 +99,25 @@ public class Player : MonoBehaviour
         currentMaxHP = Mathf.Clamp(currentMaxHP, 1f, MaxHP);
         currentHP = Mathf.Clamp(currentHP, 0f, currentMaxHP);
 
+        if (DamageScreenUI.Instance != null)
+        {
+            DamageScreenUI.Instance.FlashBlood();
+        }
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayHurtSound();
+        }
+
+
         Debug.Log($"โดนโจมตี! HP เหลือ: {currentHP} | เกราะเหลือ: {currentArmorDurability}");
         if (currentHP <= 0 && !isDead)
         {
             Die();
             Debug.Log("ผู้เล่นเสียชีวิต!");
         }
+
+
     }
 
     public void EquipArmor(Armor_Item newArmor)
