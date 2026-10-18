@@ -69,6 +69,8 @@ public class CameraControl : MonoBehaviour
     {
         // เรียกฟังก์ชันจัดการความสูงของกล้องเล็งตลอดเวลา (แต่จะทำงานจริงจังแค่ตอนกล้องเปิด)
         HandleAimCameraHeight();
+
+        HandleAimMouseInput();
     }
 
     // ฟังก์ชันสำหรับปรับความสูงเฉพาะกล้องเล็ง
@@ -178,5 +180,23 @@ public class CameraControl : MonoBehaviour
             // ใส่ค่ากลับคืนไป
             aimFollow.ShoulderOffset = currentOffset;
         }
+    }
+
+    private void HandleAimMouseInput()
+    {
+        // ถ้ากล้องเล็งไม่ได้เปิดอยู่ ให้ข้ามไปเลย
+        if (aimPanTilt == null || !aimCamera.activeSelf) return;
+
+        // โหลดค่าความเร็วเมาส์ที่ตั้งไว้จาก UI 
+        // คูณ 0.5f เพื่อให้ตอนเล็งหนืดกว่าปกติครึ่งนึง (ถ้าอยากให้เร็วเท่าตอนไม่เล็งเลย ให้ลบ * 0.5f ออกครับ)
+        float aimSensitivity = PlayerPrefs.GetFloat("Saved_MouseSensitivity", 150f) * 0.5f;
+
+        // รับค่าการขยับเมาส์
+        float mouseX = Input.GetAxis("Mouse X");
+        float mouseY = Input.GetAxis("Mouse Y");
+
+        // อัปเดตองศากล้องเล็งด้วยความเร็วที่เราคำนวณไว้ (ใช้ Time.unscaledDeltaTime เพื่อกันบั๊กเมาส์หนืดตอนมีสโลว์โมชั่น)
+        aimPanTilt.PanAxis.Value += mouseX * aimSensitivity * Time.unscaledDeltaTime;
+        aimPanTilt.TiltAxis.Value -= mouseY * aimSensitivity * Time.unscaledDeltaTime;
     }
 }
