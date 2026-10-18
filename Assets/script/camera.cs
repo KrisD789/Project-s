@@ -16,6 +16,8 @@ public class camera : MonoBehaviour
     void Start()
     {
         cam = GetComponent<Camera>();
+
+        mouseSensitivity = PlayerPrefs.GetFloat("Saved_MouseSensitivity", 150f);
     }
 
     // Update is called once per frame
