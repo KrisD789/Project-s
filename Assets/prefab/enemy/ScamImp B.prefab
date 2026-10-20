@@ -413,6 +413,10 @@ PrefabInstance:
       propertyPath: damageMultiplier
       value: 50
       objectReference: {fileID: 0}
+    - target: {fileID: 6365028129150315230, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
+      propertyPath: FriendNeraByMask.m_Bits
+      value: 512
+      objectReference: {fileID: 0}
     - target: {fileID: 7479649690166941636, guid: f7b12b4551976834d8428470286cfb4c, type: 3}
       propertyPath: m_Enabled
       value: 0

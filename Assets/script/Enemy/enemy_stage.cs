@@ -17,8 +17,8 @@ public class enemy_stage : MonoBehaviour
     public bool wasFaint = false;
 
     public float E_runSpeed = 7;
-    public float E_waklSpeed = 3;
-
+    //public float E_Sus_waklSpeed = 2;
+    public float E_waklSpeed = 2;
 
 
     public enum EnemyState

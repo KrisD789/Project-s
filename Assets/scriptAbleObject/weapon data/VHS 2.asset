@@ -19,7 +19,7 @@ MonoBehaviour:
   weaponDamage: 30
   Max_Ammo: 30
   Current_Ammo: 30
-  Max_Reserve_Ammo: 200
+  Max_Reserve_Ammo: 120
   weaponRange: 50
   ReloadTime: 3
   FireRate: 0.1
