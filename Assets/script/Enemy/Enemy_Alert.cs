@@ -28,10 +28,10 @@ public class Enemy_Alert : MonoBehaviour
     public AlertBehave Alert_PreviouslyBehavior;
 
     [Header("Alert Settings")]
-    public static float MaxAlertTimer = 30;
-    public static float AlertTimer = 0;
+    public  float MaxAlertTimer = 20;
+    public  float AlertTimer = 0;
     private bool OnRanDom = false;
-    private static int lastUpdateFrame = -1;
+    private  int lastUpdateFrame = -1;
 
     [Header("SurroundPlayer Settings")]
     public Vector3 surroundTarget;
@@ -122,7 +122,7 @@ public class Enemy_Alert : MonoBehaviour
     {
         //print(player_LightDetect.light_meter);
         //print(timeLostSight);
-        print(AlertTimer);
+        //print(AlertTimer);
         if (agent != null && enemy_script != null)
         {
             if (enemy_script.currentState == enemy_stage.EnemyState.Alert)

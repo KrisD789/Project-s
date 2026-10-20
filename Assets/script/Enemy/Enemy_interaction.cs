@@ -28,10 +28,10 @@ public class EnemyInteraction : MonoBehaviour
 
     private void Update()
     {
-        if (enemy_raycast_script.foundPlayer )
-        {
-            enemy_Alert_Script.Reset_AlerTimer();
-        }
+       // if (enemy_raycast_script.foundPlayer )
+        //{
+            //enemy_Alert_Script.Reset_AlerTimer();
+        //}
     }
 
     private void OnTriggerStay(Collider other)
