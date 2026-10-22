@@ -249,26 +249,14 @@ public class Weapon_system : MonoBehaviour
         LayerMask CombineMask = Target_mask | Obtacle_mask;
 
         // 2. เช็กว่าเป้ากลางจอ เล็งโดนอะไรไหมในระยะปืน
-        if (Physics.Raycast(cameraRay, out RaycastHit cameraHit, currentWeapon.weaponRange, CombineMask))
+        if (Physics.Raycast(cameraRay, out RaycastHit cameraHit, currentWeapon.weaponRange, CombineMask, QueryTriggerInteraction.Ignore))
         {
-            // ถ้าเป้าเล็งโดนอะไรบางอย่าง
             Debug.Log($"ยิงโดน: {cameraHit.collider.name}");
 
-            // วาดเส้น Debug จากปลายปืน ไปหาจุดที่กล้องเล็งโดน (เพื่อความสวยงามเวลามอง)
             if (currentFirePoint != null)
-            {
                 Debug.DrawLine(currentFirePoint.position, cameraHit.point, Color.red, 2f);
-            }
 
-            // ทำดาเมจถ้าจุดที่เป้าเล็งชี้ไป เป็นศัตรู
-            if (cameraHit.collider.TryGetComponent<Enemy_Hitbox>(out Enemy_Hitbox enemyHitbox))
-            {
-                DoDamage(cameraHit);
-            }
-            else if (cameraHit.collider.TryGetComponent<Enemy>(out Enemy targetEnemy))
-            {
-                DoDamage(cameraHit); // รองรับศัตรูแบบไม่มี Hitbox
-            }
+            DoDamage(cameraHit); // เรียก DoDamage เลย แล้วไปกรองข้างในแทน
         }
         else
         {
@@ -324,23 +312,22 @@ public class Weapon_system : MonoBehaviour
 
     public void DoDamage(RaycastHit targetHit)
     {
-        if (AudioManager.Instance != null)
-        {
-           AudioManager.Instance.PlayHitSound();
-        }
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayHitSound();
 
-        // 1. เช็กก่อนว่ากระสุนชนกล่อง Hitbox (หัว/ตัว) ที่เราแยกชิ้นไว้หรือเปล่า
+        // 1. ลองหา Hitbox แยกชิ้นก่อน (หัว/ตัว)
         if (targetHit.collider.TryGetComponent<Enemy_Hitbox>(out Enemy_Hitbox hitbox))
         {
-            // ถ้าโดน ให้ส่งดาเมจของปืนกระบอกนี้ไปให้กล่อง Hitbox จัดการคูณดาเมจ
-            Debug.Log("ให้ส่งดาเมจของปืนกระบอกนี้ไปให้กล่อง Hitbox จัดการคูณดาเมจ");
             hitbox.OnHit(currentWeapon.weaponDamage);
         }
-        // 2. ถ้าไม่มี Hitbox (เผื่อยิงโดนศัตรูตัวเก่าๆ ที่ยังไม่ได้ใส่ Hitbox แยกชิ้น) ให้ทำดาเมจปกติ
-        else if (targetHit.collider.TryGetComponent<Enemy>(out Enemy TargetEnemy))
+        // 2. ถ้าชิ้นส่วนนั้นไม่มี Hitbox ให้ใช้ GetComponentInParent เพื่อวิ่งขึ้นไปหาสคริปต์ Enemy ที่ตัว Parent แทน
+        else
         {
-            Debug.Log("หา HitBoxไม่เจอทำDamageแบบปกติ");
-            TargetEnemy.TakeDamage(currentWeapon.weaponDamage);
+            Enemy targetEnemy = targetHit.collider.GetComponentInParent<Enemy>();
+            if (targetEnemy != null)
+            {
+                Debug.Log("โดนชิ้นส่วนที่ไม่มี Hitbox! ส่งดาเมจเข้าตัวหลักโดยตรง");
+                targetEnemy.TakeDamage(currentWeapon.weaponDamage);
+            }
         }
     }
 

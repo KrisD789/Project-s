@@ -283,6 +283,10 @@ public class enemy_stage : MonoBehaviour
             agent.isStopped = false;
             agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
         }
+
+        // เพิ่มบรรทัดนี้ เพื่อเปิดกล่องรับดาเมจกลับมาทำงานตอนศัตรูฟื้น
+        EnableAllHitboxes();
+
         Debug.Log("AI: ฟื้นแล้ว! กลับไปทำงานต่อ");
     }
 
@@ -368,6 +372,18 @@ public class enemy_stage : MonoBehaviour
                     oldMats[i] = normalMaterial;
                 }
                 renderer.materials = oldMats;
+            }
+        }
+    }
+
+    public void EnableAllHitboxes()
+    {
+        Enemy_Hitbox[] allHitboxes = GetComponentsInChildren<Enemy_Hitbox>(true); // true หมายถึงค้นหาแม้กระทั่งตัวที่ถูกปิดไปแล้ว
+        foreach (var hitbox in allHitboxes)
+        {
+            if (hitbox.TryGetComponent<Collider>(out Collider col))
+            {
+                col.enabled = true;
             }
         }
     }
