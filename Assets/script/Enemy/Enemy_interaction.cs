@@ -178,7 +178,8 @@ public class EnemyInteraction : MonoBehaviour
         if (col.CompareTag("enemy") && col.gameObject != this.gameObject)
         {
             // ถ้ากำลัง Alert อยู่ ให้เมินศพหรือเพื่อนที่สลบไปเลย ไม่ต้องสนใจ!
-            if (enemy_main.currentState == enemy_stage.EnemyState.Alert)
+            if (enemy_main.currentState == enemy_stage.EnemyState.Alert ||
+                enemy_main.currentState == enemy_stage.EnemyState.alertSearching)
             {
                 return; // ตัดจบฟังก์ชัน ศัตรูจะเดินข้ามเพื่อนไปสู้ต่อ
             }
